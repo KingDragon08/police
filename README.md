@@ -1,2 +1,2 @@
 # police
-nodeJS platform
+nodeJS RESTFUL
