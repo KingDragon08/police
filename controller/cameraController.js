@@ -11,6 +11,7 @@ var User = require("./userController");
 //     `cam_loc_lan` varchar(32) comment '设备维度',
 //     `cam_desc` varchar(32) comment '设备描述',
 //     `cam_sta` tinyint(2) unsigned not null default '0' comment '设备状态',
+//     `is_del` tinyint(2) unsigned not null default '0' comment '是否删除',
 //     `addtime` varchar(32) comment '创建时间',
 //     `uptime` varchar(32) comment '更新时间',
 //     primary key (`cam_id`)
@@ -40,7 +41,6 @@ function addCamera(req,res){
 
                 var cam_no = query.cam_no;
                 if (check.isNull(cam_no)) {
-                    console.log(check.isNull(cam_no));
                     res.json({"code": 401, "data":{"status":"fail","error":"camera no is null"}});
                     return ;
                 }
@@ -106,32 +106,52 @@ function addCamera(req,res){
 function delCamera(req,res){
 	var query = req.body;
 	try{
-        var cam_id = query.cam_id;
 
-        var sql = "select count(*) as total from camera where cam_no = ? and cam_id = ?";
-        var dataArr = [cam_no, cam_id];
+        var mobile = query.mobile;
+        var token = query.token;
 
-        db.query(sql, dataArr, function(err,rows){
-               if(err){
-                   res.json({"code": 500, "data":{"status":"fail","error":err.message}});
-               }else {
-                   if(rows[0].total > 0 ){
-                       sql = "delete from camera where cam_id = ? and cam_no = ?";
-                       dataArr = [cam_id, cam_no];
-                       db.query(sql, dataArr, function(err,rows){
-                              if(err){
-                                  res.json({"code": 500, "data":{"status":"fail","error":err.message}});
-                              }else {
-                                  res.json({"code": 200, "data":{"status":"success","error":"success"}});
-                              }
-                          });
+        User.getUserInfo(mobile, token, function(user){
+            if (user.error == 0) {
+                user_info = user.data;
 
-                   }
-                   else {
-                       res.json({"code": 400, "data":{"status":"fail","error":"camera not exist"}});
-                   }
-               }
-           });
+                var cam_id = query.cam_id;
+                if (check.isNull(cam_id)) {
+                    res.json({"code": 401, "data":{"status":"fail","error":"cam_id is null"}});
+                    return ;
+                }
+
+                var sql = "select count(*) as total from camera where cam_id = ? and is_del = 0";
+                var dataArr = [cam_id];
+
+                db.query(sql, dataArr, function(err,rows){
+                       if(err){
+                           res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                       }else {
+                           if(rows[0].total > 0 ){
+                               var curtime = new Date().getTime();
+
+                               sql = "update camera set is_del = 1, uptime = ? where cam_id = ?";
+                               dataArr = [curtime, cam_id];
+
+                               db.query(sql, dataArr, function(err,rows){
+                                      if(err){
+                                          res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                                      }else {
+                                          res.json({"code": 200, "data":{"status":"success","error":"success"}});
+                                      }
+                                  });
+                           }
+                           else {
+                               res.json({"code": 404, "data":{"status":"fail","error":"camera not exist"}});
+                           }
+                       }
+                   });
+            }
+            else {
+                res.json({"code": 301, "data":{"status":"fail","error":"user not login"}});
+                return ;
+            }
+        });
 	} catch(e) {
 		res.json({"code": 500, "data":{"status":"fail","error":e.message}});
 	}
@@ -141,38 +161,99 @@ function delCamera(req,res){
 function editCamera(req,res){
 	var query = req.body;
 	try{
-        var cam_id = query.cam_id;
-        var cam_no = query.cam_no;
+        var mobile = query.mobile;
+        var token = query.token;
 
-        var cam_sta = query.cam_sta;
+        User.getUserInfo(mobile, token, function(user){
+            if (user.error == 0) {
+                user_info = user.data;
+            }
 
-        var sql = "select count(*) as total from camera where cam_id = ? and cam_no = ?";
-        var dataArr = [cam_id, cam_no];
+            var cam_id = query.cam_id;
+            if (check.isNull(cam_id)) {
+                res.json({"code": 401, "data":{"status":"fail","error":"cam_id is null"}});
+                return ;
+            }
 
-        db.query(sql, dataArr, function(err,rows){
-               if(err){
-                   res.json({"code": 500, "data":{"status":"fail","error":err.message}});
-               }else {
-                   if(rows[0].total > 0 ){
-                       sql = "update camera cam_sta = ?";
-                       sql += "where cam_id = ? and cam_no = ?";
+            var sql = "select count(*) as total from camera where cam_id = ?";
+            var dataArr = [cam_id];
 
-                       dataArr = [cam_sta, cam_id, cam_no];
+            db.query(sql, dataArr, function(err,rows){
+                   if(err){
+                       res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                   }else {
+                       if(rows[0].total > 0 ){
+                           var editType = query.editType || '';
 
-                       db.query(sql, dataArr, function(err,rows){
-                              if(err){
-                                  res.json({"code": 500, "data":{"status":"fail","error":err.message}});
-                              }else {
-                                  res.json({"code": 200, "data":{"status":"success","error":"success"}});
-                              }
-                          });
+                           switch (editType) {
+                               case 'status':
+                                    // 更新设备状态
+                                    var cam_sta = query.cam_sta || 0;
 
+                                    sql = "update camera set cam_sta = ?, uptime = ? ";
+                                    sql += "where cam_id = ?";
+
+                                    dataArr = [cam_sta, curtime, cam_id];
+
+                                    break;
+
+                                case 'all':
+                                    // 更新设备全部信息
+                                   var cam_no = query.cam_no;
+                                   if (check.isNull(cam_no)) {
+                                       res.json({"code": 401, "data":{"status":"fail","error":"camera no is null"}});
+                                       return ;
+                                   }
+
+                                   var cam_loc_lon = query.cam_loc_lon;
+                                   if (check.isNull(cam_loc_lon)) {
+                                       res.json({"code": 401, "data":{"status":"fail","error":"cam_loc_lon is null"}});
+                                       return ;
+                                   }
+
+                                   var cam_loc_lan = query.cam_loc_lan;
+                                   if (check.isNull(cam_loc_lan)) {
+                                       res.json({"code": 401, "data":{"status":"fail","error":"cam_loc_lan is null"}});
+                                       return ;
+                                   }
+
+                                   var cam_name = query.cam_name || '';
+                                   var cam_sta = query.cam_sta || 0;
+                                   var cam_desc = query.cam_desc || '';
+
+                                   var curtime = new Date().getTime();
+
+                                   sql = "update camera set cam_no = ?, cam_name = ?, cam_loc_lan = ?, cam_loc_lon = ?,";
+                                   sql += "cam_sta = ?, cam_desc = ?, uptime = ? ";
+                                   sql += "where cam_id = ?";
+
+                                   dataArr = [cam_no, cam_name, cam_loc_lan, cam_loc_lon, cam_sta, cam_desc, curtime, cam_id];
+
+                                   break;
+
+                               default:
+                                   res.json({"code": 403, "data":{"status":"fail","error":"editType is illegal"}});
+                                   return;
+                           }
+
+                           db.query(sql, dataArr, function(err,rows){
+                                  if(err){
+                                      res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                                  }else {
+                                      res.json({"code": 200, "data":{"status":"success","error":"success"}});
+                                  }
+                              });
+
+                       }
+                       else {
+                           res.json({"code": 404, "data":{"status":"fail","error":"camera not exist"}});
+                       }
                    }
-                   else {
-                       res.json({"code": 400, "data":{"status":"fail","error":"camera not exist"}});
-                   }
-               }
-           });
+               });
+        });
+
+
+
 	} catch(e) {
 		res.json({"code": 500, "data":{"status":"fail","error":e.message}});
 	}
@@ -181,4 +262,5 @@ function editCamera(req,res){
 
 exports.getParams = getParams;
 exports.addCamera = addCamera;
+exports.delCamera = delCamera;
 exports.editCamera = editCamera;
