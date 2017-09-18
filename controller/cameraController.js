@@ -65,29 +65,44 @@ function addCamera(req,res){
                 var curtime = new Date().getTime();
 
                 // var sql = "select count(*) as total from camera where cam_no = '" + cam_no +"'";
-                var sql = "select count(*) as total from camera where cam_no = ?";
+                var sql = "select * from camera where cam_no = ?";
 
                 db.query(sql, [cam_no], function(err,rows){
                        if(err){
                            res.json({"code": 501, "data":{"status":"fail","error":err.message}});
                        }else {
-                           if(rows[0].total > 0 ){
-                               res.json({"code": 402, "data":{"status":"fail","error":"camera exist"}});
+                           if(rows.length > 0 ){
+                               is_del = rows[0].is_del || 0;
+                               if (1 == is_del) {
+                                  var cam_id = rows[0].cam_id;
+
+                                  sql = "update camera set cam_no = ?, cam_name = ?, cam_loc_lan = ?, cam_loc_lon = ?,";
+                                  sql += "cam_sta = ?, cam_desc = ?, uptime = ? ";
+                                  sql += "where cam_id = ?";
+
+                                  dataArr = [cam_no, cam_name, cam_loc_lan, cam_loc_lon, cam_sta, cam_desc, curtime, cam_id];
+                               }
+                               else {
+                                   res.json({"code": 402, "data":{"status":"fail","error":"camera exist"}});
+                                   return ;
+                               }
                            }
                            else {
                                sql = "insert into camera (cam_no, cam_name, cam_loc_lan, cam_loc_lon,cam_sta, cam_desc, user_id, addtime, uptime) ";
                                sql += "values(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                                var dataArr = [cam_no, cam_name, cam_loc_lan, cam_loc_lon, cam_sta, cam_desc, user_id, curtime, curtime];
-
-                               db.query(sql, dataArr, function(err,rows){
-                                      if(err){
-                                          res.json({"code": 501, "data":{"status":"fail","error":err.message}});
-                                      }else {
-                                          res.json({"code": 200, "data":{"status":"success","error":"success", "cam_id": rows.insertId}});
-                                      }
-                                  });
                            }
+
+                           db.query(sql, dataArr, function(err,rows){
+                                  if(err){
+                                      res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                                  }else {
+                                      cam_id = check.isNull(cam_id)? rows.insertId:cam_id;
+                                      res.json({"code": 200, "data":{"status":"success","error":"success", "cam_id": cam_id}});
+                                  }
+                              });
+
                        }
                    });
             }
