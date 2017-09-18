@@ -129,7 +129,7 @@ function loginWithToken(req,res){
 											"lastLoginIP=? where Id=?",
 											[token,timestamp,IP,result[0]["Id"]],
 											function(err,result){
-												console.log("login and update success");
+												console.log("loginWithToken and update success");
 											});
 							});
 			} else {
