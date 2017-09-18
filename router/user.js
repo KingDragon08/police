@@ -29,5 +29,12 @@ server.post("/user/logout",function(req,res,next){
 	return next();
 });
 
+//分页获取用户
+server.post("/user/getUsers",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.getUsers(req,res);
+	return next();
+});
+
 
 module.exports = server;

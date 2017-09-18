@@ -167,21 +167,58 @@ function logout(req,res){
 	}
 }
 
-//分页获取账号
+//分页获取用户信息
 function getUsers(req,res){
 	var query = req.body;
 	try{
-
+		var page = query.page || 1;
+		var mobile = query.mobile;
+		var token = query.token;
+		var pageSize = query.pageSize || 20;
+		checkMobile2Token(mobile,token,function(result){
+			if(result){
+				var start = (page-1)*pageSize;
+				conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP "+
+							"from user order by Id desc limit ?,?",
+							[start,pageSize],
+							function(err,data){
+								ret = {};
+								ret["status"] = "success";
+								ret["data"] = data;
+								res.json({"code":200,"data":ret});
+							});
+			} else {
+				res.json({"code": 300, "data":{"status":"fail","error":"mobile not match token"}});
+			}
+		});
 	} catch(e) {
 		res.json({"code": 300, "data":{"status":"fail","error":"unkown error"}});	
 	}
 }
 
 
-
 /**********
 ****公用部分******
 ************/
+
+//获取单个用户信息
+function getUserInfo(mobile,token,callback){
+	try{
+		checkMobile2Token(mobile,token,function(result){
+			if(result){
+				conn.query("select * from user where mobile=?",
+							[mobile],
+							function(err,res){
+								callback(res);
+							});
+			} else {
+				callback({"error":"mobile not match token"});
+			}
+		});
+	} catch(e) {
+		console.log(e);
+	}
+}
 
 //验证账号和密码是否匹配
 function checkMobile2Password(mobile,password,callback){
@@ -214,3 +251,7 @@ exports.register = register;
 exports.login = login;
 exports.loginWithToken = loginWithToken;
 exports.logout = logout;
+exports.checkMobile2Password = checkMobile2Password;
+exports.checkMobile2Token = checkMobile2Token;
+exports.getUserInfo = getUserInfo;
+exports.getUsers = getUsers;
