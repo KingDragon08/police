@@ -53,7 +53,7 @@ function register(req,res){
 						});
 					}
 			});
-			
+
 		}
 	} catch(e) {
 		console.log(e);
@@ -104,7 +104,7 @@ function login(req,res){
 	} catch(e) {
 		res.json({"code": 300, "data":{"status":"fail","error":"unknown error"}});
 	}
-	
+
 }
 
 //使用token登录
@@ -214,7 +214,3 @@ exports.register = register;
 exports.login = login;
 exports.loginWithToken = loginWithToken;
 exports.logout = logout;
-
-
-
-
