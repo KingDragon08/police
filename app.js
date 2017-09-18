@@ -11,6 +11,7 @@ server.use(restify.plugins.bodyParser({ mapParams: true }));
 global.server = server;
 
 require('./router/demo');
+require('./router/user');
 
 server.listen(8080, function() {
   console.log('%s listening at %s', server.name, server.url);
