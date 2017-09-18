@@ -2,7 +2,12 @@ var server = global.server
 var camera = require('../controller/cameraController')
 
 // 测试参数
-server.get("/camera/getParams",function(req,res,next){
+// server.get("/camera/getParams",function(req,res,next){
+// 	res.setHeader("Access-Control-Allow-Origin","*");
+// 	camera.getParams(req,res);
+// 	return next();
+// });
+server.post("/camera/getParams",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
 	camera.getParams(req,res);
 	return next();
@@ -22,17 +27,10 @@ server.post("/camera/del",function(req,res,next){
 	return next();
 });
 
-//使用token登录
-server.post("/user/loginWithToken",function(req,res,next){
+// 编辑摄像头信息
+server.post("/camera/edit",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
-	User.loginWithToken(req,res);
-	return next();
-});
-
-//退出登录
-server.post("/user/logout",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	User.logout(req,res);
+	camera.editCamera(req,res);
 	return next();
 });
 
