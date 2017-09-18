@@ -209,7 +209,10 @@ function getUserInfo(mobile,token,callback){
 				conn.query("select * from user where mobile=?",
 							[mobile],
 							function(err,res){
-								callback(res);
+								ret = {};
+								ret["error"] = 0;
+								ret["data"] = res[0];
+								callback(ret);
 							});
 			} else {
 				callback({"error":"mobile not match token"});
