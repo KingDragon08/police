@@ -36,5 +36,25 @@ server.post("/user/getUsers",function(req,res,next){
 	return next();
 });
 
+//获取单个用户信息
+server.post("/user/getSingleUserInfo",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.getSingleUserInfo(req,res);
+	return next();
+});
+
+//根据手机号码获取单个用户信息
+server.post("/user/getSingleUserInfoByMobile",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.getSingleUserInfoByMobile(req,res);
+	return next();
+});
+
+//根据用户名模糊查询用户信息
+server.post("/user/getUsersByKeyword",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.getUsersByKeyword(req,res);
+	return next();
+});
 
 module.exports = server;

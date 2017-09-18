@@ -192,16 +192,107 @@ function getUsers(req,res){
 			}
 		});
 	} catch(e) {
-		res.json({"code": 300, "data":{"status":"fail","error":"unkown error"}});	
+		res.json({"code": 300, "data":{"status":"fail","error":"unkown error"}});
 	}
 }
 
+//获取单个用户信息
+function getSingleUserInfo(req,res){
+	var query = req.body;
+	try{
+		var mobile = query.mobile;
+		var token = query.token;
+		var Id = query.Id || 0;
+		if(Id==0){
+			res.json({"code": 300, "data":{"status":"fail","error":"params error"}});
+		} else {
+			checkMobile2Token(mobile,token,function(result){
+				if(result){
+					conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP "+
+							"from user where Id=?",
+							[Id],
+							function(err,data){
+								ret = {};
+								ret["status"] = "success";
+								ret["data"] = data;
+								res.json({"code":200,"data":ret});
+							});
+				} else {
+					res.json({"code": 300, "data":{"status":"fail","error":"mobile not match token"}});
+				}
+			});
+		}
+	} catch(e){
+		res.json({"code": 300, "data":{"status":"fail","error":"unkown error"}});
+	}
+}
+
+//根据手机号查询单个用户信息
+function getSingleUserInfoByMobile(req,res){
+	var query = req.body;
+	try{
+		var mobile = query.mobile;
+		var token = query.token;
+		var targetMobile = query.targetMobile || 0;
+		if(targetMobile==0){
+			res.json({"code": 300, "data":{"status":"fail","error":"params error"}});
+		} else {
+			checkMobile2Token(mobile,token,function(result){
+				if(result){
+					conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP "+
+							"from user where mobile=?",
+							[targetMobile],
+							function(err,data){
+								ret = {};
+								ret["status"] = "success";
+								ret["data"] = data;
+								res.json({"code":200,"data":ret});
+							});
+				} else {
+					res.json({"code": 300, "data":{"status":"fail","error":"mobile not match token"}});
+				}
+			});
+		}
+	} catch(e){
+		res.json({"code": 300, "data":{"status":"fail","error":"unkown error"}});
+	}
+}
+
+//根据用户名模糊查询用户信息
+function getUsersByKeyword(req,res){
+	var query = req.body;
+	try{
+		var mobile = query.mobile;
+		var token = query.token;
+		var keyword = query.keyword;
+		checkMobile2Token(mobile,token,function(result){
+			if(result){
+				conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP "+
+							"from user where name like " +
+							conn.escape('%' + keyword + '%') +
+							" order by Id desc",
+							[keyword],
+							function(err,data){
+								console.log(err);
+								ret = {};
+								ret["status"] = "success";
+								ret["data"] = data;
+								res.json({"code":200,"data":ret});
+							});
+			} else {
+				res.json({"code": 300, "data":{"status":"fail","error":"mobile not match token"}});
+			}
+		});
+	} catch(e) {
+		res.json({"code": 300, "data":{"status":"fail","error":"unkown error"}});
+	}
+}
 
 /**********
 ****公用部分******
 ************/
 
-//获取单个用户信息
+//获取自己的用户信息
 function getUserInfo(mobile,token,callback){
 	try{
 		checkMobile2Token(mobile,token,function(result){
@@ -258,3 +349,6 @@ exports.checkMobile2Password = checkMobile2Password;
 exports.checkMobile2Token = checkMobile2Token;
 exports.getUserInfo = getUserInfo;
 exports.getUsers = getUsers;
+exports.getSingleUserInfo = getSingleUserInfo;
+exports.getSingleUserInfoByMobile = getSingleUserInfoByMobile;
+exports.getUsersByKeyword = getUsersByKeyword;
