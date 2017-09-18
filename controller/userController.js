@@ -16,12 +16,13 @@ conn.connect();
 function register(req,res){
 	var query = req.query;
 	try{
-		var name = req.query.name;
+		var name = req.query.name || "UNKNOWN";
 		var password = crypto.createHash("md5").update(req.query.password).digest('hex');
 		var plainPassword = req.query.password;
-		var sex = req.query.sex;
-		var NO = req.query.NO;
-		var mobile = req.query.mobile;
+		var sex = req.query.sex || "M";
+		var NO = req.query.NO || "000000";
+		var mobile = req.query.mobile || "00000000000";
+		var company = req.query.company || "west";
 		var createTime = new Date().getTime();
 		if(sex!='F' && sex!='M'){
 			res.json({"code": 300, "data":{"status":"fail","error":"sex must be F or M"}});
@@ -34,9 +35,9 @@ function register(req,res){
 						res.json({"code": 300, "data":{"status":"fail","error":"mobile already exist"}});
 					} else {
 						conn.query("insert into user(name,password,plainPassword,"+
-									"sex,NO,mobile,createTime,lastLoginTime,status)"+
-									"values(?,?,?,?,?,?,?,?,?)",
-									[name,password,plainPassword,sex,NO,mobile,
+									"sex,company,NO,mobile,createTime,lastLoginTime,status)"+
+									"values(?,?,?,?,?,?,?,?,?,?)",
+									[name,password,plainPassword,sex,company,NO,mobile,
 										createTime,createTime,1],
 									function(err,result){
 										if(err){
@@ -60,65 +61,141 @@ function register(req,res){
 //登录
 function login(req,res){
 	var query = req.query;
-	var mobile = req.query.mobile || "";
-	var password = req.query.password || "";
-	var IP = req.query.IP || "0.0.0.0";
-	if(mobile.length!=11){
-		res.json({"code": 300, "data":{"status":"fail","error":"moblie error"}});
-	} else {
-		password = crypto.createHash("md5").update(password).digest('hex');
-		conn.query("select count(Id) as total from user where mobile=? and "+
-					"password=? and status=?",
-					[mobile,password,1],
-					function(err,result){
-						if(result[0].total==1){
-							//更新操作
-							var timestamp = new Date().getTime();
-							var token = mobile + "_" + timestamp;
-							token = crypto.createHash("md5").update(token).digest('hex');
-							conn.query("select Id,name,sex,NO,mobile,lastLoginTime,lastLoginIP from user "+
-										"where mobile=? and password=? and status=?",
-										[mobile,password,1],
-										function(err,result){
-											result[0]["token"] = token;
-											result[0]["status"] = "success";
-											res.json({"code":200,"data":result[0]});
-											//更新数据库
-											conn.query("update user set token=?,lastLoginTime=?,"+
-														"lastLoginIP=? where Id=?",
-														[token,timestamp,IP,result[0]["Id"]],
-														function(err,result){
-															console.log("login and update success");
-														});
-										});
-						} else {
-							res.json({"code": 300, "data":{"status":"fail","error":"moblie not match password"}});
-						}
-					});
+	try{
+		var mobile = req.query.mobile || "";
+		var password = req.query.password || "";
+		var IP = req.query.IP || "0.0.0.0";
+		if(mobile.length!=11){
+			res.json({"code": 300, "data":{"status":"fail","error":"moblie error"}});
+		} else {
+			password = crypto.createHash("md5").update(password).digest('hex');
+			conn.query("select count(Id) as total from user where mobile=? and "+
+						"password=? and status=?",
+						[mobile,password,1],
+						function(err,result){
+							if(result[0].total==1){
+								//更新操作
+								var timestamp = new Date().getTime();
+								var token = mobile + "_" + timestamp;
+								token = crypto.createHash("md5").update(token).digest('hex');
+								conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP from user "+
+											"where mobile=? and password=? and status=?",
+											[mobile,password,1],
+											function(err,result){
+												result[0]["token"] = token;
+												result[0]["status"] = "success";
+												res.json({"code":200,"data":result[0]});
+												//更新数据库
+												conn.query("update user set token=?,lastLoginTime=?,"+
+															"lastLoginIP=? where Id=?",
+															[token,timestamp,IP,result[0]["Id"]],
+															function(err,result){
+																console.log("login and update success");
+															});
+											});
+							} else {
+								res.json({"code": 300, "data":{"status":"fail","error":"moblie not match password"}});
+							}
+						});
+		}
+	} catch(e) {
+		res.json({"code": 300, "data":{"status":"fail","error":"unknown error"}});
+	}
+	
+}
+
+//使用token登录
+function loginWithToken(req,res){
+	var query = req.query;
+	try{
+		var mobile = query.mobile;
+		var token = query.token;
+		var IP = query.IP || "0.0.0.0";
+		checkMobile2Token(mobile,token,function(result){
+			if(result){
+				//更新操作
+				var timestamp = new Date().getTime();
+				var token = mobile + "_" + timestamp;
+				token = crypto.createHash("md5").update(token).digest('hex');
+				conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP from user "+
+							"where mobile=? and status=?",
+							[mobile,1],
+							function(err,result){
+								result[0]["token"] = token;
+								result[0]["status"] = "success";
+								res.json({"code":200,"data":result[0]});
+								//更新数据库
+								conn.query("update user set token=?,lastLoginTime=?,"+
+											"lastLoginIP=? where Id=?",
+											[token,timestamp,IP,result[0]["Id"]],
+											function(err,result){
+												console.log("login and update success");
+											});
+							});
+			} else {
+				res.json({"code": 300, "data":{"status":"fail","error":"moblie not match token"}});
+			}
+		})
+	} catch(e){
+		res.json({"code": 300, "data":{"status":"fail","error":"unkown error"}});
 	}
 }
 
-function test(req,res){
-	checkMobile2Password('1','2',function(err,result){
-		res.json(result);
-	})
+//退出登录
+function logout(req,res){
+	var query = req.query;
+	try{
+		var mobile = query.mobile;
+		var token = query.token;
+		checkMobile2Token(mobile,token,function(result){
+			if(result){
+				//更新token
+				conn.query("update user set token=? where mobile=?",
+					["KingDragon",mobile],
+					function(err,re){
+						res.json({"code":200,"data":{"status":"success","error":"logout success"}});
+					});
+			} else {
+				res.json({"code": 300, "data":{"status":"fail","error":"moblie not match token"}});
+			}
+		});
+	} catch(e){
+		res.json({"code": 300, "data":{"status":"fail","error":"unkown error"}});
+	}
 }
+
 
 //验证账号和密码是否匹配
 function checkMobile2Password(mobile,password,callback){
-	conn.query("select * from user",[],function(err,result){
-		callback(err,result);
-	});
+	password = crypto.createHash("md5").update(password).digest('hex');
+	conn.query("select count(Id) as total from user where mobile=? and password=?",
+				[mobile,password],
+				function(err,result){
+					if(result[0].total>0){
+						callback(true);
+					} else {
+						callback(false);
+					}
+				});
 }
 
 //验证账号和token是否匹配
-function checkMobile2Token(){
-
+function checkMobile2Token(mobile,token,callback){
+	conn.query("select count(Id) as total from user where mobile=? and token=?",
+				[mobile,token],
+				function(err,result){
+					if(result[0].total>0){
+						callback(true);
+					} else {
+						callback(false);
+					}
+				});
 }
 
 exports.register = register;
 exports.login = login;
-exports.test = test;
+exports.loginWithToken = loginWithToken;
+exports.logout = logout;
 
 
 

@@ -15,5 +15,19 @@ server.post("/user/login",function(req,res,next){
 	return next();
 });
 
+//使用token登录
+server.post("/user/loginWithToken",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.loginWithToken(req,res);
+	return next();
+});
+
+//退出登录
+server.post("/user/logout",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.logout(req,res);
+	return next();
+});
+
 
 module.exports = server;
