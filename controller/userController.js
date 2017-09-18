@@ -14,15 +14,15 @@ conn.connect();
 
 //注册新账号
 function register(req,res){
-	var query = req.query;
+	var query = req.body;
 	try{
-		var name = req.query.name || "UNKNOWN";
-		var password = crypto.createHash("md5").update(req.query.password).digest('hex');
-		var plainPassword = req.query.password;
-		var sex = req.query.sex || "M";
-		var NO = req.query.NO || "000000";
-		var mobile = req.query.mobile || "00000000000";
-		var company = req.query.company || "west";
+		var name = query.name || "UNKNOWN";
+		var password = crypto.createHash("md5").update(query.password).digest('hex');
+		var plainPassword = query.password;
+		var sex = query.sex || "M";
+		var NO = query.NO || "000000";
+		var mobile = query.mobile || "00000000000";
+		var company = query.company || "west";
 		var createTime = new Date().getTime();
 		if(sex!='F' && sex!='M'){
 			res.json({"code": 300, "data":{"status":"fail","error":"sex must be F or M"}});
@@ -31,6 +31,8 @@ function register(req,res){
 			//查看是否已经注册
 			conn.query("select count(Id) as total from user where mobile=?",[mobile],
 				function(err,result){
+					console.log(err);
+					console.log(result);
 					if(result[0].total>0){
 						res.json({"code": 300, "data":{"status":"fail","error":"mobile already exist"}});
 					} else {
@@ -54,17 +56,18 @@ function register(req,res){
 			
 		}
 	} catch(e) {
+		console.log(e);
 		res.json({"code": 300, "data":{"status":"fail","error":"register error"}});
 	}
 }
 
 //登录
 function login(req,res){
-	var query = req.query;
+	var query = req.body;
 	try{
-		var mobile = req.query.mobile || "";
-		var password = req.query.password || "";
-		var IP = req.query.IP || "0.0.0.0";
+		var mobile = query.mobile || "";
+		var password = query.password || "";
+		var IP = query.IP || "0.0.0.0";
 		if(mobile.length!=11){
 			res.json({"code": 300, "data":{"status":"fail","error":"moblie error"}});
 		} else {
@@ -106,7 +109,7 @@ function login(req,res){
 
 //使用token登录
 function loginWithToken(req,res){
-	var query = req.query;
+	var query = req.body;
 	try{
 		var mobile = query.mobile;
 		var token = query.token;
@@ -143,7 +146,7 @@ function loginWithToken(req,res){
 
 //退出登录
 function logout(req,res){
-	var query = req.query;
+	var query = req.body;
 	try{
 		var mobile = query.mobile;
 		var token = query.token;
@@ -164,6 +167,21 @@ function logout(req,res){
 	}
 }
 
+//分页获取账号
+function getUsers(req,res){
+	var query = req.body;
+	try{
+
+	} catch(e) {
+		res.json({"code": 300, "data":{"status":"fail","error":"unkown error"}});	
+	}
+}
+
+
+
+/**********
+****公用部分******
+************/
 
 //验证账号和密码是否匹配
 function checkMobile2Password(mobile,password,callback){
