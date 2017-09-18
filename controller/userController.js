@@ -177,6 +177,9 @@ function getUsers(req,res){
 		var pageSize = query.pageSize || 20;
 		checkMobile2Token(mobile,token,function(result){
 			if(result){
+				if(page<1){
+					page = 1;
+				}
 				var start = (page-1)*pageSize;
 				conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP "+
 							"from user order by Id desc limit ?,?",
