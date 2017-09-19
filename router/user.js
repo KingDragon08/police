@@ -57,4 +57,25 @@ server.post("/user/getUsersByKeyword",function(req,res,next){
 	return next();
 });
 
+//添加app用户
+server.post("/user/addMobileUser",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.addMobileUser(req,res);
+	return next();
+});
+
+//删除app用户
+server.post("/user/delMobileUser",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.delMobileUser(req,res);
+	return next();
+});
+
+//分页获取app用户
+server.post("/user/getMobileUsers",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.getMobileUsers(req,res);
+	return next();
+});
+
 module.exports = server;

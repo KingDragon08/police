@@ -161,6 +161,35 @@ function updatePoint(req,res){
 	}
 }
 
+//关键字模糊搜索兴趣点
+function searchPoint(req,res){
+	var query = req.body;
+	try{
+		check(query,res,function(){
+			var keyword = query.keyword;
+			conn.query("select Id,name,longitude,latitude,`desc` "+
+							"from interestPoint where name like " +
+							conn.escape('%' + keyword + '%') +
+							" order by Id desc",
+							[keyword],
+							function(err,data){
+								if(err){
+									console.log(err);
+									errorHandler(res,"unknown error");
+								} else {
+									ret = {};
+									ret["status"] = "success";
+									ret["data"] = data;
+									res.json({"code":200,"data":ret});
+								}
+							});
+		});
+	} catch(e) {
+		console.log(e);
+		errorHandler(res,"unknown error");
+	}
+}
+
 /***************************
 ************公用部分**********
 ****************************/
@@ -168,10 +197,23 @@ function errorHandler(res,desc){
 	res.json({"code": 300, "data":{"status":"fail","error":desc}});
 }
 
+function check(query,res,callback){
+	var mobile = query.mobile;
+	var token = query.token;
+	User.checkMobile2Token(mobile,token,function(result){
+		if(result){
+			callback();
+		} else {
+			errorHandler(res,"mobile not match token");
+		}
+	});
+}
+
 
 exports.addPoint = addPoint;
 exports.delPoint = delPoint;
 exports.getPoint = getPoint;
 exports.updatePoint = updatePoint;
+exports.searchPoint = searchPoint;
 
 

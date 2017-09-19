@@ -7,13 +7,6 @@ var server = restify.createServer({
 });
 server.use(restify.plugins.queryParser());  
 server.use(restify.plugins.bodyParser());
-// server.use(
-//   function crossOrigin(req,res,next){
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Headers", "X-Requested-With");
-//     return next();
-//   }
-// );
 
 global.server = server;
 
@@ -21,6 +14,7 @@ require('./router/demo');
 require('./router/user');
 require('./router/camera');
 require('./router/map');
+require('./router/mobile');
 
 server.listen(8080, function() {
   console.log('%s listening at %s', server.name, server.url);

@@ -28,3 +28,12 @@ server.post("/map/interestPoint/updatePoint",function(req,res,next){
 	InterestPoint.updatePoint(req,res);
 	return next();
 });
+
+//关键字搜索兴趣点
+server.post("/map/interestPoint/searchPoint",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	InterestPoint.searchPoint(req,res);
+	return next();
+});
+
+module.exports = server;
