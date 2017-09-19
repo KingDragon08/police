@@ -143,6 +143,7 @@ function checkMobile2Token(mobile, token, callback) {
 exports.login = login;
 exports.loginWithToken = loginWithToken;
 exports.logout = logout;
+exports.checkMobile2Token = checkMobile2Token;
 
 
 

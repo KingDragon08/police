@@ -29,9 +29,9 @@
             contentType: false,
             processData: false,
             success: function(data) {
-                console.log(data);
+                console.log(JSON.stringify(data));
             },
-            error: function(returndata) {
+            error: function(data) {
                 console.log(data);
             }
         });
