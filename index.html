@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>test</title>
+</head>
+
+<body>
+    <form id="uploadForm">
+        <p>指定文件名：
+            <input type="text" name="filename" value="" />
+        </p>
+        <p>上传文件：
+            <input type="file" name="file" />
+            </ p>
+            <input type="button" value="上传" onclick="doUpload()" />
+    </form>
+    <button onclick="go()">TESTTEST</button>
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript">
+    function go() {
+        var formData = new FormData($("#uploadForm")[0]);
+        $.ajax({
+            url: 'http://localhost:8080/file/upload',
+            type: 'POST',
+            data: formData,
+            async: false,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(returndata) {
+                console.log(data);
+            }
+        });
+    }
+    </script>
+</body>
+
+</html>
