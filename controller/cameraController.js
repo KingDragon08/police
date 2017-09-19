@@ -77,7 +77,7 @@ function addCamera(req,res){
                                   var cam_id = rows[0].cam_id;
 
                                   sql = "update camera set cam_no = ?, cam_name = ?, cam_loc_lan = ?, cam_loc_lon = ?,";
-                                  sql += "cam_sta = ?, cam_desc = ?, uptime = ? ";
+                                  sql += "cam_sta = ?, cam_desc = ?, uptime = ?, is_del = 0 ";
                                   sql += "where cam_id = ?";
 
                                   dataArr = [cam_no, cam_name, cam_loc_lan, cam_loc_lon, cam_sta, cam_desc, curtime, cam_id];
@@ -274,8 +274,116 @@ function editCamera(req,res){
 	}
 }
 
+// 获取摄像头信息
+function getCameraList(req,res){
+	var query = req.body;
+	try{
+        var sql = "select count(*) as total from camera where is_del = 0";
+        var dataArr = [];
+
+        db.query(sql, dataArr, function(err,rows){
+           if(err){
+               res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+           }else {
+               var total = rows[0].total;
+
+               var page = query.page || -1;
+               var pageSize = query.pageSize || 20;
+
+               if (page < 1) {
+                   page = 1;
+               }
+               var start = (page - 1) * pageSize;
+
+
+               if (-1 == page) {
+                   sql = "select * from camera where is_del = 0";
+                   dataArr = [];
+               }
+               else {
+                   sql = "select * from camera where is_del = 0 order by cam_id limit ?, ?";
+                   dataArr = [start, pageSize];
+               }
+
+               db.query(sql, dataArr, function(err,rows){
+                      if(err){
+                          res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                      }else {
+                          res.json({"code": 200,
+                              "data":{"status":"success",
+                                    "error":"success",
+                                    "rows": rows,
+                                    "total":total,
+                                    "page": page,
+                                    "pageSize":pageSize}
+                                });
+                      }
+                  });
+           }
+       });
+	} catch(e) {
+		res.json({"code": 500, "data":{"status":"fail","error":e.message}});
+	}
+}
+
+// 获取单个摄像头信息
+function getCameraInfo(req,res){
+	var query = req.body;
+	try{
+            var mobile = query.mobile;
+            var token = query.token;
+
+            User.getUserInfo(mobile, token, function(user){
+                if (user.error == 0) {
+                    user_info = user.data;
+                }
+
+                var cam_id = query.cam_id;
+                if (check.isNull(cam_id)) {
+                    res.json({"code": 401, "data":{"status":"fail","error":"cam_id is null"}});
+                    return ;
+                }
+
+                var sql = "select count(*) as total from camera where cam_id = ?";
+                var dataArr = [cam_id];
+
+                db.query(sql, dataArr, function(err,rows){
+                       if(err){
+                           res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                       }else {
+                           if(rows[0].total > 0 ){
+                               sql = "select * from camera where cam_id = ?";
+                               dataArr = [cam_id];
+
+                               db.query(sql, dataArr, function(err,rows){
+                                      if(err){
+                                          res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                                      }else {
+                                          res.json({"code": 200,
+                                                    "data":{"status":"success",
+                                                            "error":"success",
+                                                            "rows": rows,
+                                                            "cam_id": cam_id}
+                                                        });
+                                      }
+                                  });
+
+                           }
+                           else {
+                               res.json({"code": 404, "data":{"status":"fail","error":"camera not exist"}});
+                           }
+                       }
+                   });
+       });
+	} catch(e) {
+		res.json({"code": 500, "data":{"status":"fail","error":e.message}});
+	}
+}
+
 
 exports.getParams = getParams;
 exports.addCamera = addCamera;
 exports.delCamera = delCamera;
 exports.editCamera = editCamera;
+exports.getCameraList = getCameraList;
+exports.getCameraInfo = getCameraInfo;
