@@ -48,5 +48,12 @@ server.post("/camera/info",function(req,res,next){
 	return next();
 });
 
+// 查找摄像头
+server.post("/camera/search",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.searchCamera(req,res);
+	return next();
+});
+
 
 module.exports = server;
