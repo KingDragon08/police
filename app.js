@@ -20,6 +20,7 @@ require('./router/user');
 require('./router/camera');
 require('./router/map');
 require('./router/mobile');
+require('./router/car');
 require('./router/file');
 
 server.listen(8080, function() {
