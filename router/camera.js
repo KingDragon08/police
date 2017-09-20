@@ -1,5 +1,6 @@
 var server = global.server
 var camera = require('../controller/cameraController')
+var CameraFB = require('../controller/cameraFeedController')
 
 // 测试参数
 // server.get("/camera/getParams",function(req,res,next){
@@ -52,6 +53,13 @@ server.post("/camera/info",function(req,res,next){
 server.post("/camera/search",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
 	camera.searchCamera(req,res);
+	return next();
+});
+
+// 添加摄像头周边信息反馈
+server.post("/camera/feedback",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	CameraFB.addFeedBack(req,res);
 	return next();
 });
 

@@ -24,7 +24,7 @@ function login(req, res) {
         } else {
             password = crypto.createHash("md5").update(password).digest('hex');
             conn.query("select count(Id) as total from mobileUser where mobile=? and " +
-                "password=? and status=?", 
+                "password=? and status=?",
                 [mobile, password, 1],
                 function(err, result) {
                     if (result[0].total == 1) {
@@ -34,7 +34,7 @@ function login(req, res) {
                         token = crypto.createHash("md5").update(token).digest('hex');
                         conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP,avatar "+
                         	"from mobileUser " +
-                            "where mobile=? and password=? and status=?", 
+                            "where mobile=? and password=? and status=?",
                             [mobile, password, 1],
                             function(err, result) {
                                 result[0]["token"] = token;
@@ -42,7 +42,7 @@ function login(req, res) {
                                 res.json({ "code": 200, "data": result[0] });
                                 //更新数据库
                                 conn.query("update mobileUser set token=?,lastLoginTime=?," +
-                                    "lastLoginIP=? where Id=?", 
+                                    "lastLoginIP=? where Id=?",
                                     [token, timestamp, IP, result[0]["Id"]],
                                     function(err, result) {
                                         console.log("login and update success");
@@ -73,7 +73,7 @@ function loginWithToken(req, res) {
                 token = crypto.createHash("md5").update(token).digest('hex');
                 conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP,avatar "+
                 	"from mobileUser " +
-                    "where mobile=? and status=?", 
+                    "where mobile=? and status=?",
                     [mobile, 1],
                     function(err, result) {
                     	console.log(err);
@@ -82,7 +82,7 @@ function loginWithToken(req, res) {
                         res.json({ "code": 200, "data": result[0] });
                         //更新数据库
                         conn.query("update mobileUser set token=?,lastLoginTime=?," +
-                            "lastLoginIP=? where Id=?", 
+                            "lastLoginIP=? where Id=?",
                             [token, timestamp, IP, result[0]["Id"]],
                             function(err, result) {
                                 console.log("loginWithToken and update success");
@@ -106,7 +106,7 @@ function logout(req, res) {
         checkMobile2Token(mobile, token, function(result) {
             if (result) {
                 //更新token
-                conn.query("update mobileUser set token=? where mobile=?", 
+                conn.query("update mobileUser set token=? where mobile=?",
                 	["KingDragon", mobile],
                     function(err, re) {
                         res.json({ "code": 200, "data": { "status": "success", "error": "logout success" } });
@@ -127,7 +127,7 @@ function logout(req, res) {
 
 //验证账号和token是否匹配
 function checkMobile2Token(mobile, token, callback) {
-    conn.query("select count(Id) as total from mobileUser where mobile=? and token=?", 
+    conn.query("select count(Id) as total from mobileUser where mobile=? and token=?",
     	[mobile, token],
         function(err, result) {
             if (result[0].total > 0) {
@@ -138,14 +138,30 @@ function checkMobile2Token(mobile, token, callback) {
         });
 }
 
+//获取自己的用户信息
+function getUserInfo(mobile, token, callback) {
+    try {
+        checkMobile2Token(mobile, token, function(result) {
+            if (result) {
+                conn.query("select * from mobileUser where mobile=?", [mobile],
+                    function(err, res) {
+                        ret = {};
+                        ret["error"] = 0;
+                        ret["data"] = res[0];
+                        callback(ret);
+                    });
+            } else {
+                callback({ "error": "mobile not match token" });
+            }
+        });
+    } catch (e) {
+        console.log(e);
+    }
+}
 
 
 exports.login = login;
 exports.loginWithToken = loginWithToken;
 exports.logout = logout;
 exports.checkMobile2Token = checkMobile2Token;
-
-
-
-
-
+exports.getUserInfo = getUserInfo;
