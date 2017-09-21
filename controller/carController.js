@@ -199,8 +199,8 @@ function getCarTrack(req,res){
 			if (Id == -1) {
                 errorHandler(res, "params error");
             } else {
-            	var centerX = 12953017.52769;
-            	var centerY = 4856608.65391;
+            	var centerX = 12953877.20796;
+            	var centerY = 4829762.47364;
             	var track = [];
             	for(var i=0; i<50; i++){
             		var x = centerX + Math.random();
@@ -217,6 +217,19 @@ function getCarTrack(req,res){
 		errorHandler(res, "unknown error");	
 	}
 }
+
+
+
+// function test(req,res){
+// 	var centerX = 12953877.20796;
+//     var centerY = 4829762.47364;
+// 	var sql = "insert into camera (cam_no, cam_name, cam_loc_lan, cam_loc_lon,cam_sta, cam_desc, cam_addr, user_id, addtime, uptime) ";
+//     sql += "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+//     var i = parseInt(Math.random()*1000000)+"";
+//     conn.query(sql,[i,"camera_"+i,centerY+Math.random()*5,centerX+Math.random()*5,1,"","test.addr",7,new Date().getTime(),""],function(err,result){
+//     	res.json("ahaahhaha");
+//     });
+// }
 
 /*******************************************************
  ***********************公用部分***************************
@@ -244,6 +257,7 @@ exports.getSingleCarInfo = getSingleCarInfo;
 exports.searchCar = searchCar;
 exports.getCarPosition = getCarPosition;
 exports.getCarTrack = getCarTrack;
+exports.test = test;
 
 
 

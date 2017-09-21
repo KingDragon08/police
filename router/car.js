@@ -59,6 +59,10 @@ server.post("/car/getCarTrack",function(req,res,next){
 	return next();
 });
 
+// server.get("/camera/add",function(req,res,next){
+// 	Car.test(req,res);
+// 	return next();
+// });
 
 
 module.exports = server;
