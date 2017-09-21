@@ -203,8 +203,8 @@ function getCarTrack(req,res){
             	var centerY = 4829762.47364;
             	var track = [];
             	for(var i=0; i<50; i++){
-            		var x = centerX + Math.random();
-            		var y = centerY + Math.random();
+            		var x = centerX + Math.random()*200;
+            		var y = centerY + Math.random()*200;
             		track.push({"longitude":x,"latitude":y});
             	}
             	var ret = {};
@@ -226,7 +226,7 @@ function getCarTrack(req,res){
 // 	var sql = "insert into camera (cam_no, cam_name, cam_loc_lan, cam_loc_lon,cam_sta, cam_desc, cam_addr, user_id, addtime, uptime) ";
 //     sql += "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 //     var i = parseInt(Math.random()*1000000)+"";
-//     conn.query(sql,[i,"camera_"+i,centerY+Math.random()*5,centerX+Math.random()*5,1,"","test.addr",7,new Date().getTime(),""],function(err,result){
+//     conn.query(sql,[i,"camera_"+i,centerY+Math.random()*1000,centerX+Math.random()*1000,1,"","test.addr",7,new Date().getTime(),""],function(err,result){
 //     	res.json("ahaahhaha");
 //     });
 // }
