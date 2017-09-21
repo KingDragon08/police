@@ -257,7 +257,7 @@ exports.getSingleCarInfo = getSingleCarInfo;
 exports.searchCar = searchCar;
 exports.getCarPosition = getCarPosition;
 exports.getCarTrack = getCarTrack;
-exports.test = test;
+// exports.test = test;
 
 
 
