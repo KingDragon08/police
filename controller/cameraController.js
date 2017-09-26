@@ -313,7 +313,7 @@ function getCameraList(req,res){
                var page = query.page || -1;
                var pageSize = query.pageSize || 20;
 
-               if (page < 1) {
+               if (page < 1 && page != -1) {
                    page = 1;
                }
                var start = (page - 1) * pageSize;
@@ -321,12 +321,14 @@ function getCameraList(req,res){
 
                if (-1 == page) {
                    sql = "select * from camera where is_del = 0";
+                   pageSize = total;
                    dataArr = [];
                }
                else {
                    sql = "select * from camera where is_del = 0 order by cam_id limit ?, ?";
                    dataArr = [start, pageSize];
                }
+
 
                db.query(sql, dataArr, function(err,rows){
                       if(err){
