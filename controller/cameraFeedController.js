@@ -1,5 +1,3 @@
-var math = require('math');
-
 var db = require("../lib/db");
 var check = require("../lib/check");
 var mobileUser = require("./mobileController");
@@ -148,7 +146,7 @@ function getSelfFeedBackList(req,res){
 		               if (page < 1) {
 		                   page = 1;
 		               }
-					   var lastPage = math.ceil(total/ pageSize);
+					   var lastPage = Math.ceil(total/ pageSize);
 					   if (page > lastPage) {
 						   res.json({"code": 200,
 							   "data":{"status":"success",
