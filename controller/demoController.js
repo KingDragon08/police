@@ -47,4 +47,3 @@ function createCameraPosition(x,y,times,callback){
 }
 
 exports.demo = demo;
-exports.test = test;
