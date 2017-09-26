@@ -6,4 +6,10 @@ server.post("/demo",function(req,res,next){
 	return next();
 });
 
+// server.get("/demo/test",function(req,res,next){
+// 	Demo.test(req,res);
+// 	return next();
+// });
+
+
 module.exports = server;
