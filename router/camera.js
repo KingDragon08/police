@@ -63,5 +63,12 @@ server.post("/camera/feedback",function(req,res,next){
 	return next();
 });
 
+// 获取摄像头自己反馈信息列表
+server.post("/camera/fbselflist",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	CameraFB.getSelfFeedBackList(req,res);
+	return next();
+});
+
 
 module.exports = server;
