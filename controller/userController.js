@@ -409,9 +409,37 @@ function getMobileUsers(req,res){
     }
 }
 
+//根据Id删除管理员用户
+function delPCUser(req,res){
+    var query = req.body;
+    try{
+        var Id = query.Id || -1;
+        if(-1==Id){
+            res.json({ "code": 300, "data": { "status": "fail", "error": "error params" }});
+            return;
+        }
+        var mobile = query.mobile;
+        var token = query.token;
+        checkMobile2Token(mobile,token,function(result){
+            if(result){
+
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" }});
+            }
+        });
+    } catch(e) {
+        res.json({ "code": 300, "data": { "status": "fail", "error": "unkown error" }});
+    }
+}
+
+
 /**********
  ****公用部分******
  ************/
+
+//获取用户权限
+
+
 
 //获取自己的用户信息
 function getUserInfo(mobile, token, callback) {
@@ -459,6 +487,64 @@ function checkMobile2Token(mobile, token, callback) {
         });
 }
 
+//后端验证账号和token是否匹配并返回全部权限
+function checkMobile2Token_R_permission(mobile,token,callback){
+    checkMobile2Token(mobile,token,function(result){
+        if(result){
+            conn.query("select permission from user where mobile=? and token=?", 
+                [mobile, token],
+                function(err,result){
+                    callback(JSON.parse(result[0].permission));
+                });
+        } else {
+            callback(false);
+        }
+    });
+}
+
+//前端验证账号和token是否匹配并验证是否拥有指定权限
+function checkMobile2TokenWithPermissionFrontEnd(req,res){
+    var query = req.body;
+    try{
+        var mobile = query.mobile || -1;
+        var token = query.token || -1;
+        var permission = query.permission || -1;
+        if(mobile==-1 || token==-1 || permission==-1){
+            res.json({ "code": 300, "data": { "status": "fail", "error": "error params" }});
+            return;
+        }
+        checkMobile2Token_R_permission(mobile,token,function(result){
+            if(result){
+                if(result.indexOf(permission)!=-1){ 
+                    res.json({ "code": 200, "data": {"start":"success","data":1} });
+                } else {
+                    res.json({ "code": 200, "data": {"start":"success","data":0} });
+                }
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" }});
+            }
+        });
+    } catch(e) {
+        res.json({ "code": 300, "data": {"status": "fail", "error": "unkown error" }});
+    } 
+}
+
+//后端验证账号和token是否匹配并验证是否拥有指定权限
+function checkMobile2TokenWithPermissionBackEnd(mobile,token,permission,callback){
+    checkMobile2Token_R_permission(mobile,token,function(result){
+        if(result){
+            if(result.indexOf(permission)!=-1){
+                callback(true);
+            } else {
+                callback(false);
+            }
+        } else {
+            callback(false);
+        }
+    });
+}
+
+
 exports.register = register;
 exports.login = login;
 exports.loginWithToken = loginWithToken;
@@ -473,6 +559,10 @@ exports.getUsersByKeyword = getUsersByKeyword;
 exports.addMobileUser = addMobileUser;
 exports.delMobileUser = delMobileUser;
 exports.getMobileUsers = getMobileUsers;
+exports.delPCUser = delPCUser;
+exports.checkMobile2Token_R_permission = checkMobile2Token_R_permission;
+exports.checkMobile2TokenWithPermissionFrontEnd = checkMobile2TokenWithPermissionFrontEnd;
+exports.checkMobile2TokenWithPermissionBackEnd = checkMobile2TokenWithPermissionBackEnd;
 
 
 

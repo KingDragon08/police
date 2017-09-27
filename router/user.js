@@ -57,6 +57,13 @@ server.post("/user/getUsersByKeyword",function(req,res,next){
 	return next();
 });
 
+//根据Id删除管理员用户
+server.post("/user/delPCUser",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.delPCUser(req,res);
+	return next();
+});
+
 //添加app用户
 server.post("/user/addMobileUser",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
@@ -75,6 +82,13 @@ server.post("/user/delMobileUser",function(req,res,next){
 server.post("/user/getMobileUsers",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
 	User.getMobileUsers(req,res);
+	return next();
+});
+
+//判断用户是否拥有权限
+server.post("/user/checkUserPermission",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.checkMobile2TokenWithPermissionFrontEnd(req,res);
 	return next();
 });
 
