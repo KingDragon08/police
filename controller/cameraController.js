@@ -429,7 +429,6 @@ function searchCamera(req,res){
                 }
 
                 var info = "%" + query.info + "%"|| "%%";
-                console.log(info);
 
                 var sql = "select count(*) as total from camera where is_del = 0 ";
                 sql += "and (cam_name like ? or cam_addr like ?)";
