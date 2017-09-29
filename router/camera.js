@@ -70,5 +70,12 @@ server.post("/camera/fbselflist",function(req,res,next){
 	return next();
 });
 
+// pc端获取摄像头反馈信息列表
+server.post("/camera/pccamfblist",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	CameraFB.getFeedBackListByCamIdFromPc(req,res);
+	return next();
+});
+
 
 module.exports = server;

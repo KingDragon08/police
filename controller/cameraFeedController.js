@@ -1,6 +1,8 @@
 var db = require("../lib/db");
 var check = require("../lib/check");
 var mobileUser = require("./mobileController");
+var pcUser = require("./userController");
+
 
 // create table `camera_feedback`(
 //     `fb_id` int(32) not null auto_increment comment '设备反馈id',
@@ -197,5 +199,96 @@ function getSelfFeedBackList(req,res){
 	}
 }
 
+
+/**
+ * pc端用户根据cam_id获取摄像头反馈信息列表
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+function getFeedBackListByCamIdFromPc(req,res){
+	var query = req.body;
+	try{
+
+		var mobile = query.mobile;
+		var token = query.token;
+
+		pcUser.getUserInfo(mobile, token, function(user){
+			if (user.error == 0) {
+				user_info = user.data;
+
+				var cam_id = query.camId || '';
+				if (check.isNull(cam_id)) {
+					res.json({"code": 401, "data":{"status":"fail","error":"camId is null"}});
+					return ;
+				}
+
+				var sql = "select count(*) as total from camera_feedback where cam_id = ?";
+		        var dataArr = [cam_id];
+
+		        db.query(sql, dataArr, function(err,rows){
+		           if(err){
+		               res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+		           }else {
+		               var total = rows[0].total;
+
+		               var page = query.page || -1;
+		               var pageSize = query.pageSize || 20;
+
+		               if (page < 1) {
+		                   page = 1;
+		               }
+					   var lastPage = Math.ceil(total/ pageSize);
+					   if (page > lastPage) {
+						   res.json({"code": 200,
+							   "data":{"status":"success",
+									 "error":"success",
+									 "rows": "",
+									 "total":total,
+									 "page": lastPage,
+									 "pageSize":pageSize}
+								 });
+							 return ;
+					   }
+
+		               var start = (page - 1) * pageSize;
+
+		               if (-1 == page) {
+		                   sql = "select * from camera_feedback where cam_id = ?";
+		                   dataArr = [cam_id];
+		               }
+		               else {
+		                   sql = "select * from camera_feedback where cam_id = ? order by addtime limit ?, ?";
+		                   dataArr = [cam_id, start, pageSize];
+		               }
+
+		               db.query(sql, dataArr, function(err,rows){
+		                      if(err){
+		                          res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+		                      }else {
+		                          res.json({"code": 200,
+		                              "data":{"status":"success",
+		                                    "error":"success",
+		                                    "rows": rows,
+		                                    "total":total,
+		                                    "page": page,
+		                                    "pageSize":pageSize}
+		                                });
+		                      }
+		                  });
+		           }
+		       });
+			}
+			else {
+				res.json({"code": 301, "data":{"status":"fail","error":"user not login"}});
+				return ;
+			}
+		});
+	} catch(e) {
+		res.json({"code": 500, "data":{"status":"fail","error":e.message}});
+	}
+}
+
 exports.addFeedBack = addFeedBack;
 exports.getSelfFeedBackList = getSelfFeedBackList;
+exports.getFeedBackListByCamIdFromPc = getFeedBackListByCamIdFromPc;
