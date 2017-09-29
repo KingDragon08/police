@@ -7,21 +7,22 @@
 
 <body>
     <form id="uploadForm">
-        <p>指定文件名：
-            <input type="text" name="filename" value="" />
-        </p>
         <p>上传文件：
-            <input type="file" name="file" />
-            </ p>
-            <input type="button" value="上传" onclick="doUpload()" />
+            <input type="file" name="file" id="file" multiple="multiple" />
     </form>
     <button onclick="go()">TESTTEST</button>
     <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
     <script type="text/javascript">
     function go() {
-        var formData = new FormData($("#uploadForm")[0]);
+        var formData = new FormData();
+        formData.append("mobile","13810332931");
+        formData.append("token","3d9db3d7a0c3c4ef547422817d396a44")
+        for(var k=0;k<document.getElementById("file").files.length;k++)
+        {
+          formData.append("file"+k, document.getElementById("file").files[k]);//第一个参数是文件实例名，可以再后台作为files的引用来遍历所有文件,第二个是文件实例
+        }
         $.ajax({
-            url: 'http://localhost:8080/file/upload',
+            url: 'http://localhost:8080/file/mulUpload',
             type: 'POST',
             data: formData,
             async: false,

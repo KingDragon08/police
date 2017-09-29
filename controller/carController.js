@@ -222,7 +222,6 @@ function getCarTrack(req,res){
 }
 
 
-
 // function test(req,res){
 // 	var centerX = 12953877.20796;
 //     var centerY = 4829762.47364;
