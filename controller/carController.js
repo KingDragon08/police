@@ -174,8 +174,8 @@ function getCarPosition(req,res){
                 errorHandler(res, "params error");
             } else {
             	//需要对接接口,自己获取不了
-            	var centerX = 12953017.52769;
-            	var centerY = 4856608.65391;
+            	var centerX = 500377.96;
+            	var centerY = 305971.1;
             	var data = {longitude:centerX+Math.random(),
             				latitude:centerY+Math.random()
             				};
@@ -186,7 +186,7 @@ function getCarPosition(req,res){
             }
 		});
 	} catch(e) {
-		errorHandler(res, "unknown error");	
+		errorHandler(res, "unknown error");
 	}
 }
 
@@ -199,14 +199,17 @@ function getCarTrack(req,res){
 			if (Id == -1) {
                 errorHandler(res, "params error");
             } else {
-            	var centerX = 12953877.20796;
-            	var centerY = 4829762.47364;
+            	var centerX = 305971.1;
+            	var centerY = 305971.1;
             	var track = [];
-            	for(var i=0; i<50; i++){
-            		var x = centerX + Math.random()*200;
-            		var y = centerY + Math.random()*200;
-            		track.push({"longitude":x,"latitude":y});
-            	}
+          		track.push({"longitude":499000.91363,"latitude":305156.92169});
+              track.push({"longitude":498978.15278,"latitude":305646.27997});
+              track.push({"longitude":499968.24976,"latitude":305638.69302});
+              track.push({"longitude":499934.10849,"latitude":306228.68165});
+              track.push({"longitude":500689.01002,"latitude":306241.85555});
+              track.push({"longitude":501421.15070,"latitude":306249.44250});
+              track.push({"longitude":501424.94417,"latitude":305657.66039});
+
             	var ret = {};
                 ret["status"] = "success";
                 ret["data"] = track;
@@ -214,7 +217,7 @@ function getCarTrack(req,res){
             }
 		});
 	} catch(e) {
-		errorHandler(res, "unknown error");	
+		errorHandler(res, "unknown error");
 	}
 }
 
@@ -258,6 +261,3 @@ exports.searchCar = searchCar;
 exports.getCarPosition = getCarPosition;
 exports.getCarTrack = getCarTrack;
 // exports.test = test;
-
-
-
