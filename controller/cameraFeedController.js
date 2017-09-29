@@ -235,7 +235,7 @@ function getFeedBackListByCamIdFromPc(req,res){
 		               var page = query.page || -1;
 		               var pageSize = query.pageSize || 20;
 
-		               if (page < 1) {
+		               if (page < 1 && -1 != page) {
 		                   page = 1;
 		               }
 					   var lastPage = Math.ceil(total/ pageSize);
@@ -258,7 +258,10 @@ function getFeedBackListByCamIdFromPc(req,res){
 		                   dataArr = [cam_id];
 		               }
 		               else {
-		                   sql = "select * from camera_feedback where cam_id = ? order by addtime limit ?, ?";
+		                   sql = "select a.*, group_concat(b.pic) as pics from camera_feedback a ";
+						   sql += " left join camera_feedback_pics b on a.fb_id=b.fb_id";
+						   sql += " where a.cam_id = ? group by a.fb_id order by a.addtime limit ?, ?";
+		                //    sql = "select * from camera_feedback where cam_id = ? order by addtime limit ?, ?";
 		                   dataArr = [cam_id, start, pageSize];
 		               }
 
@@ -266,14 +269,37 @@ function getFeedBackListByCamIdFromPc(req,res){
 		                      if(err){
 		                          res.json({"code": 501, "data":{"status":"fail","error":err.message}});
 		                      }else {
-		                          res.json({"code": 200,
-		                              "data":{"status":"success",
-		                                    "error":"success",
-		                                    "rows": rows,
-		                                    "total":total,
-		                                    "page": page,
-		                                    "pageSize":pageSize}
-		                                });
+								//   var total = rows.length;
+								//   for (var i = 0; i < rows.length; i++) {
+								//   	(function (index){
+								// 		var fb_id = rows[index]['fb_id'];
+								// 		sql = "select * from camera_feedback_pics where fb_id = ?";
+								// 		dataArr = [fb_id]
+								// 		db.query(sql, dataArr, function(err,pics){
+								// 			if(err){
+								// 			  res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+								// 			}else {
+								// 				rows[index].pics = pics
+								// 			}
+								// 		  });
+								// 	  console.log(rows[index].pics);
+								// 	})(i)
+								//   }
+
+								for (var i = 0; i < rows.length; i++) {
+									if (!check.isNull(rows[i]['pics'])) {
+										rows[i]['pics'] = rows[i]['pics'].split(/,/);
+									}
+								}
+
+								  res.json({"code": 200,
+									"data":{"status":"success",
+										  "error":"success",
+										  "rows": rows,
+										  "total":total,
+										  "page": page,
+										  "pageSize":pageSize}
+									  });
 		                      }
 		                  });
 		           }
@@ -287,6 +313,10 @@ function getFeedBackListByCamIdFromPc(req,res){
 	} catch(e) {
 		res.json({"code": 500, "data":{"status":"fail","error":e.message}});
 	}
+}
+
+function getPicsByFbId(fbId, callback) {
+
 }
 
 exports.addFeedBack = addFeedBack;
