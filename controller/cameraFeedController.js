@@ -264,7 +264,15 @@ function getCameraFeedBackWithPics(condition, dataArr, page, pageSize, callback)
 							  }
 							});
 					  }, function(err,results) {
-						  callback(null, results);
+						  callback(null, {"code": 200,
+								  "data":{"status":"success",
+										"error":"success",
+										"rows": results,
+										"total":total,
+										"page": page,
+										"pageSize":pageSize}
+									}
+							);
 					  });
 
 				  }
