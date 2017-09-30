@@ -135,61 +135,19 @@ function getSelfFeedBackList(req,res){
 
 				var user_id = user_info.Id;
 
-				var sql = "select count(*) as total from camera_feedback where user_id = ?";
-		        var dataArr = [user_id];
+				var condition = 'user_id';
+				var dataArr = [user_id];
 
-		        db.query(sql, dataArr, function(err,rows){
-		           if(err){
-		               res.json({"code": 501, "data":{"status":"fail","error":err.message}});
-		           }else {
-		               var total = rows[0].total;
+				var page = query.page || -1;
+				var pageSize = query.pageSize || 20;
 
-		               var page = query.page || -1;
-		               var pageSize = query.pageSize || 20;
-
-		               if (page < 1) {
-		                   page = 1;
-		               }
-					   var lastPage = Math.ceil(total/ pageSize);
-					   if (page > lastPage) {
-						   res.json({"code": 200,
-							   "data":{"status":"success",
-									 "error":"success",
-									 "rows": "",
-									 "total":total,
-									 "page": lastPage,
-									 "pageSize":pageSize}
-								 });
-							 return ;
-					   }
-
-		               var start = (page - 1) * pageSize;
-
-		               if (-1 == page) {
-		                   sql = "select * from camera_feedback where user_id = ?";
-		                   dataArr = [user_id];
-		               }
-		               else {
-		                   sql = "select * from camera_feedback where user_id = ? order by addtime limit ?, ?";
-		                   dataArr = [user_id, start, pageSize];
-		               }
-
-		               db.query(sql, dataArr, function(err,rows){
-		                      if(err){
-		                          res.json({"code": 501, "data":{"status":"fail","error":err.message}});
-		                      }else {
-		                          res.json({"code": 200,
-		                              "data":{"status":"success",
-		                                    "error":"success",
-		                                    "rows": rows,
-		                                    "total":total,
-		                                    "page": page,
-		                                    "pageSize":pageSize}
-		                                });
-		                      }
-		                  });
-		           }
-		       });
+				getCameraFeedBackWithPics(condition, dataArr, page, pageSize, function(err, result){
+				   if (err) {
+					   res.json({"code": 500, "data":{"status":"fail","error":err}});
+					   return ;
+				   }
+				   res.json(result);
+				});
 			}
 			else {
 				res.json({"code": 301, "data":{"status":"fail","error":"user not login"}});
@@ -225,79 +183,21 @@ function getFeedBackListByCamIdFromPc(req,res){
 					return ;
 				}
 
-				var sql = "select count(*) as total from camera_feedback where cam_id = ?";
+		        var condition = 'cam_id';
 		        var dataArr = [cam_id];
 
-		        db.query(sql, dataArr, function(err,rows){
-		           if(err){
-		               res.json({"code": 501, "data":{"status":"fail","error":err.message}});
-		           }else {
-		               var total = rows[0].total;
+				var page = query.page || -1;
+				var pageSize = query.pageSize || 20;
 
-		               var page = query.page || -1;
-		               var pageSize = query.pageSize || 20;
+				getCameraFeedBackWithPics(condition, dataArr, page, pageSize, function(err, result){
+					if (err) {
+						res.json({"code": 500, "data":{"status":"fail","error":err}});
+						return ;
+					}
+					res.json(result);
+				});
 
-		               if (page < 1 && -1 != page) {
-		                   page = 1;
-		               }
-					   var lastPage = Math.ceil(total/ pageSize);
-					   if (page > lastPage) {
-						   res.json({"code": 200,
-							   "data":{"status":"success",
-									 "error":"success",
-									 "rows": "",
-									 "total":total,
-									 "page": lastPage,
-									 "pageSize":pageSize}
-								 });
-							 return ;
-					   }
 
-		               var start = (page - 1) * pageSize;
-
-		               if (-1 == page) {
-		                   sql = "select * from camera_feedback where cam_id = ?";
-		                   dataArr = [cam_id];
-		               }
-		               else {
-		                //    sql = "select a.*, group_concat(b.pic) as pics from camera_feedback a ";
-						//    sql += " left join camera_feedback_pics b on a.fb_id=b.fb_id";
-						//    sql += " where a.cam_id = ? group by a.fb_id order by a.addtime limit ?, ?";
-		                   sql = "select * from camera_feedback where cam_id = ? order by addtime limit ?, ?";
-		                   dataArr = [cam_id, start, pageSize];
-		               }
-
-		               db.query(sql, dataArr, function(err,rows){
-		                      if(err){
-		                          res.json({"code": 501, "data":{"status":"fail","error":err.message}});
-		                      }else {
-								  async.map(rows, function(item, callback) {
-									  var fb_id = item.fb_id;
-									  sql = "select * from camera_feedback_pics where fb_id = ?";
-					                  dataArr = [fb_id]
-						              db.query(sql, dataArr, function(err,pics){
-						                  if(err){
-						                    res.json({"code": 501, "data":{"status":"fail","error":err.message}});
-						                  }else {
-											  item.pics = pics;
-											  callback(null, item);
-						                  }
-						                });
-						          }, function(err,results) {
-									  res.json({"code": 200,
-										"data":{"status":"success",
-											  "error":"success",
-											  "rows": results,
-											  "total":total,
-											  "page": page,
-											  "pageSize":pageSize}
-										  });
-						          });
-
-		                      }
-		                  });
-		           }
-		       });
 			}
 			else {
 				res.json({"code": 301, "data":{"status":"fail","error":"user not login"}});
@@ -309,8 +209,68 @@ function getFeedBackListByCamIdFromPc(req,res){
 	}
 }
 
-function getPicsByFbId(fbId, callback) {
+function getCameraFeedBackWithPics(condition, dataArr, page, pageSize, callback) {
 
+	var sql = "select count(*) as total from camera_feedback where " + condition + " = ?";
+
+	db.query(sql, dataArr, function(err,rows){
+	   if(err){
+		   callback(null, {"code": 501, "data":{"status":"fail","error":err.message}});
+	   }else {
+		   var total = rows[0].total;
+
+		   if (page < 1 && -1 != page) {
+			   page = 1;
+		   }
+
+		   var lastPage = Math.ceil(total/ pageSize);
+		   if (page > lastPage) {
+			   callback(null, {"code": 200,
+				   "data":{"status":"success",
+						 "error":"success",
+						 "rows": "",
+						 "total": total,
+						 "page": lastPage,
+						 "pageSize":pageSize}
+					 });
+				return ;
+		   }
+
+		   var start = (page - 1) * pageSize;
+
+		   if (-1 == page) {
+			   sql = "select * from camera_feedback where " + condition + " = ?";
+		   }
+		   else {
+			   sql = "select * from camera_feedback where "+ condition +" = ? order by addtime limit ?, ?";
+			   dataArr.push(start);
+			   dataArr.push(pageSize);
+		   }
+
+		   db.query(sql, dataArr, function(err,rows){
+				  if(err){
+					  callback(null, {"code": 501, "data":{"status":"fail","error":err.message}});
+				  }else {
+					  async.map(rows, function(item, call) {
+						  var fb_id = item.fb_id;
+						  sql = "select * from camera_feedback_pics where fb_id = ?";
+						  dataArr = [fb_id]
+						  db.query(sql, dataArr, function(err,pics){
+							  if(err){
+								  callback(null, {"code": 501, "data":{"status":"fail","error":err.message}});
+							  }else {
+								  item.pics = pics;
+								  call(null, item);
+							  }
+							});
+					  }, function(err,results) {
+						  callback(null, results);
+					  });
+
+				  }
+			  });
+	   }
+   });
 }
 
 exports.addFeedBack = addFeedBack;
