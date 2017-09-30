@@ -1,3 +1,5 @@
+var async = require('async');
+
 var db = require("../lib/db");
 var check = require("../lib/check");
 var mobileUser = require("./mobileController");
@@ -258,10 +260,10 @@ function getFeedBackListByCamIdFromPc(req,res){
 		                   dataArr = [cam_id];
 		               }
 		               else {
-		                   sql = "select a.*, group_concat(b.pic) as pics from camera_feedback a ";
-						   sql += " left join camera_feedback_pics b on a.fb_id=b.fb_id";
-						   sql += " where a.cam_id = ? group by a.fb_id order by a.addtime limit ?, ?";
-		                //    sql = "select * from camera_feedback where cam_id = ? order by addtime limit ?, ?";
+		                //    sql = "select a.*, group_concat(b.pic) as pics from camera_feedback a ";
+						//    sql += " left join camera_feedback_pics b on a.fb_id=b.fb_id";
+						//    sql += " where a.cam_id = ? group by a.fb_id order by a.addtime limit ?, ?";
+		                   sql = "select * from camera_feedback where cam_id = ? order by addtime limit ?, ?";
 		                   dataArr = [cam_id, start, pageSize];
 		               }
 
@@ -269,37 +271,29 @@ function getFeedBackListByCamIdFromPc(req,res){
 		                      if(err){
 		                          res.json({"code": 501, "data":{"status":"fail","error":err.message}});
 		                      }else {
-								//   var total = rows.length;
-								//   for (var i = 0; i < rows.length; i++) {
-								//   	(function (index){
-								// 		var fb_id = rows[index]['fb_id'];
-								// 		sql = "select * from camera_feedback_pics where fb_id = ?";
-								// 		dataArr = [fb_id]
-								// 		db.query(sql, dataArr, function(err,pics){
-								// 			if(err){
-								// 			  res.json({"code": 501, "data":{"status":"fail","error":err.message}});
-								// 			}else {
-								// 				rows[index].pics = pics
-								// 			}
-								// 		  });
-								// 	  console.log(rows[index].pics);
-								// 	})(i)
-								//   }
+								  async.map(rows, function(item, callback) {
+									  var fb_id = item.fb_id;
+									  sql = "select * from camera_feedback_pics where fb_id = ?";
+					                  dataArr = [fb_id]
+						              db.query(sql, dataArr, function(err,pics){
+						                  if(err){
+						                    res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+						                  }else {
+											  item.pics = pics;
+											  callback(null, item);
+						                  }
+						                });
+						          }, function(err,results) {
+									  res.json({"code": 200,
+										"data":{"status":"success",
+											  "error":"success",
+											  "rows": results,
+											  "total":total,
+											  "page": page,
+											  "pageSize":pageSize}
+										  });
+						          });
 
-								for (var i = 0; i < rows.length; i++) {
-									if (!check.isNull(rows[i]['pics'])) {
-										rows[i]['pics'] = rows[i]['pics'].split(/,/);
-									}
-								}
-
-								  res.json({"code": 200,
-									"data":{"status":"success",
-										  "error":"success",
-										  "rows": rows,
-										  "total":total,
-										  "page": page,
-										  "pageSize":pageSize}
-									  });
 		                      }
 		                  });
 		           }
