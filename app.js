@@ -17,12 +17,14 @@ global.server = server;
 
 require('./router/demo');
 require('./router/user');
+require('./router/role');
 require('./router/camera');
 require('./router/map');
 require('./router/mobile');
 require('./router/car');
 require('./router/file');
 require('./router/address');
+require('./router/task');
 
 server.listen(8080, function() {
   console.log('%s listening at %s', server.name, server.url);

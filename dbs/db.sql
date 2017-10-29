@@ -59,3 +59,23 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2017-09-16 17:20:13
+
+
+--
+-- Table structure for table `task`
+--
+CREATE TABLE `task` (
+  `Id` int(32) NOT NULL AUTO_INCREMENT,
+  `cameraName` varchar(255) NOT NULL,
+  `cameraLocation` varchar(255) NOT NULL,
+  `taskDescription` text,
+  `userId` int(32) NOT NULL,
+  `taskNO` varchar(50) NOT NULL,
+  `taskStatus` int(8) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`Id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+
+
+
