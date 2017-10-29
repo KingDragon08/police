@@ -21,11 +21,14 @@ function getFuzzyAddr(req,res){
             return ;
         }
 
+		var size = query.size || 20;
+
         var host = mapConfig.host;
         var port = mapConfig.port;
         var url = "/dfc/services/geocoding/matching/fuzzy";
-        var jsondata = {"address": "规划局", "top": 20};
-        request.get(host, port, url, function(err, res){
+        var jsondata = {"address": info, "top": size};
+
+        request.get(host, port, url, jsondata, function(err, res){
             if (err) {
                 res.json({"code": 502, "data":{"status":"fail","error":err.message}});
                 return ;
@@ -36,11 +39,9 @@ function getFuzzyAddr(req,res){
                     res.json({"code": 503, "data":{"status":"fail","error":errors}});
                     return;
                 }
-                console.log( response.response );
-                console.log( response.response.text() );
+                console.log( response);
+				res.json({"code": 200, "data":{"status":"success","error":"success", "rows":""}});
             });
-
-            res.json({"code": 200, "data":{"status":"success","error":"success", "rows":""}});
         });
 	} catch(e) {
 		res.json({"code": 500, "data":{"status":"fail","error":e.message}});

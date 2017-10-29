@@ -1,0 +1,78 @@
+| police       | action               | int(32)             | 功能id                                                   |
+| police       | action               | varchar(32)         | 功能名称                                                 |
+| police       | action               | varchar(32)         | 创建时间戳                                               |
+| police       | camera               | int(32)             | 设备记录id                                               |
+| police       | camera               | varchar(32)         | 设备编号                                                 |
+| police       | camera               | varchar(16)         | 设备名称                                                 |
+| police       | camera               | tinyint(2) unsigned | 设备状态                                                 |
+| police       | camera               | varchar(32)         | 创建时间                                                 |
+| police       | camera               | varchar(32)         | 修改时间                                                 |
+| police       | camera               | int(32)             |                                                          |
+| police       | camera               | varchar(32)         |                                                          |
+| police       | camera               | varchar(32)         |                                                          |
+| police       | camera               | text                |                                                          |
+| police       | camera               | tinyint(2) unsigned |                                                          |
+| police       | camera               | text                |                                                          |
+| police       | camera_attr          | varchar(255)        | 属性名称                                                 |
+| police       | camera_attr          | tinyint(2)          | tab是否显示,默认为1,1:不显示,2:显示                      |
+| police       | camera_attr          | tinyint(2)          | 右键是否显示,默认为1,1:不显示,2:显示                     |
+| police       | camera_attr          | tinyint(2)          | 搜索是否显示,默认为1,1:不显示,2:显示                     |
+| police       | camera_attr          | tinyint(2)          | 详细信息是否显示,默认为1,1:不显示,2:显示                 |
+| police       | camera_feedback      | int(32)             | 设备反馈id                                               |
+| police       | camera_feedback      | int(32)             | 设备id                                                   |
+| police       | camera_feedback      | text                | 反馈内容                                                 |
+| police       | camera_feedback      | varchar(32)         | 创建时间                                                 |
+| police       | camera_feedback      | int(32)             |                                                          |
+| police       | camera_feedback      | varchar(32)         |                                                          |
+| police       | camera_feedback      | varchar(32)         |                                                          |
+| police       | camera_feedback      | varchar(255)        |                                                          |
+| police       | camera_feedback_pics | int(32)             | 反馈图片id                                               |
+| police       | camera_feedback_pics | int(32)             | 反馈id                                                   |
+| police       | camera_feedback_pics | varchar(255)        | 图片链接                                                 |
+| police       | camera_feedback_pics | varchar(32)         | 创建时间                                                 |
+| police       | car                  | int(32)             |                                                          |
+| police       | car                  | varchar(20)         |                                                          |
+| police       | car                  | int(8)              |                                                          |
+| police       | interestPoint        | int(32)             |                                                          |
+| police       | interestPoint        | varchar(255)        |                                                          |
+| police       | interestPoint        | varchar(255)        |                                                          |
+| police       | interestPoint        | varchar(255)        |                                                          |
+| police       | interestPoint        | varchar(1000)       |                                                          |
+| police       | interestPoint        | int(2)              |                                                          |
+| police       | mobileUser           | int(32)             |                                                          |
+| police       | mobileUser           | varchar(255)        |                                                          |
+| police       | mobileUser           | varchar(255)        |                                                          |
+| police       | mobileUser           | varchar(255)        |                                                          |
+| police       | mobileUser           | varchar(1)          |                                                          |
+| police       | mobileUser           | varchar(255)        |                                                          |
+| police       | mobileUser           | varchar(50)         |                                                          |
+| police       | mobileUser           | varchar(20)         |                                                          |
+| police       | mobileUser           | varchar(20)         |                                                          |
+| police       | mobileUser           | varchar(20)         |                                                          |
+| police       | mobileUser           | varchar(50)         |                                                          |
+| police       | mobileUser           | varchar(255)        |                                                          |
+| police       | mobileUser           | varchar(255)        |                                                          |
+| police       | mobileUser           | int(8)              |                                                          |
+| police       | role                 | int(32)             | 角色id                                                   |
+| police       | role                 | varchar(32)         | 角色名称                                                 |
+| police       | role                 | varchar(32)         | 创建时间戳                                               |
+| police       | role_action          | int(32)             | id                                                       |
+| police       | role_action          | int(32)             | 角色id                                                   |
+| police       | role_action          | int(32)             | 功能id                                                   |
+| police       | role_action          | varchar(32)         | 创建时间戳                                               |
+| police       | user                 | int(32)             |                                                          |
+| police       | user                 | varchar(255)        |                                                          |
+| police       | user                 | varchar(255)        |                                                          |
+| police       | user                 | varchar(255)        |                                                          |
+| police       | user                 | varchar(1)          |                                                          |
+| police       | user                 | varchar(255)        |                                                          |
+| police       | user                 | varchar(50)         |                                                          |
+| police       | user                 | varchar(20)         |                                                          |
+| police       | user                 | varchar(20)         |                                                          |
+| police       | user                 | varchar(20)         |                                                          |
+| police       | user                 | varchar(50)         |                                                          |
+| police       | user                 | varchar(255)        |                                                          |
+| police       | user                 | int(8)              |                                                          |
+| police       | user                 | varchar(200)        |                                                          |
+| police       | user                 | int(32)             |                                                          |
++--------------+----------------------+---------------------+----------------------------------------------------------+

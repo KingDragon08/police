@@ -8,11 +8,11 @@ var CameraFB = require('../controller/cameraFeedController')
 // 	camera.getParams(req,res);
 // 	return next();
 // });
-server.post("/camera/getParams",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	camera.getParams(req,res);
-	return next();
-});
+// server.post("/camera/getParams",function(req,res,next){
+// 	res.setHeader("Access-Control-Allow-Origin","*");
+// 	camera.getParams(req,res);
+// 	return next();
+// });
 
 // 添加摄像头
 server.post("/camera/add",function(req,res,next){

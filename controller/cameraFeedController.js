@@ -209,6 +209,16 @@ function getFeedBackListByCamIdFromPc(req,res){
 	}
 }
 
+
+/**
+ * 获取带有图片信息的反馈信息
+ * @param  {[type]}   condition [description]
+ * @param  {[type]}   dataArr   [description]
+ * @param  {[type]}   page      [description]
+ * @param  {[type]}   pageSize  [description]
+ * @param  {Function} callback  [description]
+ * @return {[type]}             [description]
+ */
 function getCameraFeedBackWithPics(condition, dataArr, page, pageSize, callback) {
 
 	var sql = "select count(*) as total from camera_feedback where " + condition + " = ?";

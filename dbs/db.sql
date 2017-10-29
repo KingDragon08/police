@@ -35,6 +35,7 @@ CREATE TABLE `user` (
   `lastLoginIP` varchar(50) DEFAULT NULL,
   `token` varchar(255) DEFAULT NULL,
   `status` int(8) NOT NULL DEFAULT '1',
+  `role_id` int(32) NOT NULL comment '用户角色id',
   PRIMARY KEY (`Id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -59,3 +60,58 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2017-09-16 17:20:13
+
+
+--
+-- Table structure for table `camera_attr`
+--
+
+DROP TABLE IF EXISTS `camera_attr`;
+CREATE TABLE `camera_attr` (
+  `attr_name` varchar(255) NOT NULL comment '属性名称',
+  `tab_display` tinyint(2) NOT NULL DEFAULT 1 comment 'tab是否显示,默认为1,1:不显示,2:显示',
+  `rkey_display` tinyint(2) NOT NULL DEFAULT 1 comment '右键是否显示,默认为1,1:不显示,2:显示',
+  `search_display` tinyint(2) NOT NULL DEFAULT 1 comment '搜索是否显示,默认为1,1:不显示,2:显示',
+  `detail_display` tinyint(2) NOT NULL DEFAULT 1 comment '详细信息是否显示,默认为1,1:不显示,2:显示',
+  PRIMARY KEY (`attr_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `role`
+--
+
+DROP TABLE IF EXISTS `role`;
+CREATE TABLE `role` (
+  `role_id` int(32) NOT NULL AUTO_INCREMENT comment '角色id',
+  `role_name` varchar(32) NOT NULL comment '角色名称',
+  `addtime` varchar(32) comment '创建时间戳',
+
+  PRIMARY KEY (`role_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `action`
+--
+
+DROP TABLE IF EXISTS `action`;
+CREATE TABLE `action` (
+  `action_id` int(32) NOT NULL AUTO_INCREMENT comment '功能id',
+  `action_name` varchar(32) NOT NULL comment '功能名称',
+  `addtime` varchar(32) comment '创建时间戳',
+
+  PRIMARY KEY (`action_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `role_action`
+--
+
+DROP TABLE IF EXISTS `role_action`;
+CREATE TABLE `role_action` (
+  `id` int(32) NOT NULL AUTO_INCREMENT comment 'id',
+  `role_id` int(32) comment '角色id',
+  `action_id` int(32) comment '功能id',
+  `addtime` varchar(32) comment '创建时间戳',
+
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;

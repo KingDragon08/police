@@ -18,17 +18,6 @@ var User = require("./userController");
 //     primary key (`cam_id`)
 // ) default charset=utf8;
 
-// 获取参数
-function getParams(req,res){
-    var query = req.body;
-
-    var cam_no = query.cam_no;
-    var cam_name = query.cam_name;
-    var cam_sta = query.cam_sta;
-
-	res.json({cam_no:cam_no,cam_name:cam_name,cam_loc:cam_loc,cam_sta:cam_sta});
-}
-
 /**
  * 添加摄像头
  * @param {[type]} req [description]
@@ -428,7 +417,19 @@ function searchCamera(req,res){
                     user_info = user.data;
                 }
 
-                var info = "%" + query.info + "%"|| "%%";
+                var loc_lon = query.loc_lon || '';
+                if (check.isNull(loc_lon)) {
+                    res.json({"code": 401, "data":{"status":"fail","error":"loc_lon is null"}});
+                    return ;
+                }
+
+                var loc_lan = query.loc_lan || '';
+                if (check.isNull(loc_lan)) {
+                    res.json({"code": 401, "data":{"status":"fail","error":"loc_lan is null"}});
+                    return ;
+                }
+                var radius = query.radius || 20;
+                var size = query.size || 20;
 
                 var sql = "select count(*) as total from camera where is_del = 0 ";
                 sql += "and (cam_name like ? or cam_addr like ?)";
@@ -471,7 +472,6 @@ function searchCamera(req,res){
 }
 
 
-exports.getParams = getParams;
 exports.addCamera = addCamera;
 exports.delCamera = delCamera;
 exports.editCamera = editCamera;
