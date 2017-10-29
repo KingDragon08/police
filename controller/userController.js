@@ -165,6 +165,7 @@ function logout(req, res) {
 function getUsers(req, res) {
     var query = req.body;
     try {
+        console.log(query);
         var page = query.page || 1;
         var mobile = query.mobile;
         var token = query.token;
@@ -175,12 +176,15 @@ function getUsers(req, res) {
                     page = 1;
                 }
                 var start = (page - 1) * pageSize;
+                pageSize = parseInt(pageSize);
                 conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP " +
                     "from user order by Id desc limit ?,?", [start, pageSize],
                     function(err, data) {
+                        console.log(err);
                         ret = {};
                         ret["status"] = "success";
                         ret["data"] = data;
+                        console.log(data);
                         res.json({ "code": 200, "data": ret });
                     });
             } else {
@@ -392,6 +396,7 @@ function getMobileUsers(req,res){
                     page = 1;
                 }
                 var start = (page - 1) * pageSize;
+                pageSize = parseInt(pageSize);
                 conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP,avatar " +
                     "from mobileUser order by Id desc limit ?,?", [start, pageSize],
                     function(err, data) {

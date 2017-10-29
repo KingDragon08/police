@@ -115,3 +115,17 @@ CREATE TABLE `role_action` (
 
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+
+-- Table structure for table `task`
+--
+CREATE TABLE `task` (
+  `Id` int(32) NOT NULL AUTO_INCREMENT,
+  `cameraName` varchar(255) NOT NULL,
+  `cameraLocation` varchar(255) NOT NULL,
+  `taskDescription` text,
+  `userId` int(32) NOT NULL,
+  `taskNO` varchar(50) NOT NULL,
+  `taskStatus` int(8) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`Id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
