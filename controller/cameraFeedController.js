@@ -4,6 +4,7 @@ var db = require("../lib/db");
 var check = require("../lib/check");
 var mobileUser = require("./mobileController");
 var pcUser = require("./userController");
+var taskControl = require("./taskController");
 
 
 // create table `camera_feedback`(
@@ -47,6 +48,13 @@ function addFeedBack(req,res){
                     return ;
                 }
 
+				taskControl.updateTask2Checking(cam_id, function(callback){
+					if (!callback) {
+						res.json({"code": 405, "data":{"status":"fail","error":"camera without task"}});
+						return ;
+					} else {
+
+
                 var sql = "select * from camera where is_del = 0 and cam_id = ?";
                 var dataArr = [cam_id];
 
@@ -82,8 +90,8 @@ function addFeedBack(req,res){
                               if(err){
                                   res.json({"code": 501, "data":{"status":"fail","error":err.message}});
                               }else {
-                                  fb_id = rows.insertId;
-                                  res.json({"code": 200, "data":{"status":"success","error":"success", "fb_id": fb_id}});
+									fb_id = rows.insertId;
+									res.json({"code": 200, "data":{"status":"success","error":"success", "fb_id": fb_id}});
 
                                   var pics = query.pics || '';
                                   if (check.isNull(pics)) {
@@ -104,6 +112,11 @@ function addFeedBack(req,res){
                           });
                        }
                    });
+
+
+					
+					}
+				});
             }
             else {
                 res.json({"code": 301, "data":{"status":"fail","error":"user not login"}});
@@ -183,21 +196,26 @@ function getFeedBackListByCamIdFromPc(req,res){
 					return ;
 				}
 
-		        var condition = 'cam_id';
-		        var dataArr = [cam_id];
+				taskControl.getTaskStatus(cam_id, function(status){
+					if (3 == status) {
+				        var condition = 'cam_id';
+				        var dataArr = [cam_id];
 
-				var page = query.page || -1;
-				var pageSize = query.pageSize || 20;
+						var page = query.page || -1;
+						var pageSize = query.pageSize || 20;
 
-				getCameraFeedBackWithPics(condition, dataArr, page, pageSize, function(err, result){
-					if (err) {
-						res.json({"code": 500, "data":{"status":"fail","error":err}});
+						getCameraFeedBackWithPics(condition, dataArr, page, pageSize, function(err, result){
+							if (err) {
+								res.json({"code": 500, "data":{"status":"fail","error":err}});
+								return ;
+							}
+							res.json(result);
+						});
+					}else {
+						res.json({"code": 405, "data":{"status":"fail","error":"cameara not been checked"}});
 						return ;
 					}
-					res.json(result);
 				});
-
-
 			}
 			else {
 				res.json({"code": 301, "data":{"status":"fail","error":"user not login"}});
