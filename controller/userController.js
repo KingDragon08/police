@@ -184,7 +184,6 @@ function getUsers(req, res) {
                         ret = {};
                         ret["status"] = "success";
                         ret["data"] = data;
-                        console.log(data);
                         res.json({ "code": 200, "data": ret });
                     });
             } else {

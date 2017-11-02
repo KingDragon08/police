@@ -444,24 +444,6 @@ function acceptTask(req,res){
     }
 }
 
-//模板
-function funcName(req, res) {
-    var query = req.body;
-    try {
-        var mobile = query.mobile;
-        var token = query.token;
-        checkMobile2Token_PC(mobile, token, function(result) {
-            if (result) {
-
-            } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
-            }
-        });
-    } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
-    }
-}
-
 
 exports.publishTask = publishTask;
 exports.getAllTask = getAllTask;
