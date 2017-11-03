@@ -33,6 +33,7 @@ $.ajax(settings).done(function (response) {
 
 
 //多边形框选摄像头
+//X，Y为大写
 var points = [{"X":300000,"Y":300000},{"X":400000,"Y":400000},{"X":600000,"Y":300000}];
 var settings = {
   "url": "http://127.0.0.1:8080/camera/cameraSelectPolygon",
@@ -46,3 +47,23 @@ var settings = {
 $.ajax(settings).done(function (response) {
   console.log(JSON.stringify(response));
 });
+
+
+//直线附近摄像头
+//X，Y为大写
+var points = [{"X":300000,"Y":300000},{"X":400000,"Y":400000},{"X":600000,"Y":300000}];
+var settings = {
+  "url": "http://127.0.0.1:8080/camera/cameraSelectLine",
+  "method": "POST",
+  "data":{
+    mobile:"13810332931",
+    token:"6b71a6f40f6df25fcb1dbd1456eb1d5b",
+    points:JSON.stringify(points),
+    space: 100
+  }
+}
+$.ajax(settings).done(function (response) {
+  console.log(JSON.stringify(response));
+});
+
+
