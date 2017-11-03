@@ -198,7 +198,7 @@ function cameraSelectPolygon(req, res) {
  * @param req request
  * @param res response
  * @author KingDragon
- * @time 2017-11-02 afternoon
+ * @time 2017-11-03 afternoon
  */
 function cameraSelectLine(req, res) {
     var query = req.body;
