@@ -1,6 +1,7 @@
 var db = require("../lib/db");
 var check = require("../lib/check");
 var User = require("./userController");
+var dbTableAttr = require("../config/dbTableAttrConf");
 
 // create table `camera`(
 //     `cam_id` int(32) not null auto_increment comment '设备记录id',
@@ -288,8 +289,8 @@ function editCamera(req,res){
  * @return {[type]}     [description]
  */
 function getCameraList(req,res){
-	var query = req.body;
-	try{
+  var query = req.body;
+  try{
         var sql = "select count(*) as total from camera where is_del = 0";
         var dataArr = [];
 
@@ -316,6 +317,79 @@ function getCameraList(req,res){
                else {
                    sql = "select * from camera where is_del = 0 order by cam_id limit ?, ?";
                    dataArr = [start, pageSize];
+               }
+
+
+               db.query(sql, dataArr, function(err,rows){
+                      if(err){
+                          res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                      }else {
+                          res.json({"code": 200,
+                              "data":{"status":"success",
+                                    "error":"success",
+                                    "rows": rows,
+                                    "total":total,
+                                    "page": page,
+                                    "pageSize":pageSize}
+                                });
+                      }
+                  });
+           }
+       });
+  } catch(e) {
+    res.json({"code": 500, "data":{"status":"fail","error":e.message}});
+  }
+}
+
+/**
+ * 指定字段获取摄像头列表
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+function getCameraListByAttr(req,res){
+	var query = req.body;
+
+  attrName = query.attrName || '';
+  if (dbTableAttr.cameraAttrList.indexOf(attrName) == -1) {
+      res.json({"code": 401, "data":{"status":"fail","error":"attrName is invalid"}});
+      return;
+  }
+
+  attrValue = query.attrValue || '';
+  if (check.isNull(attrValue)) {
+      res.json({"code": 401, "data":{"status":"fail","error":"attrValue is null"}});
+      return ;
+  }
+
+	try{
+        var sql = "select count(*) as total from camera where is_del = 0 and " + attrName + " like '%3%'";
+        // var dataArr = [attrName, attrValue];
+        var dataArr = [attrValue];
+
+        db.query(sql, dataArr, function(err,rows){
+           if(err){
+               res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+           }else {
+               var total = rows[0].total;
+
+               var page = query.page || -1;
+               var pageSize = query.pageSize || 20;
+
+               if (page < 1 && page != -1) {
+                   page = 1;
+               }
+               var start = (page - 1) * pageSize;
+
+
+               if (-1 == page) {
+                   sql = "select * from camera where is_del = 0 and " + attrName + " like '%?%'";
+                   pageSize = total;
+                   dataArr = [attrValue];
+               }
+               else {
+                   sql = "select * from camera where is_del = 0 and " + attrName + " like '%?%' order by cam_id limit ?, ?";
+                   dataArr = [attrValue, start, pageSize];
                }
 
 
@@ -478,3 +552,4 @@ exports.editCamera = editCamera;
 exports.getCameraList = getCameraList;
 exports.getCameraInfo = getCameraInfo;
 exports.searchCamera = searchCamera;
+exports.getCameraListByAttr = getCameraListByAttr;

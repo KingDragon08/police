@@ -42,6 +42,20 @@ server.post("/camera/list",function(req,res,next){
 	return next();
 });
 
+// 指定字段获取摄像头列表
+server.post("/camera/pclistbyattr",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.getCameraListByAttr(req,res);
+	return next();
+});
+
+// 根据类型获取摄像头列表
+server.post("/camera/pclistbyattr",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.getCameraListByAttr(req,res);
+	return next();
+});
+
 // 获取单个摄像头信息
 server.post("/camera/info",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
