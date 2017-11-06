@@ -37,97 +37,82 @@ var server = global.server
 var roleController = require('../controller/roleController')
 var actionController = require('../controller/actionController')
 var roleActionController = require('../controller/roleActionController')
-
-
 //判断用户是否拥有权限
 // server.post("/user/checkUserPermission",function(req,res,next){
 // 	res.setHeader("Access-Control-Allow-Origin","*");
 // 	User.checkMobile2TokenWithPermissionFrontEnd(req,res);
 // 	return next();
 // });
-
 // 添加角色
-server.post("/role/addrole",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	roleController.addRole(req,res);
-	return next();
+server.post("/role/addrole", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    roleController.addRole(req, res);
+    return next();
 });
-
 // 删除角色
-server.post("/role/delrole",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	roleController.delRole(req,res);
-	return next();
+server.post("/role/delrole", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    roleController.delRole(req, res);
+    return next();
 });
-
 // 编辑角色
-server.post("/role/editrole",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	roleController.editRole(req,res);
-	return next();
+server.post("/role/editrole", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    roleController.editRole(req, res);
+    return next();
 });
-
 // 获取角色列表
-server.post("/role/getrolelist",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	roleController.getRoleList(req,res);
-	return next();
+server.post("/role/getrolelist", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    roleController.getRoleList(req, res);
+    return next();
 });
-
 // 添加操作
-server.post("/role/addaction",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	actionController.addAction(req,res);
-	return next();
+server.post("/role/addaction", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    actionController.addAction(req, res);
+    return next();
 });
-
 // 删除操作
-server.post("/role/delaction",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	actionController.delAction(req,res);
-	return next();
+server.post("/role/delaction", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    actionController.delAction(req, res);
+    return next();
 });
-
 // 编辑操作
-server.post("/role/editaction",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	actionController.editAction(req, res);
-	return next();
+server.post("/role/editaction", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    actionController.editAction(req, res);
+    return next();
 });
-
 // 获取操作列表
-server.post("/role/getactionlist",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	actionController.getActionList(req, res);
-	return next();
+server.post("/role/getactionlist", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    actionController.getActionList(req, res);
+    return next();
 });
-
 // 添加角色操作
-server.post("/role/addroleaction",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	roleActionController.addRoleAction(req,res);
-	return next();
+server.post("/role/addroleaction", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    roleActionController.addRoleAction(req, res);
+    return next();
 });
-
 // 删除角色操作
-server.post("/role/delroleaction",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	roleActionController.delRoleAction(req,res);
-	return next();
+server.post("/role/delroleaction", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    roleActionController.delRoleAction(req, res);
+    return next();
 });
-
 // 编辑角色操作
-server.post("/role/editroleaction",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	roleActionController.editRoleAction(req, res);
-	return next();
+server.post("/role/editroleaction", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    roleActionController.editRoleAction(req, res);
+    return next();
 });
-
 // 获取角色操作列表
-server.post("/role/getroleactionlist",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	roleActionController.getRoleActionList(req, res);
-	return next();
+server.post("/role/getroleactionlist", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    roleActionController.getRoleActionList(req, res);
+    return next();
 });
-
 module.exports = server;

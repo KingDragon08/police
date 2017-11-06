@@ -12,6 +12,7 @@ var conn = mysql.createConnection({
 });
 conn.connect();
 
+
 //注册新账号
 function register(req, res) {
     var query = req.body;
