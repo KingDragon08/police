@@ -10,7 +10,7 @@ var User = require("./userController");
 // CREATE TABLE `action` (
 //   `action_id` int(32) NOT NULL AUTO_INCREMENT comment '功能id',
 //   `action_name` varchar(32) NOT NULL comment '功能名称',
-//   `action_short_name` varchar(32) NOT NULL comment '功能简称（唯一标识）',
+//   `action_url` varchar(255) NOT NULL comment '功能url（唯一标识）',
 //   `addtime` varchar(32) comment '创建时间戳',
 
 //   PRIMARY KEY (`action_id`)
@@ -38,14 +38,14 @@ function addAction(req,res){
                     return ;
                 }
 
-                var actionShortName = query.actionShortName || '';
-                if (check.isNull(actionShortName)) {
-                    res.json({"code": 401, "data":{"status":"fail","error":"actionShortName is null"}});
+                var actionUrl = query.actionUrl || '';
+                if (check.isNull(actionUrl)) {
+                    res.json({"code": 401, "data":{"status":"fail","error":"actionUrl is null"}});
                     return ;
                 }
 
-                var sql = "select * from action where action_name = ? or action_short_name = ?";
-                var dataArr = [actionName, actionShortName]
+                var sql = "select * from action where action_name = ? or action_url = ?";
+                var dataArr = [actionName, actionUrl]
 
                 db.query(sql, dataArr, function(err,rows){
                        if(err){
@@ -58,10 +58,10 @@ function addAction(req,res){
                            else {
                                 var curtime = new Date().getTime();
 
-                                 sql = "insert into action (action_name, action_short_name, addtime) ";
+                                 sql = "insert into action (action_name, action_url, addtime) ";
                                  sql += "values(?, ?, ?)";
 
-                               var dataArr = [actionName, actionShortName, curtime];
+                               var dataArr = [actionName, actionUrl, curtime];
                            }
 
                            db.query(sql, dataArr, function(err,rows){
@@ -171,9 +171,9 @@ function editAction(req,res){
                 return ;
             }
 
-            var actionShortName = query.actionShortName || '';
-            if (check.isNull(actionShortName)) {
-                res.json({"code": 401, "data":{"status":"fail","error":"actionShortName is null"}});
+            var actionUrl = query.actionUrl || '';
+            if (check.isNull(actionUrl)) {
+                res.json({"code": 401, "data":{"status":"fail","error":"actionUrl is null"}});
                 return ;
             }
 
@@ -186,8 +186,8 @@ function editAction(req,res){
                    }else {
                        if(rows[0].total > 0 ){
   
-                          sql = "select * from action where action_id != ? and (action_name = ? or action_short_name = ?)";
-                          dataArr = [actionId, actionName, actionShortName];
+                          sql = "select * from action where action_id != ? and (action_name = ? or action_url = ?)";
+                          dataArr = [actionId, actionName, actionUrl];
 
                           db.query(sql, dataArr, function(err,rows){
                              if(err){
@@ -197,9 +197,9 @@ function editAction(req,res){
                                     res.json({"code": 402, "data":{"status":"fail","error":"action exist"}});
                                     return ;
                                  } else {
-                                    sql = "update action set action_name = ?, action_short_name = ? where action_id = ?";
+                                    sql = "update action set action_name = ?, action_url = ? where action_id = ?";
 
-                                    dataArr = [actionName, actionShortName, actionId];
+                                    dataArr = [actionName, actionUrl, actionId];
 
                                    db.query(sql, dataArr, function(err,rows){
                                           if(err){

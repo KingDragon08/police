@@ -234,6 +234,8 @@ function editRoleAction(req,res){
  * @return {[type]}     [description]
  */
 function getRoleActionList(req,res){
+  console.log(req);
+  console.log(req.url);
   var query = req.body;
   try{
 
@@ -302,7 +304,34 @@ function getRoleActionList(req,res){
   }
 }
 
+
+function checkUserPermission(actionUrl, userId, userType, callback) {
+  try{
+    var userTable = userType == 'pc'? 'user':'mobileUser';
+    var sql = "select ra.* ";
+    sql += "from role_action ra, action a, " + userTable + ", u";
+    sql += " where ra.role_id = u.role_id and ra.action_id = a.action_id ";
+    sql += " and u.Id = ? and a.action_url = ?";
+    var dataArr = [userId, actionUrl];
+
+    db.query(sql, dataArr, function(err,rows){
+        if(err){
+          callback(false);
+        }else {
+          if (rows.length > 0) {
+              callback(true);
+          } else {
+              callback(false);
+          }
+        }
+    });
+  } catch(e) {
+    callback(false);
+  }
+}
+
 exports.addRoleAction = addRoleAction;
 exports.delRoleAction = delRoleAction;
 exports.editRoleAction = editRoleAction;
 exports.getRoleActionList = getRoleActionList;
+exports.checkUserPermission = checkUserPermission;
