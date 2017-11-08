@@ -11,6 +11,20 @@ server.post("/task/publishTask",function(req,res,next){
 	return next();
 });
 
+//发布采集新摄像头的任务
+server.post("/task/publishTaskWithoutCamera",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	Task.publishTaskWithoutCamera(req,res);
+	return next();
+});
+
+//任务采集反馈
+server.post("/task/taskFeedBack",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	Task.taskFeedBack(req,res);
+	return next();
+});
+
 //PC分页获取所有任务
 server.post("/task/getAllTask",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
@@ -36,6 +50,13 @@ server.post("/task/searchTask",function(req,res,next){
 server.post("/task/getTaskMobile",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
 	Task.getTaskMobile(req,res);
+	return next();
+});
+
+//PC分页按状态获取任务
+server.post("/task/getTaskPC",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	Task.getTaskPC(req,res);
 	return next();
 });
 
@@ -74,6 +95,19 @@ server.post("/task/acceptTaskStatus_App",function(req,res,next){
 	return next();
 });
 
+//根据任务Id获取任务的详情及反馈信息,PC 
+server.post("/task/getTaskById",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	Task.getTaskById(req,res);
+	return next();
+});
+
+//根据任务Id获取任务的详情及反馈信息,App 
+server.post("/task/getTaskByIdAPP",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	Task.getTaskByIdAPP(req,res);
+	return next();
+});
 
 
 module.exports = server;

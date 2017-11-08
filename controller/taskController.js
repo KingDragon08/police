@@ -65,6 +65,7 @@ function publishTask(req, res) {
                 			conn.query("insert into task(cameraName,cameraLocation," +
 		                        "taskDescription,userId,taskNO,taskStatus,cameraId)values(?,?,?,?,?,?,?)", [cameraName, cameraLocation, taskDescription, userId, taskNO, taskStatus,cameraId],
 		                        function(err, data) {
+                                    console.log(err);
 		                            res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
 		                    });
                 		} else {
@@ -77,7 +78,56 @@ function publishTask(req, res) {
             }
         });
     } catch (e) {
-    	// console.log(e);
+        res.json({ "code": 302, "data": { "status": "fail", "error": "param error1" } });
+    }
+}
+
+//发布采集新摄像头的任务
+function publishTaskWithoutCamera(req,res){
+    var query = req.body;
+    // console.log(req);
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        checkMobile2Token_PC(mobile, token, function(result) {
+            if (result) {
+                var cameraName = query.cameraName || -1;
+                var cameraLocation = query.cameraLocation || -1;
+                var cameraLon = query.cameraLon;//经度
+                var cameraLa = query.cameraLa;//纬度
+                var taskDescription = query.taskDescription || -1;
+                var userId = query.userId || -1;
+                var cameraType = query.cameraType;
+                var taskNO = new Date().getTime();
+                var taskStatus = 0;
+                if (cameraName == -1 || cameraLocation == -1 ||
+                    cameraLon == -1 || cameraLa==-1 ||
+                    taskDescription == -1 || userId == -1
+                    ) {
+                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });   
+                } else {
+                    //插入一条任务到task
+                    sql = "insert into task(cameraName,cameraLocation," +
+                            "taskDescription,userId,taskNO,taskStatus,"+
+                            "cameraId,cameraLon,cameraLa,addtime,cameraType)"+
+                            "values(?,?,?,?,?,?,?,?,?,?,?)";
+                    conn.query(sql,
+                            [cameraName, cameraLocation, taskDescription, 
+                                userId, taskNO, taskStatus,-1,cameraLon,cameraLa,taskNO,parseInt(cameraType)],
+                            function(err,data){
+                                if(err){
+                                    console.log(err);
+                                } else {
+                                    res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
+                                }
+                            }
+                    );                    
+                }
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+            }
+        });
+    } catch (e) {
         res.json({ "code": 302, "data": { "status": "fail", "error": "param error1" } });
     }
 }
@@ -185,6 +235,73 @@ function searchTask(req,res){
     }
 }
 
+//PC分页按状态获取自己的任务
+function getTaskPC(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        checkMobile2Token_PC(mobile, token, function(result) {
+            if (result) {
+                var page = query.page || 1;
+                var pageSize = query.pageSize || 20;
+                var userId = query.userId || -1;
+                var taskStatus = parseInt(query.taskStatus) || 0;
+                page = parseInt(page);
+                pageSize = parseInt(pageSize);
+                if(page<1){
+                    page = 1;
+                }
+                if(userId==-1){
+                    //获取总的数据量
+                    var sql = "select count(Id) as total from task where taskStatus=?";
+                    conn.query(sql,[taskStatus],function(err,data){
+                        var total = data[0].total;
+                        var start = (page - 1)*pageSize;
+                        var sql = "select * from task where taskStatus=?"+
+                                    " order by Id desc limit ?,?";
+                        conn.query(sql,[taskStatus,start,pageSize],function(err,data){
+                            // console.log(err);
+                            // console.log(data);
+                            ret = {};
+                            ret["status"] = "success";
+                            ret["data"] = data;
+                            ret["pageSize"] = pageSize;
+                            ret["totalPage"] = Math.ceil(parseInt(total)/pageSize);
+                            res.json({ "code": 200, "data": ret });
+                        });
+                    });
+                } else {
+                    userId = parseInt(userId);   
+                    //获取总的数据量
+                    var sql = "select count(Id) as total from task where userId=? and taskStatus=?";
+                    conn.query(sql,[userId,taskStatus],function(err,data){
+                        var total = data[0].total;
+                        var start = (page - 1)*pageSize;
+                        var sql = "select * from task where userId=? and taskStatus=?"+
+                                    " order by Id desc limit ?,?";
+                        conn.query(sql,[userId,taskStatus,start,pageSize],function(err,data){
+                            // console.log(err);
+                            // console.log(data);
+                            ret = {};
+                            ret["status"] = "success";
+                            ret["data"] = data;
+                            ret["pageSize"] = pageSize;
+                            ret["totalPage"] = Math.ceil(parseInt(total)/pageSize);
+                            res.json({ "code": 200, "data": ret });
+                        });
+                    });
+                }
+                
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+            }
+        });
+    } catch (e) {
+        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+    }
+}
+
 //App分页按状态获取自己的任务
 function getTaskMobile(req,res){
 	var query = req.body;
@@ -247,9 +364,40 @@ function checkTask(req,res){
 						sql = "update task set taskStatus=4,rejectInfo=";
 						sql += conn.escape(info) + " where Id=" + taskId;
 					}
-					// console.log(sql);
+                    //更新记录
 					conn.query(sql,function(err,data){
-						res.json({ "code": 200, "data": { "status": "success", "error": "success" } });	
+                        //如果审核通过的话添加摄像头
+                        if(taskStatus==3){
+                            //获取任务的反馈信息
+                            sql = "select a.cameraName,a.cameraLocation,a.addtime,a.cameraType,a.userId,b.cameraLon,b.cameraLa,b.content from "+
+                                    "task a left join taskFeedBack b on a.Id=b.taskId where a.Id=?";
+                            conn.query(sql,[taskId],
+                                function(err,data){
+                                    if(data && data.length>0){
+                                        data = data[0];
+                                        //创建摄像头
+                                        var curtime = new Date().getTime();
+                                        console.log(curtime);
+                                        sql = "insert into camera (cam_no, cam_name, cam_loc_lan, cam_loc_lon,cam_sta, cam_desc, cam_addr, user_id, addtime, uptime) ";
+                                        sql += "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                        var dataArr = [data.addtime, data.cameraName, data.cameraLa, data.cameraLon, data.cameraType, data.content, data.cameraLocation, data.userId, curtime, curtime];
+                                        conn.query(sql,dataArr,function(err,data){
+                                            // console.log(err);
+                                            // console.log(data);
+                                            var cameraId = data.insertId;
+                                            //更新任务表中的cameraId
+                                            conn.query("update task set cameraId=? where Id=?",[cameraId,taskId],
+                                                function(err,result){
+                                                    res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
+                                                });
+                                        });
+                                    } else {
+                                        res.json({ "code": 300, "data": { "status": "fail", "error": "task not exist" } });
+                                    }
+                                });
+                        } else {
+                            res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
+                        }
 					});            		
             	}
             } else {
@@ -444,8 +592,206 @@ function acceptTask(req,res){
     }
 }
 
+//反馈任务
+function taskFeedBack(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        checkMobile2Token_PC(mobile, token, function(result) {
+            if (result) {
+                var taskId = query.taskId || -1;
+                var content = query.content || -1;
+                var cameraLon = query.cameraLon || -1;
+                var cameraLa = query.cameraLa || -1;
+                var pics = query.pics || -1;
+                if(taskId==-1 || content==-1 || cameraLon==-1 
+                    || cameraLa==-1 || pics==-1){
+                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+                } else {
+                    try{
+                        pics = JSON.parse(pics);    
+                    } catch(e){
+                        pics = pics;
+                    }
+                    if(pics.length<1){
+                        res.json({ "code": 300, "data": { "status": "fail", "error": "pics can not be null" } });
+                        return;
+                    }
+                    //检查任务Id是否存在
+                    taskId = parseInt(taskId);
+                    var sql = "select count(Id) as total from task where Id=?";
+                    conn.query(sql,[taskId],function(err,data){
+                        if(data[0].total==0){
+                            res.json({ "code": 300, "data": { "status": "fail", "error": "taskId not exist" } });
+                        } else {
+                            //更新任务状态为审核中
+                            /*
+                                taskStatus:
+                                0:未接受
+                                1:进行中
+                                2:审核中
+                                3:已完成
+                                4:审核不通过
+                            */
+                            conn.query("update task set taskStatus=2 where Id=?",[taskId],
+                                function(err,data){
+                                    if(err){
+                                        console.log(err);
+                                        res.json({ "code": 300, "data": { "status": "fail", "error": "update task status fail" } });
+                                    } else {
+                                        //插入反馈信息记录
+                                        var addtime = new Date().getTime();
+                                        sql = "insert into taskFeedBack(taskId,content,addtime,cameraLon,"+
+                                                "cameraLa)values(?,?,?,?,?)";
+                                        conn.query(sql,[taskId,content,addtime,cameraLon,cameraLa],
+                                            function(err,data){
+                                                if(err){
+                                                    res.json({ "code": 300, "data": { "status": "fail", "error": "insert taskFeedBack fail" } });
+                                                } else {
+                                                    //插入反馈的图片记录
+                                                    pics.forEach(function(url){
+                                                          sql = "insert into taskFeedBackPics(taskId, url, addtime) values (?, ?, ?)";
+                                                          dataArr = [taskId, url, addtime];
+                                                          conn.query(sql, dataArr, function(err,rows){
+                                                             if(err){
+                                                                 res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                                                             }
+                                                         });
+                                                      });
+                                                }
+                                            });
+                                        res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
+                                    }
+                                });
+                        }
+                    });
+                }
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+            }
+        });
+    } catch (e) {
+        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+    } 
+}
+
+//根据任务Id获取任务的详情及反馈信息,PC 
+function getTaskById(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        checkMobile2Token_PC(mobile, token, function(result) {
+            if (result) {
+                var taskId = query.taskId || -1;
+                if(taskId==-1){
+                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });           
+                } else {
+                    taskId = parseInt(taskId);
+                    var ret = {};
+                    ret["status"] = "success";
+                    //判断任务是否存在
+                    var sql = "select count(Id) as total from task where Id=?";
+                    conn.query(sql,taskId,function(err,data){
+                        if(data[0].total){
+                            //获取任务信息
+                            conn.query("select * from task where Id=?",[taskId],
+                                function(err,data){
+                                    ret["taskData"] = data[0];
+                                    //已经有反馈信息
+                                    if(data[0].taskStatus>1){
+                                        conn.query("select * from taskFeedBack where taskId=?",
+                                            [taskId],
+                                            function(err,data){
+                                                ret["taskFeedBack"] = data;
+                                                //获取反馈的图片信息
+                                                conn.query("select * from taskFeedBackPics where taskId=?",
+                                                    [taskId],
+                                                    function(err,data){
+                                                        ret["taskFeedBackPics"] = data;
+                                                        res.json({ "code": 200, "data": ret });
+                                                    });
+                                            });
+                                    } else {
+                                        ret["taskFeedBack"] = Array();
+                                        ret["taskFeedBackPics"] = Array();
+                                        res.json({ "code": 200, "data": ret });
+                                    }
+                                });
+                        } else {
+                            res.json({ "code": 300, "data": { "status": "fail", "error": "task not exist" } });
+                        }
+                    });
+                }
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+            }
+        });
+    } catch (e) {
+        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+    }
+}
+
+//根据任务Id获取任务的详情及反馈信息,PC 
+function getTaskByIdAPP(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        checkMobile2Token_MOBILE(mobile, token, function(result) {
+            if (result) {
+                var taskId = query.taskId || -1;
+                if(taskId==-1){
+                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });           
+                } else {
+                    taskId = parseInt(taskId);
+                    var ret = {};
+                    ret["status"] = "success";
+                    //判断任务是否存在
+                    var sql = "select count(Id) as total from task where Id=?";
+                    conn.query(sql,taskId,function(err,data){
+                        if(data[0].total){
+                            //获取任务信息
+                            conn.query("select * from task where Id=?",[taskId],
+                                function(err,data){
+                                    ret["taskData"] = data[0];
+                                    //已经有反馈信息
+                                    if(data[0].taskStatus>1){
+                                        conn.query("select * from taskFeedBack where taskId=?",
+                                            [taskId],
+                                            function(err,data){
+                                                ret["taskFeedBack"] = data;
+                                                //获取反馈的图片信息
+                                                conn.query("select * from taskFeedBackPics where taskId=?",
+                                                    [taskId],
+                                                    function(err,data){
+                                                        ret["taskFeedBackPics"] = data;
+                                                        res.json({ "code": 200, "data": ret });
+                                                    });
+                                            });
+                                    } else {
+                                        ret["taskFeedBack"] = Array();
+                                        ret["taskFeedBackPics"] = Array();
+                                        res.json({ "code": 200, "data": ret });
+                                    }
+                                });
+                        } else {
+                            res.json({ "code": 300, "data": { "status": "fail", "error": "task not exist" } });
+                        }
+                    });
+                }
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+            }
+        });
+    } catch (e) {
+        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+    }
+}
 
 exports.publishTask = publishTask;
+exports.publishTaskWithoutCamera = publishTaskWithoutCamera;
 exports.getAllTask = getAllTask;
 exports.getUserTask = getUserTask;
 exports.searchTask = searchTask;
@@ -457,6 +803,10 @@ exports.getTaskStatus_App = getTaskStatus_App;
 exports.updateTask2Checking = updateTask2Checking;
 exports.deleteTask = deleteTask;
 exports.acceptTask = acceptTask;
+exports.taskFeedBack = taskFeedBack;
+exports.getTaskPC = getTaskPC;
+exports.getTaskById = getTaskById;
+exports.getTaskByIdAPP = getTaskByIdAPP;
 
 
 

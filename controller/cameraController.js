@@ -392,6 +392,7 @@ function editCamera(req, res) {
  */
 function getCameraList(req, res) {
     var query = req.body;
+    console.log(query);
     try {
         var sql = "select count(*) as total from camera where is_del = 0";
         var dataArr = [];
