@@ -369,28 +369,34 @@ function checkTask(req,res){
                         //如果审核通过的话添加摄像头
                         if(taskStatus==3){
                             //获取任务的反馈信息
-                            sql = "select a.cameraName,a.cameraLocation,a.addtime,a.cameraType,a.userId,b.cameraLon,b.cameraLa,b.content from "+
+                            sql = "select a.cameraName,a.cameraLocation,a.addtime,a.cameraType,a.userId,a.cameraId,b.cameraLon,b.cameraLa,b.content from "+
                                     "task a left join taskFeedBack b on a.Id=b.taskId where a.Id=?";
                             conn.query(sql,[taskId],
                                 function(err,data){
                                     if(data && data.length>0){
                                         data = data[0];
-                                        //创建摄像头
-                                        var curtime = new Date().getTime();
-                                        console.log(curtime);
-                                        sql = "insert into camera (cam_no, cam_name, cam_loc_lan, cam_loc_lon,cam_sta, cam_desc, cam_addr, user_id, addtime, uptime) ";
-                                        sql += "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                                        var dataArr = [data.addtime, data.cameraName, data.cameraLa, data.cameraLon, data.cameraType, data.content, data.cameraLocation, data.userId, curtime, curtime];
-                                        conn.query(sql,dataArr,function(err,data){
-                                            // console.log(err);
-                                            // console.log(data);
-                                            var cameraId = data.insertId;
-                                            //更新任务表中的cameraId
-                                            conn.query("update task set cameraId=? where Id=?",[cameraId,taskId],
-                                                function(err,result){
-                                                    res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
-                                                });
-                                        });
+                                        //仅仅是信息采集任务,不需要插入摄像头
+                                        if(data.cameraId>0){
+                                            res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
+                                        } else {
+                                            //创建摄像头
+                                            var curtime = new Date().getTime();
+                                            console.log(curtime);
+                                            sql = "insert into camera (cam_no, cam_name, cam_loc_lan, cam_loc_lon,cam_sta, cam_desc, cam_addr, user_id, addtime, uptime) ";
+                                            sql += "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                            var dataArr = [data.addtime, data.cameraName, data.cameraLa, data.cameraLon, data.cameraType, data.content, data.cameraLocation, data.userId, curtime, curtime];
+                                            conn.query(sql,dataArr,function(err,data){
+                                                // console.log(err);
+                                                // console.log(data);
+                                                var cameraId = data.insertId;
+                                                //更新任务表中的cameraId
+                                                conn.query("update task set cameraId=? where Id=?",[cameraId,taskId],
+                                                    function(err,result){
+                                                        res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
+                                                    });
+                                            });    
+                                        }
+                                        
                                     } else {
                                         res.json({ "code": 300, "data": { "status": "fail", "error": "task not exist" } });
                                     }
@@ -598,7 +604,7 @@ function taskFeedBack(req,res){
     try {
         var mobile = query.mobile;
         var token = query.token;
-        checkMobile2Token_PC(mobile, token, function(result) {
+        checkMobile2Token_MOBILE(mobile, token, function(result) {
             if (result) {
                 var taskId = query.taskId || -1;
                 var content = query.content || -1;
