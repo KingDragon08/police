@@ -25,6 +25,13 @@ server.post("/task/taskFeedBack",function(req,res,next){
 	return next();
 });
 
+//任务采集反馈编辑
+server.post("/task/taskFeedBackEdit",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	Task.taskFeedBackEdit(req,res);
+	return next();
+});
+
 //PC分页获取所有任务
 server.post("/task/getAllTask",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");

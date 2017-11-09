@@ -2,6 +2,7 @@ var DB_CONFIG = require("../dbconfig");
 var mysql = require('mysql');
 var crypto = require('crypto');
 var Sync = require('sync');
+var Camera = require("./cameraController");
 
 var conn = mysql.createConnection({
     host: DB_CONFIG.host,
@@ -369,7 +370,7 @@ function checkTask(req,res){
                         //如果审核通过的话添加摄像头
                         if(taskStatus==3){
                             //获取任务的反馈信息
-                            sql = "select a.cameraName,a.cameraLocation,a.addtime,a.cameraType,a.userId,a.cameraId,b.cameraLon,b.cameraLa,b.content from "+
+                            sql = "select b.cameraExtra,b.camera_no,a.cameraName,a.cameraLocation,a.addtime,a.cameraType,a.userId,a.cameraId,b.cameraLon,b.cameraLa,b.content from "+
                                     "task a left join taskFeedBack b on a.Id=b.taskId where a.Id=?";
                             conn.query(sql,[taskId],
                                 function(err,data){
@@ -381,20 +382,18 @@ function checkTask(req,res){
                                         } else {
                                             //创建摄像头
                                             var curtime = new Date().getTime();
-                                            console.log(curtime);
-                                            sql = "insert into camera (cam_no, cam_name, cam_loc_lan, cam_loc_lon,cam_sta, cam_desc, cam_addr, user_id, addtime, uptime) ";
-                                            sql += "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                                            var dataArr = [data.addtime, data.cameraName, data.cameraLa, data.cameraLon, data.cameraType, data.content, data.cameraLocation, data.userId, curtime, curtime];
-                                            conn.query(sql,dataArr,function(err,data){
-                                                // console.log(err);
-                                                // console.log(data);
-                                                var cameraId = data.insertId;
-                                                //更新任务表中的cameraId
-                                                conn.query("update task set cameraId=? where Id=?",[cameraId,taskId],
-                                                    function(err,result){
-                                                        res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
-                                                    });
-                                            });    
+                                            Camera.createNewCamera(data.camera_no,data.cameraName,
+                                                            data.cameraType,curtime,curtime,
+                                                            data.userId,data.cameraLa,data.cameraLon,data.content,
+                                                            data.cameraLocation,JSON.parse(data.cameraExtra),function(ret){
+                                                                // res.json(ret);
+                                                                var cameraId = ret.data.cam_id;
+                                                                //更新任务表中的cameraId
+                                                                conn.query("update task set cameraId=? where Id=?",[cameraId,taskId],
+                                                                    function(err,result){
+                                                                        res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
+                                                                    });
+                                                            });
                                         }
                                         
                                     } else {
@@ -419,7 +418,7 @@ function checkTask(req,res){
 function checkMobile2Token_PC(mobile, token, callback) {
     conn.query("select count(Id) as total from user where mobile=? and token=?", [mobile, token],
         function(err, result) {
-            if (result[0].total > 0) {
+            if (result && result.length && result[0].total > 0) {
                 callback(true);
             } else {
                 callback(false);
@@ -431,7 +430,7 @@ function checkMobile2Token_PC(mobile, token, callback) {
 function checkMobile2Token_MOBILE(mobile, token, callback) {
     conn.query("select count(Id) as total from mobileUser where mobile=? and token=?", [mobile, token],
         function(err, result) {
-            if (result[0].total > 0) {
+            if (result && result.length && result[0].total > 0) {
                 callback(true);
             } else {
                 callback(false);
@@ -610,9 +609,11 @@ function taskFeedBack(req,res){
                 var content = query.content || -1;
                 var cameraLon = query.cameraLon || -1;
                 var cameraLa = query.cameraLa || -1;
+                var cameraNo = query.cameraNo || -1;
+                var cameraExtra = query.cameraExtra || -1;//摄像头的自定义属性
                 var pics = query.pics || -1;
-                if(taskId==-1 || content==-1 || cameraLon==-1 
-                    || cameraLa==-1 || pics==-1){
+                if(taskId==-1 || content==-1 || cameraLon==-1 || cameraNo==-1
+                    || cameraLa==-1 || pics==-1 || cameraExtra==-1){
                     res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
                 } else {
                     try{
@@ -649,16 +650,17 @@ function taskFeedBack(req,res){
                                         //插入反馈信息记录
                                         var addtime = new Date().getTime();
                                         sql = "insert into taskFeedBack(taskId,content,addtime,cameraLon,"+
-                                                "cameraLa)values(?,?,?,?,?)";
-                                        conn.query(sql,[taskId,content,addtime,cameraLon,cameraLa],
+                                                "cameraLa,camera_no,cameraExtra,pics)values(?,?,?,?,?,?,?,?)";
+                                        conn.query(sql,[taskId,content,addtime,cameraLon,cameraLa,cameraNo,cameraExtra,pics.length],
                                             function(err,data){
                                                 if(err){
                                                     res.json({ "code": 300, "data": { "status": "fail", "error": "insert taskFeedBack fail" } });
                                                 } else {
                                                     //插入反馈的图片记录
+                                                    var taskFeedBackId = data.insertId;
                                                     pics.forEach(function(url){
-                                                          sql = "insert into taskFeedBackPics(taskId, url, addtime) values (?, ?, ?)";
-                                                          dataArr = [taskId, url, addtime];
+                                                          sql = "insert into taskFeedBackPics(taskFeedBackId, url, addtime) values (?, ?, ?)";
+                                                          dataArr = [taskFeedBackId, url, addtime];
                                                           conn.query(sql, dataArr, function(err,rows){
                                                              if(err){
                                                                  res.json({"code": 501, "data":{"status":"fail","error":err.message}});
@@ -681,6 +683,109 @@ function taskFeedBack(req,res){
         res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
     } 
 }
+
+//任务采集反馈编辑
+//先删后插入
+function taskFeedBackEdit(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        checkMobile2Token_MOBILE(mobile, token, function(result) {
+            if (result) {
+                var taskId = query.taskId || -1;
+                var taskFeedBackId = query.taskFeedBackId || -1;
+                var content = query.content || -1;
+                var cameraLon = query.cameraLon || -1;
+                var cameraLa = query.cameraLa || -1;
+                var cameraNo = query.cameraNo || -1;
+                var cameraExtra = query.cameraExtra || -1;//摄像头的自定义属性
+                var pics = query.pics || -1;
+                if(taskId==-1 || content==-1 || cameraLon==-1 || cameraNo==-1
+                    || cameraLa==-1 || pics==-1 || cameraExtra==-1 ||
+                     taskFeedBackId==-1){
+                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+                } else {
+                    try{
+                        pics = JSON.parse(pics);    
+                    } catch(e){
+                        pics = pics;
+                    }
+                    if(pics.length<1){
+                        res.json({ "code": 300, "data": { "status": "fail", "error": "pics can not be null" } });
+                        return;
+                    }
+                    //检查任务Id是否存在
+                    taskId = parseInt(taskId);
+                    taskFeedBackId = parseInt(taskFeedBackId);
+                    var sql = "select count(Id) as total from task where Id=?";
+                    conn.query(sql,[taskId],function(err,data){
+                        if(data[0].total==0){
+                            res.json({ "code": 300, "data": { "status": "fail", "error": "taskId not exist" } });
+                        } else {
+                            //检查任务状态是否为审核已通过
+                            conn.query("select taskStatus from task where Id=?",[taskId],
+                                function(err,result){
+                                    if(result && result.length){
+                                        if(result[0].taskStatus!=3){
+                                            //删除现有的反馈信息
+                                            conn.query("delete from taskFeedBack where Id=?",
+                                                [taskFeedBackId],function(err,result){
+                                                    if(err){
+                                                        res.json({ "code": 300, "data": { "status": "fail", "error": err.message } });
+                                                    } else {
+                                                        //更新任务状态为审核中
+                                                        conn.query("update task set taskStatus=2 where Id=?",[taskId],
+                                                                    function(err,data){
+                                                                        if(err){
+                                                                            console.log(err);
+                                                                            res.json({ "code": 300, "data": { "status": "fail", "error": "update task status fail" } });
+                                                                        } else {
+                                                                            //插入反馈信息记录
+                                                                            var addtime = new Date().getTime();
+                                                                            sql = "insert into taskFeedBack(taskId,content,addtime,cameraLon,"+
+                                                                                    "cameraLa,camera_no,cameraExtra,pics)values(?,?,?,?,?,?,?,?)";
+                                                                            conn.query(sql,[taskId,content,addtime,cameraLon,cameraLa,cameraNo,cameraExtra,pics.length],
+                                                                                function(err,data){
+                                                                                    if(err){
+                                                                                        res.json({ "code": 300, "data": { "status": "fail", "error": "insert taskFeedBack fail" } });
+                                                                                    } else {
+                                                                                        //插入反馈的图片记录
+                                                                                        var taskFeedBackId = data.insertId;
+                                                                                        pics.forEach(function(url){
+                                                                                              sql = "insert into taskFeedBackPics(taskFeedBackId, url, addtime) values (?, ?, ?)";
+                                                                                              dataArr = [taskFeedBackId, url, addtime];
+                                                                                              conn.query(sql, dataArr, function(err,rows){
+                                                                                                 if(err){
+                                                                                                     res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                                                                                                 }
+                                                                                             });
+                                                                                          });
+                                                                                    }
+                                                                                });
+                                                                            res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
+                                                                        }
+                                                                    });
+                                                    }
+                                                });
+                                        } else {
+                                            res.json({ "code": 403, "data": { "status": "fail", "error": "审核通过,不可更改" } });
+                                        }
+                                    }
+                                });
+                        }
+                    });
+                }
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+            }
+        });
+    } catch (e) {
+        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+    }    
+}
+
+
 
 //根据任务Id获取任务的详情及反馈信息,PC 
 function getTaskById(req,res){
@@ -739,7 +844,7 @@ function getTaskById(req,res){
     }
 }
 
-//根据任务Id获取任务的详情及反馈信息,PC 
+//根据任务Id获取任务的详情及反馈信息,APP
 function getTaskByIdAPP(req,res){
     var query = req.body;
     try {
@@ -813,6 +918,7 @@ exports.taskFeedBack = taskFeedBack;
 exports.getTaskPC = getTaskPC;
 exports.getTaskById = getTaskById;
 exports.getTaskByIdAPP = getTaskByIdAPP;
+exports.taskFeedBackEdit = taskFeedBackEdit;
 
 
 
