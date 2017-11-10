@@ -181,7 +181,7 @@ function getUsers(req, res) {
                 var start = (page - 1) * pageSize;
                 pageSize = parseInt(pageSize);
                 conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP " +
-                    "from user where status=? order by Id desc limit ?,?", [type, start, pageSize],
+                    "from user where status=? order by Id desc limit ?,?", [parseInt(type), start, pageSize],
                     function(err, data) {
                         console.log(err);
                         ret = {};

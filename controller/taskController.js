@@ -3,6 +3,7 @@ var mysql = require('mysql');
 var crypto = require('crypto');
 var Sync = require('sync');
 var Camera = require("./cameraController");
+var async = require('async');
 
 var conn = mysql.createConnection({
     host: DB_CONFIG.host,
@@ -902,18 +903,22 @@ function getTaskById(req,res){
                                         conn.query("select * from taskFeedBack where taskId=?",
                                             [taskId],
                                             function(err,data){
-                                                ret["taskFeedBack"] = data;
                                                 //获取反馈的图片信息
-                                                conn.query("select * from taskFeedBackPics where taskId=?",
-                                                    [taskId],
-                                                    function(err,data){
-                                                        ret["taskFeedBackPics"] = data;
-                                                        res.json({ "code": 200, "data": ret });
-                                                    });
+                                                async.map(data,function(item,call){
+                                                    var taskFeedBackId = item.Id;
+                                                    conn.query("select * from taskFeedBackPics where taskFeedBackId=?",
+                                                                [taskFeedBackId],function(err,row){
+                                                                    item.taskFeedBackPics = row;
+                                                                    call(null,item);
+                                                                });
+                                                },function(err,result){
+                                                    ret["taskFeedBacks"] = result;
+                                                    ret["code"] = 200;
+                                                    res.json(ret);
+                                                });
                                             });
                                     } else {
                                         ret["taskFeedBack"] = Array();
-                                        ret["taskFeedBackPics"] = Array();
                                         res.json({ "code": 200, "data": ret });
                                     }
                                 });
@@ -959,18 +964,22 @@ function getTaskByIdAPP(req,res){
                                         conn.query("select * from taskFeedBack where taskId=?",
                                             [taskId],
                                             function(err,data){
-                                                ret["taskFeedBack"] = data;
                                                 //获取反馈的图片信息
-                                                conn.query("select * from taskFeedBackPics where taskId=?",
-                                                    [taskId],
-                                                    function(err,data){
-                                                        ret["taskFeedBackPics"] = data;
-                                                        res.json({ "code": 200, "data": ret });
-                                                    });
+                                                async.map(data,function(item,call){
+                                                    var taskFeedBackId = item.Id;
+                                                    conn.query("select * from taskFeedBackPics where taskFeedBackId=?",
+                                                                [taskFeedBackId],function(err,row){
+                                                                    item.taskFeedBackPics = row;
+                                                                    call(null,item);
+                                                                });
+                                                },function(err,result){
+                                                    ret["taskFeedBacks"] = result;
+                                                    ret["code"] = 200;
+                                                    res.json(ret);
+                                                });
                                             });
                                     } else {
                                         ret["taskFeedBack"] = Array();
-                                        ret["taskFeedBackPics"] = Array();
                                         res.json({ "code": 200, "data": ret });
                                     }
                                 });
