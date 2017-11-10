@@ -416,7 +416,7 @@ function checkTask(req,res){
 
 //验证账号和token是否匹配_PC端
 function checkMobile2Token_PC(mobile, token, callback) {
-    conn.query("select count(Id) as total from user where mobile=? and token=?", [mobile, token],
+    conn.query("select count(Id) as total from user where mobile=? and token=? and status=?", [mobile, token, 1],
         function(err, result) {
             if (result && result.length && result[0].total > 0) {
                 callback(true);
@@ -428,7 +428,7 @@ function checkMobile2Token_PC(mobile, token, callback) {
 
 //验证账号和token是否匹配_手机端
 function checkMobile2Token_MOBILE(mobile, token, callback) {
-    conn.query("select count(Id) as total from mobileUser where mobile=? and token=?", [mobile, token],
+    conn.query("select count(Id) as total from mobileUser where mobile=? and token=? and status=?", [mobile, token, 1],
         function(err, result) {
             if (result && result.length && result[0].total > 0) {
                 callback(true);

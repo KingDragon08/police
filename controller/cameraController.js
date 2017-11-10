@@ -1087,7 +1087,7 @@ function editCameraAttr(req,res){
 
 //验证账号和token是否匹配_手机端
 function checkMobile2Token_MOBILE(mobile, token, callback) {
-    db.query("select count(Id) as total from mobileUser where mobile=? and token=?", [mobile, token],
+    db.query("select count(Id) as total from mobileUser where mobile=? and token=? and status=?", [mobile, token, 1],
         function(err, result) {
             if (result && result.length && result[0].total > 0) {
                 callback(true);

@@ -127,8 +127,8 @@ function logout(req, res) {
 
 //验证账号和token是否匹配
 function checkMobile2Token(mobile, token, callback) {
-    conn.query("select count(Id) as total from mobileUser where mobile=? and token=?",
-    	[mobile, token],
+    conn.query("select count(Id) as total from mobileUser where mobile=? and token=? and status=?",
+    	[mobile, token, 1],
         function(err, result) {
             if (result[0].total > 0) {
                 callback(true);
@@ -143,7 +143,7 @@ function getUserInfo(mobile, token, callback) {
     try {
         checkMobile2Token(mobile, token, function(result) {
             if (result) {
-                conn.query("select * from mobileUser where mobile=?", [mobile],
+                conn.query("select * from mobileUser where mobile=? and token=? and status=?", [mobile,token,1],
                     function(err, res) {
                         ret = {};
                         ret["error"] = 0;

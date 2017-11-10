@@ -36,6 +36,8 @@ server.post("/user/getUsers",function(req,res,next){
 	return next();
 });
 
+//
+
 //获取单个用户信息
 server.post("/user/getSingleUserInfo",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
@@ -91,5 +93,14 @@ server.post("/user/checkUserPermission",function(req,res,next){
 	User.checkMobile2TokenWithPermissionFrontEnd(req,res);
 	return next();
 });
+
+//审核注册用户
+server.post("/user/checkUser",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	User.checkUser(req,res);
+	return next();
+});
+
+
 
 module.exports = server;

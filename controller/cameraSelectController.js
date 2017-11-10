@@ -343,7 +343,7 @@ function cameraSelectLine(req, res) {
  * @time 2017-11-02 afternoon
  */
 function checkMobile2Token_PC(mobile, token, callback) {
-    conn.query("select count(Id) as total from user where mobile=? and token=?", [mobile, token],
+    conn.query("select count(Id) as total from user where mobile=? and token=? and status=?", [mobile, token, 1],
         function(err, result) {
             if (result[0].total > 0) {
                 callback(true);
