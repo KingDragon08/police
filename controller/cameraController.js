@@ -938,6 +938,16 @@ function editCameraAttr(req,res){
                     });
                     return;    
                 } else {
+                    if(attrId<13){
+                        res.json({
+                            "code": 403,
+                            "data": {
+                                "status": "fail",
+                                "error": "attrId must bigger than 12"
+                            }
+                        });
+                        return;    
+                    }
                     //获取对应Id的字段名称
                     db.query("select attr_name from camera_attr where Id=?",
                         [parseInt(attrId)],function(err,rows){
