@@ -103,6 +103,13 @@ server.post("/camera/getCameraAttrs",function(req,res,next){
 	return next();
 });
 
+//获取摄像头属性及其描述-APP
+server.post("/camera/getCameraAttrs_APP",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.getCameraAttrs_APP(req,res);
+	return next();
+});
+
 //添加摄像头属性
 server.post("/camera/addCameraAttr",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");

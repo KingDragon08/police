@@ -823,6 +823,68 @@ function getCameraAttrs(req,res){
 }
 
 /*
+ *获取摄像头的所有属性_APP
+ *@param type 1=>获取用户自定义属性,-1=>获取所有属性,默认－1
+ */
+function getCameraAttrs_APP(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        checkMobile2Token_MOBILE(mobile, token, function(result) {
+            if (result) {
+                // user_info = user.data;
+                var type = query.type || -1;
+                if(type==-1){
+                    var sql = "select * from camera_attr";
+                    var data = Array();
+                } else {
+                    var sql = "select * from camera_attr where Id>?";
+                    var data = [12];
+                }
+                db.query(sql,data,function(err,rows){
+                    if (err) {
+                        res.json({
+                            "code": 501,
+                            "data": {
+                                "status": "fail",
+                                "error": err.message
+                            }
+                        });
+                    } else {
+                        res.json({
+                            "code": 200,
+                            "data": {
+                                "status": "success",
+                                "error": "success",
+                                "rows": rows
+                            }
+                        });
+                    }
+                });
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "user not login"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
+/*
  *添加摄像头属性
  *@param attr_name=>属性名字
  *@param attr_desc=>属性描述
@@ -1023,6 +1085,17 @@ function editCameraAttr(req,res){
     }
 }
 
+//验证账号和token是否匹配_手机端
+function checkMobile2Token_MOBILE(mobile, token, callback) {
+    db.query("select count(Id) as total from mobileUser where mobile=? and token=?", [mobile, token],
+        function(err, result) {
+            if (result && result.length && result[0].total > 0) {
+                callback(true);
+            } else {
+                callback(false);
+            }
+        });
+}
 
 
 function funcName(req,res){
@@ -1059,6 +1132,7 @@ function funcName(req,res){
 
 
 
+
 exports.addCamera = addCamera;
 exports.delCamera = delCamera;
 exports.editCamera = editCamera;
@@ -1070,5 +1144,5 @@ exports.getCameraAttrs = getCameraAttrs;
 exports.addCameraAttr = addCameraAttr;
 exports.editCameraAttr = editCameraAttr;
 exports.createNewCamera = createNewCamera;
-
+exports.getCameraAttrs_APP = getCameraAttrs_APP;
 
