@@ -18,10 +18,17 @@ server.post("/task/publishTaskWithoutCamera",function(req,res,next){
 	return next();
 });
 
-//任务采集反馈
+//任务采集反馈-有任务
 server.post("/task/taskFeedBack",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
 	Task.taskFeedBack(req,res);
+	return next();
+});
+
+//任务采集反馈-没有任务
+server.post("/task/feedBackWithoutTask",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	Task.feedBackWithoutTask(req,res);
 	return next();
 });
 

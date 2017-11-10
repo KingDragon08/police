@@ -597,7 +597,7 @@ function acceptTask(req,res){
     }
 }
 
-//反馈任务
+//反馈任务－有任务
 function taskFeedBack(req,res){
     var query = req.body;
     try {
@@ -683,6 +683,93 @@ function taskFeedBack(req,res){
         res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
     } 
 }
+
+//反馈任务－没有任务
+function feedBackWithoutTask(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        checkMobile2Token_MOBILE(mobile, token, function(result) {
+            if (result) {
+                var cameraName = query.cameraName || -1;
+                var cameraLocation = query.cameraLocation || -1;
+                var cameraLon = query.cameraLon || -1;
+                var cameraLa = query.cameraLa || -1;
+                var cameraType = query.cameraType || -1;
+                var userId = query.userId || -1;
+                var content = query.content || -1;
+                var cameraNo = query.cameraNo || -1;
+                var cameraExtra = query.cameraExtra || -1;
+                var pics = query.pics || -1;
+                
+                if(cameraName==-1 || cameraLocation==-1 || cameraLon==-1 ||
+                    cameraLa==-1 || cameraType==-1 || userId==-1 ||
+                    content==-1 || cameraNo==-1 || cameraExtra==-1 ||
+                    pics==-1){
+                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+                } else {
+                    try{
+                        pics = JSON.parse(pics);    
+                    } catch(e){
+                        pics = pics;
+                    }
+                    if(pics.length<1){
+                        res.json({ "code": 300, "data": { "status": "fail", "error": "pics can not be null" } });
+                        return;
+                    }
+                    //插入一条状态为审核中的任务
+                    var curtime = new Date().getTime();
+                    sql = "insert into task(cameraName,cameraLocation," +
+                            "taskDescription,userId,taskNO,taskStatus,"+
+                            "cameraId,cameraLon,cameraLa,addtime,cameraType)"+
+                            "values(?,?,?,?,?,?,?,?,?,?,?)";
+                    conn.query(sql,
+                            [cameraName, cameraLocation, "App端直接采集", 
+                                userId, curtime, 2,-1,cameraLon,cameraLa,curtime,
+                                parseInt(cameraType)],
+                            function(err,data){
+                                if(err){
+                                    res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                                } else {
+                                    //res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
+                                    var taskId = data.insertId;
+                                    //插入反馈信息记录
+                                    var addtime = new Date().getTime();
+                                    sql = "insert into taskFeedBack(taskId,content,addtime,cameraLon,"+
+                                            "cameraLa,camera_no,cameraExtra,pics)values(?,?,?,?,?,?,?,?)";
+                                    conn.query(sql,[taskId,content,addtime,cameraLon,cameraLa,cameraNo,cameraExtra,pics.length],
+                                        function(err,data){
+                                            if(err){
+                                                res.json({ "code": 300, "data": { "status": "fail", "error": "insert taskFeedBack fail" } });
+                                            } else {
+                                                //插入反馈的图片记录
+                                                var taskFeedBackId = data.insertId;
+                                                pics.forEach(function(url){
+                                                      sql = "insert into taskFeedBackPics(taskFeedBackId, url, addtime) values (?, ?, ?)";
+                                                      dataArr = [taskFeedBackId, url, addtime];
+                                                      conn.query(sql, dataArr, function(err,rows){
+                                                         if(err){
+                                                             res.json({"code": 501, "data":{"status":"fail","error":err.message}});
+                                                         }
+                                                     });
+                                                  });
+                                            }
+                                        });
+                                    res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
+                                }
+                            });
+                }
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+            }
+        });
+    } catch (e) {
+        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+    } 
+}
+
+
 
 //任务采集反馈编辑
 //先删后插入
@@ -919,6 +1006,7 @@ exports.getTaskPC = getTaskPC;
 exports.getTaskById = getTaskById;
 exports.getTaskByIdAPP = getTaskByIdAPP;
 exports.taskFeedBackEdit = taskFeedBackEdit;
+exports.feedBackWithoutTask = feedBackWithoutTask;
 
 
 
