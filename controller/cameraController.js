@@ -1,6 +1,7 @@
 var db = require("../lib/db");
 var check = require("../lib/check");
 var User = require("./userController");
+var cameraAsync = require("./cameraAsync");
 var dbTableAttr = require("../config/dbTableAttrConf");
 // create table `camera`(
 //     `cam_id` int(32) not null auto_increment comment '设备记录id',
@@ -157,15 +158,19 @@ function createNewCamera(cam_no,cam_name,cam_sta,addtime,uptime,
                             };
                             callback(ret);
                         } else {
-                            ret = {
-                                "code": 200,
-                                "data": {
-                                    "status": "success",
-                                    "error": "success",
-                                    "cam_id": rows.insertId
-                                }
-                            };
-                            callback(ret);
+                            //同步摄像头图层的数据
+                            var cam_id = rows.insertId;
+                            cameraAsync.createNewCamera(cam_id,cam_loc_lan,cam_loc_lon,cam_sta,function(result){
+                                ret = {
+                                    "code": 200,
+                                    "data": {
+                                        "status": "success",
+                                        "error": "success",
+                                        "cam_id": rows.insertId
+                                    }
+                                };
+                                callback(ret);
+                            });
                         }
                     });
                 }
@@ -226,13 +231,27 @@ function delCamera(req, res) {
                                         }
                                     });
                                 } else {
-                                    res.json({
-                                        "code": 200,
-                                        "data": {
-                                            "status": "success",
-                                            "error": "success"
+                                    //同步更新摄像头地图表
+                                    cameraAsync.deleteCamera(cam_id,function(result){
+                                        if(result){
+                                            res.json({
+                                                "code": 200,
+                                                "data": {
+                                                    "status": "success",
+                                                    "error": "success"
+                                                }
+                                            });        
+                                        } else {
+                                            res.json({
+                                                "code": 500,
+                                                "data": {
+                                                    "status": "fail",
+                                                    "error": "async error"
+                                                }
+                                            });        
                                         }
                                     });
+                                    
                                 }
                             });
                         } else {
@@ -275,6 +294,7 @@ function delCamera(req, res) {
  */
 function editCamera(req, res) {
     var query = req.body;
+    console.log(query);
     try {
         var mobile = query.mobile;
         var token = query.token;
@@ -354,11 +374,24 @@ function editCamera(req, res) {
                                                 }
                                             });
                                         } else {
-                                            res.json({
-                                                "code": 200,
-                                                "data": {
-                                                    "status": "success",
-                                                    "error": "success"
+                                            //同步更新摄像头图层数据表
+                                            cameraAsync.updateCamera(cam_id,cam_loc_lan,cam_loc_lon,cam_sta,function(result){
+                                                if(result){
+                                                    res.json({
+                                                        "code": 200,
+                                                        "data": {
+                                                            "status": "success",
+                                                            "error": "success"
+                                                        }
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        "code": 500,
+                                                        "data": {
+                                                            "status": "fail",
+                                                            "error": "async error"
+                                                        }
+                                                    });
                                                 }
                                             });
                                         }

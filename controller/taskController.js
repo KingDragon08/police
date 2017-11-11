@@ -1,4 +1,4 @@
-var DB_CONFIG = require("../dbconfig");
+var DB_CONFIG = require("../config/dbconfig");
 var mysql = require('mysql');
 var crypto = require('crypto');
 var Sync = require('sync');
@@ -150,7 +150,8 @@ function getAllTask(req,res){
             		page = 1;
             	}
             	var start = (page - 1)*pageSize;
-            	var sql = "select * from task order by Id desc limit ?,?";
+            	var sql = "select a.*,b.name as userName from task a left join user b "+
+                            "on a.userId=b.Id onrder by Id desc limit ?,?";
             	conn.query(sql,[start,pageSize],function(err,data){
             		ret = {};
                     ret["status"] = "success";
@@ -216,7 +217,8 @@ function searchTask(req,res){
             		page = 1;
             	}
             	var start = (page - 1)*pageSize;
-            	var sql = "select * from task where cameraName like "+
+            	var sql = "select a.*,b.name as userName from task a left join user "+
+                            "b on a.userId=b.Id where cameraName like "+
             				conn.escape('%' + keyword + '%') +
             				" order by Id desc limit ?,?";
             	// console.log(sql);
@@ -343,7 +345,7 @@ function getTaskMobile(req,res){
 
 //审核任务
 //3=>审核通过
-//4=>审核不通过
+//4=>审核不通过,拒绝时回滚到进行中
 function checkTask(req,res){
 	var query = req.body;
     try {
@@ -353,17 +355,24 @@ function checkTask(req,res){
             if (result) {
             	var taskId = query.taskId || -1;
             	var taskStatus = query.taskStatus || -1;
+
+                //新增的经纬度微调
+                var cameraLon = query.cameraLon || -1;
+                var cameraLa = query.cameraLa || -1;
+
             	taskId = parseInt(taskId);
             	taskStatus = parseInt(taskStatus);
             	var info = query.info || "";
             	var sql = "";
-            	if(taskId==-1 || taskStatus==-1 || (taskStatus==4&&info=="")){
+            	if(taskId==-1 || taskStatus==-1 || cameraLon==-1 || cameraLa==-1 ||
+                    (taskStatus==4&&info=="")){
             		res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
             	} else {
 					if(taskStatus==3){
 						sql = "update task set taskStatus=3 where Id=" + taskId;
 					} else {
-						sql = "update task set taskStatus=4,rejectInfo=";
+                        //拒绝时回滚到进行中
+						sql = "update task set taskStatus=2,rejectInfo=";
 						sql += conn.escape(info) + " where Id=" + taskId;
 					}
                     //更新记录
@@ -385,7 +394,7 @@ function checkTask(req,res){
                                             var curtime = new Date().getTime();
                                             Camera.createNewCamera(data.camera_no,data.cameraName,
                                                             data.cameraType,curtime,curtime,
-                                                            data.userId,data.cameraLa,data.cameraLon,data.content,
+                                                            data.userId,cameraLa,cameraLon,data.content,
                                                             data.cameraLocation,JSON.parse(data.cameraExtra),function(ret){
                                                                 // res.json(ret);
                                                                 var cameraId = ret.data.cam_id;

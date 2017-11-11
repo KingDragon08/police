@@ -2,6 +2,7 @@ var restify = require('restify');
 var server = global.server;
 var fs = require('fs');
 var Mobile = require('../controller/mobileController');
+var async = require('async');
 
 //单文件上传
 server.post("/file/upload", function(req, res, next) {
@@ -62,6 +63,7 @@ server.post("/file/mulUpload", function(req, res, next) {
 	        if (result) {
 	            var files = req.files;
 	            var urls = [];
+		        var timestamp = new Date().getTime();
 	            for(var i in files){
 	            	var file = files[i];
 	            	var size = file.size;
@@ -69,9 +71,8 @@ server.post("/file/mulUpload", function(req, res, next) {
 		            var name = file.name;
 		            var type = file.type;
 		            var postfix = name.split(".")[name.split(".").length - 1];
-		            var timestamp = new Date().getTime();
 		            var target_path = "./upload/" + timestamp + "." + postfix;
-		            urls.push("http://www.xiaofen809.com:8080/upload/" + timestamp + "." + postfix);
+		            urls.push("http://www.xiaofen809.com:8080/upload/" + timestamp + "_" + i + "." + postfix);
 		            moveFile(path,target_path);
 	            }
 	            res.json({ "code": 200, "data": { "status": "success", "error": "upload success", "urls": urls } });

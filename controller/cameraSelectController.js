@@ -1,4 +1,4 @@
-var DB_CONFIG = require("../dbconfig");
+var DB_CONFIG = require("../config/dbconfig");
 var mysql = require('mysql');
 
 // create table `camera`(
