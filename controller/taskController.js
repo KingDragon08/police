@@ -904,7 +904,7 @@ function getTaskById(req,res){
                     conn.query(sql,taskId,function(err,data){
                         if(data[0].total){
                             //获取任务信息
-                            conn.query("select * from task where Id=?",[taskId],
+                            conn.query("select a.*,b.name as userName from task a left join user b on a.userId=b.Id where a.Id=?",[taskId],
                                 function(err,data){
                                     ret["taskData"] = data[0];
                                     //已经有反馈信息
