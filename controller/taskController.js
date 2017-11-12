@@ -151,8 +151,9 @@ function getAllTask(req,res){
             	}
             	var start = (page - 1)*pageSize;
             	var sql = "select a.*,b.name as userName from task a left join user b "+
-                            "on a.userId=b.Id onrder by Id desc limit ?,?";
+                            "on a.userId=b.Id order by a.Id desc limit ?,?";
             	conn.query(sql,[start,pageSize],function(err,data){
+                    // console.log(err);
             		ret = {};
                     ret["status"] = "success";
                     ret["data"] = data;
@@ -220,7 +221,7 @@ function searchTask(req,res){
             	var sql = "select a.*,b.name as userName from task a left join user "+
                             "b on a.userId=b.Id where cameraName like "+
             				conn.escape('%' + keyword + '%') +
-            				" order by Id desc limit ?,?";
+            				" order by a.Id desc limit ?,?";
             	// console.log(sql);
             	conn.query(sql,[start,pageSize],function(err,data){
             		// console.log(err);
