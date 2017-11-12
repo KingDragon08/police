@@ -933,7 +933,9 @@ function addCameraAttr(req,res){
                 var attr_name = query.attr_name || -1;
                 var attr_desc = query.attr_desc || -1;
                 var attr_comment = query.attr_comment || -1;
-                var attr_show = query.attr_show || 1;
+                var attr_show_1 = query.attr_show_1 || 1;
+                var attr_show_2 = query.attr_show_2 || 1;
+                var attr_show_3 = query.attr_show_3 || 1;
                 var reg= /^[A-Za-z]+$/;
                 if(attr_name==-1 || attr_desc==-1 || attr_comment==-1){
                     res.json({
@@ -960,9 +962,9 @@ function addCameraAttr(req,res){
                             });
                         } else {
                             //给camera_attr添加记录
-                            sql = "insert into camera_attr(attr_name,attr_desc,attr_comment,attr_show)"+
+                            sql = "insert into camera_attr(attr_name,attr_desc,attr_comment,attr_show_1,attr_show_2,attr_show_3)"+
                                     "values(?,?,?,?)";
-                            dataArr = [attr_name,attr_desc,attr_comment,attr_show];
+                            dataArr = [attr_name,attr_desc,attr_comment,attr_show_1,attr_show_2,attr_show_3];
                             db.query(sql,dataArr,function(err,rows){
                                 if(err){
                                     res.json({
@@ -1034,7 +1036,9 @@ function editCameraAttr(req,res){
                 var attrNewName = query.attrNewName || -1;
                 var attrNewDesc = query.attrNewDesc || -1;
                 var attrNewComment = query.attrNewComment || -1;
-                var attrShow = query.attrShow || 1;
+                var attr_show_1 = query.attr_show_1 || 1;
+                var attr_show_2 = query.attr_show_2 || 1;
+                var attr_show_3 = query.attr_show_3 || 1;
                 if(attrId==-1 || attrNewName==-1 || attrNewDesc==-1){
                     res.json({
                         "code": 302,
@@ -1074,8 +1078,8 @@ function editCameraAttr(req,res){
                                         }); 
                                     } else {
                                         //更新camera_attr表
-                                        sql = "update camera_attr set attr_name=?,attr_desc=?,attr_comment=?,attr_show=? where Id=?";
-                                        db.query(sql,[attrNewName,attrNewDesc,attrNewComment,attrShow,attrId],function(err,rows){
+                                        sql = "update camera_attr set attr_name=?,attr_desc=?,attr_comment=?,attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?";
+                                        db.query(sql,[attrNewName,attrNewDesc,attrNewComment,attr_show_1,attr_show_2,attr_show_3,attrId],function(err,rows){
                                             if(err){
                                                 res.json({
                                                     "code": 502,
