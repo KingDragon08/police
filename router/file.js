@@ -71,7 +71,7 @@ server.post("/file/mulUpload", function(req, res, next) {
 		            var name = file.name;
 		            var type = file.type;
 		            var postfix = name.split(".")[name.split(".").length - 1];
-		            var target_path = "./upload/" + timestamp + "." + postfix;
+		            var target_path = "./upload/" + timestamp + "_" + i + "." + postfix;
 		            urls.push("http://www.xiaofen809.com:8080/upload/" + timestamp + "_" + i + "." + postfix);
 		            moveFile(path,target_path);
 	            }
