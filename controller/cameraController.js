@@ -933,7 +933,18 @@ function addCameraAttr(req,res){
                 var attr_name = query.attr_name || -1;
                 var attr_desc = query.attr_desc || -1;
                 var attr_comment = query.attr_comment || -1;
+                var attr_show = query.attr_show || 1;
                 var reg= /^[A-Za-z]+$/;
+                if(attr_name==-1 || attr_desc==-1 || attr_comment==-1){
+                    res.json({
+                        "code": 303,
+                        "data": {
+                            "status": "fail",
+                            "error": "param error"
+                        }
+                    });
+                    return;
+                }
                 if(reg.test(attr_name)){
                     //给camera表添加字段
                     var sql = "alter table camera add column "+attr_name+" varchar(1000)";
@@ -948,10 +959,10 @@ function addCameraAttr(req,res){
                                 }
                             });
                         } else {
-                            //给camera_attr添加纪录
-                            sql = "insert into camera_attr(attr_name,attr_desc,attr_comment)"+
-                                    "values(?,?,?)";
-                            dataArr = [attr_name,attr_desc,attr_comment];
+                            //给camera_attr添加记录
+                            sql = "insert into camera_attr(attr_name,attr_desc,attr_comment,attr_show)"+
+                                    "values(?,?,?,?)";
+                            dataArr = [attr_name,attr_desc,attr_comment,attr_show];
                             db.query(sql,dataArr,function(err,rows){
                                 if(err){
                                     res.json({
@@ -1023,6 +1034,7 @@ function editCameraAttr(req,res){
                 var attrNewName = query.attrNewName || -1;
                 var attrNewDesc = query.attrNewDesc || -1;
                 var attrNewComment = query.attrNewComment || -1;
+                var attrShow = query.attrShow || 1;
                 if(attrId==-1 || attrNewName==-1 || attrNewDesc==-1){
                     res.json({
                         "code": 302,
@@ -1062,8 +1074,8 @@ function editCameraAttr(req,res){
                                         }); 
                                     } else {
                                         //更新camera_attr表
-                                        sql = "update camera_attr set attr_name=?,attr_desc=?,attr_comment=? where Id=?";
-                                        db.query(sql,[attrNewName,attrNewDesc,attrNewComment,attrId],function(err,rows){
+                                        sql = "update camera_attr set attr_name=?,attr_desc=?,attr_comment=?,attr_show=? where Id=?";
+                                        db.query(sql,[attrNewName,attrNewDesc,attrNewComment,attrShow,attrId],function(err,rows){
                                             if(err){
                                                 res.json({
                                                     "code": 502,
