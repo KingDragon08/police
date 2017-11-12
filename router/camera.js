@@ -124,7 +124,12 @@ server.post("/camera/editCameraAttr",function(req,res,next){
 	return next();
 });
 
-//
+//编辑摄像头属性的展示方式
+server.post("/camera/editCameraAttrShow",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.editCameraAttrShow(req,res);
+	return next();
+});
 
 
 module.exports = server;

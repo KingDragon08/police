@@ -477,10 +477,14 @@ function checkMobile2Password(mobile, password, callback) {
     password = crypto.createHash("md5").update(password).digest('hex');
     conn.query("select count(Id) as total from user where mobile=? and password=? and status=?", [mobile, password,1],
         function(err, result) {
-            if (result[0].total > 0) {
-                callback(true);
-            } else {
+            if(err){
                 callback(false);
+            } else {
+                if (result[0].total > 0) {
+                    callback(true);
+                } else {
+                    callback(false);
+                }
             }
         });
 }
@@ -489,10 +493,14 @@ function checkMobile2Password(mobile, password, callback) {
 function checkMobile2Token(mobile, token, callback) {
     conn.query("select count(Id) as total from user where mobile=? and token=? and status=?", [mobile, token,1],
         function(err, result) {
-            if (result[0].total > 0) {
-                callback(true);
+            if(err){
+                callback(false)
             } else {
-                callback(false);
+                if (result[0].total > 0) {
+                    callback(true);
+                } else {
+                    callback(false);
+                }
             }
         });
 }

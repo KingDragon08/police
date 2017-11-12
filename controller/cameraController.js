@@ -1147,6 +1147,61 @@ function checkMobile2Token_MOBILE(mobile, token, callback) {
 }
 
 
+//编辑摄像头属性的展示方式
+function editCameraAttrShow(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var attrId = query.attrId;
+                var attr_show_1 = query.attr_show_1;
+                var attr_show_2 = query.attr_show_2;
+                var attr_show_3 = query.attr_show_3;
+                db.query("update camera_attr set attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?",
+                            [attr_show_1,attr_show_2,attr_show_3,attrId],
+                            function(err,result){
+                                if(err){
+                                    res.json({
+                                        "code": 404,
+                                        "data": {
+                                            "status": "fail",
+                                            "error": err.message
+                                        }
+                                    });                    
+                                } else {
+                                    res.json({
+                                        "code": 200,
+                                        "data": {
+                                            "status": "success",
+                                            "error": "success"
+                                        }
+                                    });   
+                                }
+                            });
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "user not login"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
 function funcName(req,res){
     var query = req.body;
     try {
@@ -1182,6 +1237,7 @@ function funcName(req,res){
 
 
 
+
 exports.addCamera = addCamera;
 exports.delCamera = delCamera;
 exports.editCamera = editCamera;
@@ -1194,4 +1250,5 @@ exports.addCameraAttr = addCameraAttr;
 exports.editCameraAttr = editCameraAttr;
 exports.createNewCamera = createNewCamera;
 exports.getCameraAttrs_APP = getCameraAttrs_APP;
+exports.editCameraAttrShow = editCameraAttrShow;
 
