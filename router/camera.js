@@ -64,12 +64,12 @@ server.post("/camera/info",function(req,res,next){
 	return next();
 });
 
-// 查找摄像头	
-server.post("/camera/search",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	camera.searchCamera(req,res);
-	return next();
-});
+// 根据经纬度查找摄像头
+// server.post("/camera/search",function(req,res,next){
+// 	res.setHeader("Access-Control-Allow-Origin","*");
+// 	camera.searchCamera(req,res);
+// 	return next();
+// });
 
 // 添加摄像头周边信息反馈
 server.post("/camera/feedback",function(req,res,next){

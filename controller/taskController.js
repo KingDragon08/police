@@ -154,10 +154,14 @@ function getAllTask(req,res){
                             "on a.userId=b.Id order by a.Id desc limit ?,?";
             	conn.query(sql,[start,pageSize],function(err,data){
                     // console.log(err);
-            		ret = {};
-                    ret["status"] = "success";
-                    ret["data"] = data;
-                    res.json({ "code": 200, "data": ret });
+                    //获取数据总量
+                    conn.query("select count(Id) as total from task",[],function(err,result){
+                        ret = {};
+                        ret["status"] = "success";
+                        ret["data"] = data;
+                        ret["total"] = result[0].total;
+                        res.json({ "code": 200, "data": ret });
+                    });
             	});
             } else {
                 res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
@@ -187,10 +191,14 @@ function getUserTask(req,res){
             	var start = (page - 1)*pageSize;
             	var sql = "select * from task where userId=? order by Id desc limit ?,?";
             	conn.query(sql,[userId,start,pageSize],function(err,data){
-            		ret = {};
-                    ret["status"] = "success";
-                    ret["data"] = data;
-                    res.json({ "code": 200, "data": ret });
+                    conn.query("select count(Id) as total from task where userId=?",[userId],
+                        function(err,result){
+                            ret = {};
+                            ret["total"] = result[0].total;
+                            ret["status"] = "success";
+                            ret["data"] = data;
+                            res.json({ "code": 200, "data": ret });
+                        });
             	});
             } else {
                 res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });

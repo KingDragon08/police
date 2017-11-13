@@ -524,9 +524,10 @@ function getCameraListByAttr(req, res) {
         return;
     }
     try {
-        var sql = "select count(*) as total from camera where is_del = 0 and " + attrName + " like '%3%'";
+        var sql = "select count(*) as total from camera where is_del = 0 and " + attrName + " like " +
+                    conn.escape('%' + attrValue + '%') ;
         // var dataArr = [attrName, attrValue];
-        var dataArr = [attrValue];
+        var dataArr = [];
         db.query(sql, dataArr, function(err, rows) {
             if (err) {
                 res.json({
@@ -545,12 +546,14 @@ function getCameraListByAttr(req, res) {
                 }
                 var start = (page - 1) * pageSize;
                 if (-1 == page) {
-                    sql = "select * from camera where is_del = 0 and " + attrName + " like '%?%'";
+                    sql = "select * from camera where is_del = 0 and " + attrName + " like " +
+                            conn.escape('%' + attrValue + '%') ;
                     pageSize = total;
-                    dataArr = [attrValue];
+                    dataArr = [];
                 } else {
-                    sql = "select * from camera where is_del = 0 and " + attrName + " like '%?%' order by cam_id limit ?, ?";
-                    dataArr = [attrValue, start, pageSize];
+                    sql = "select * from camera where is_del = 0 and " + attrName + " like " +
+                            conn.escape('%' + attrValue + '%') + " order by cam_id limit ?, ?";
+                    dataArr = [start, pageSize];
                 }
                 db.query(sql, dataArr, function(err, rows) {
                     if (err) {
@@ -687,110 +690,112 @@ function getCameraInfo(req, res) {
  * @param  {[type]} res [description]
  * @return {[type]}     [description]
  */
-function searchCamera(req, res) {
-    var query = req.body;
-    try {
-        var mobile = query.mobile;
-        var token = query.token;
-        User.getUserInfo(mobile, token, function(user) {
-            if (user.error == 0) {
-                user_info = user.data;
-            } else {
-                res.json({
-                    "code": 301,
-                    "data": {
-                        "status": "fail",
-                        "error": "user not login"
-                    }
-                });
-                return;
-            }
-            var loc_lon = query.loc_lon || '';
-            if (check.isNull(loc_lon)) {
-                res.json({
-                    "code": 401,
-                    "data": {
-                        "status": "fail",
-                        "error": "loc_lon is null"
-                    }
-                });
-                return;
-            }
-            var loc_lan = query.loc_lan || '';
-            if (check.isNull(loc_lan)) {
-                res.json({
-                    "code": 401,
-                    "data": {
-                        "status": "fail",
-                        "error": "loc_lan is null"
-                    }
-                });
-                return;
-            }
-            var radius = query.radius || 20;
-            var size = query.size || 20;
-            var sql = "select count(*) as total from camera where is_del = 0 ";
-            sql += "and (cam_name like ? or cam_addr like ?)";
-            var dataArr = [info, info];
-            console.log(dataArr);
-            db.query(sql, dataArr, function(err, rows) {
-                if (err) {
-                    res.json({
-                        "code": 501,
-                        "data": {
-                            "status": "fail",
-                            "error": err.message
-                        }
-                    });
-                } else {
-                    console.log(rows);
-                    var total = rows[0].total;
-                    if (rows[0].total > 0) {
-                        sql = "select * from camera where is_del = 0 and (cam_name like ? or cam_addr like ?)";
-                        dataArr = [info, info];
-                        db.query(sql, dataArr, function(err, rows) {
-                            if (err) {
-                                res.json({
-                                    "code": 501,
-                                    "data": {
-                                        "status": "fail",
-                                        "error": err.message
-                                    }
-                                });
-                            } else {
-                                res.json({
-                                    "code": 200,
-                                    "data": {
-                                        "status": "success",
-                                        "error": "success",
-                                        "rows": rows,
-                                        "total": total
-                                    }
-                                });
-                            }
-                        });
-                    } else {
-                        res.json({
-                            "code": 404,
-                            "data": {
-                                "status": "fail",
-                                "error": "camera not exist"
-                            }
-                        });
-                    }
-                }
-            });
-        });
-    } catch (e) {
-        res.json({
-            "code": 500,
-            "data": {
-                "status": "fail",
-                "error": e.message
-            }
-        });
-    }
-}
+// function searchCamera(req, res) {
+//     var query = req.body;
+//     try {
+//         var mobile = query.mobile;
+//         var token = query.token;
+//         User.getUserInfo(mobile, token, function(user) {
+//             if (user.error == 0) {
+//                 user_info = user.data;
+//             } else {
+//                 res.json({
+//                     "code": 301,
+//                     "data": {
+//                         "status": "fail",
+//                         "error": "user not login"
+//                     }
+//                 });
+//                 return;
+//             }
+//             var loc_lon = query.loc_lon || '';
+//             if (check.isNull(loc_lon)) {
+//                 res.json({
+//                     "code": 401,
+//                     "data": {
+//                         "status": "fail",
+//                         "error": "loc_lon is null"
+//                     }
+//                 });
+//                 return;
+//             }
+//             var loc_lan = query.loc_lan || '';
+//             if (check.isNull(loc_lan)) {
+//                 res.json({
+//                     "code": 401,
+//                     "data": {
+//                         "status": "fail",
+//                         "error": "loc_lan is null"
+//                     }
+//                 });
+//                 return;
+//             }
+//             var radius = query.radius || 20;
+//             var size = query.size || 20;
+//             var sql = "select count(*) as total from camera where is_del = 0 ";
+//             sql += "and (cam_name like " +
+//                     conn.escape('%' + keyword + '%') +
+//                     " or cam_addr like ?)";
+//             var dataArr = [info, info];
+//             console.log(dataArr);
+//             db.query(sql, dataArr, function(err, rows) {
+//                 if (err) {
+//                     res.json({
+//                         "code": 501,
+//                         "data": {
+//                             "status": "fail",
+//                             "error": err.message
+//                         }
+//                     });
+//                 } else {
+//                     console.log(rows);
+//                     var total = rows[0].total;
+//                     if (rows[0].total > 0) {
+//                         sql = "select * from camera where is_del = 0 and (cam_name like ? or cam_addr like ?)";
+//                         dataArr = [info, info];
+//                         db.query(sql, dataArr, function(err, rows) {
+//                             if (err) {
+//                                 res.json({
+//                                     "code": 501,
+//                                     "data": {
+//                                         "status": "fail",
+//                                         "error": err.message
+//                                     }
+//                                 });
+//                             } else {
+//                                 res.json({
+//                                     "code": 200,
+//                                     "data": {
+//                                         "status": "success",
+//                                         "error": "success",
+//                                         "rows": rows,
+//                                         "total": total
+//                                     }
+//                                 });
+//                             }
+//                         });
+//                     } else {
+//                         res.json({
+//                             "code": 404,
+//                             "data": {
+//                                 "status": "fail",
+//                                 "error": "camera not exist"
+//                             }
+//                         });
+//                     }
+//                 }
+//             });
+//         });
+//     } catch (e) {
+//         res.json({
+//             "code": 500,
+//             "data": {
+//                 "status": "fail",
+//                 "error": e.message
+//             }
+//         });
+//     }
+// }
 
 /********************************KingDragon*************************************/
 
