@@ -401,6 +401,7 @@ function getRoleList(req, res) {
                                 if (page < 1 && page != -1) {
                                     page = 1;
                                 }
+                                pageSize = parseInt(pageSize);
                                 var start = (page - 1) * pageSize;
                                 if (-1 == page) {
                                     sql = "select * from role order by role_id";

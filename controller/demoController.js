@@ -1,14 +1,16 @@
-var DB_CONFIG = require("../config/dbconfig");
-var mysql = require('mysql');
-var conn = mysql.createConnection({
-    host: DB_CONFIG.host,
-    user: DB_CONFIG.user,
-    password: DB_CONFIG.password,
-    database:DB_CONFIG.database,
-    port: DB_CONFIG.port
-});
+// var DB_CONFIG = require("../config/dbconfig");
+// var mysql = require('mysql');
+// var conn = mysql.createConnection({
+//     host: DB_CONFIG.host,
+//     user: DB_CONFIG.user,
+//     password: DB_CONFIG.password,
+//     database:DB_CONFIG.database,
+//     port: DB_CONFIG.port
+// });
 
-conn.connect();
+// conn.connect();
+
+var conn = require("../lib/db");
 
 function demo(req,res){
 	var query = req.query;

@@ -7,9 +7,9 @@ var DB_CONFIG = {
 }
 
 var DB_TEST_CONFIG = {
-	host:'127.0.0.1',
+	host:'xiaofen809.com',
 	user:'root',
-	password:'123456',
+	password:'939407Lq252324',
 	database:'police',
 	port:3306
 }

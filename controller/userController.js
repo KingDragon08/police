@@ -1,16 +1,18 @@
-var DB_CONFIG = require("../config/dbconfig");
-var mysql = require('mysql');
+// var DB_CONFIG = require("../config/dbconfig");
+// var mysql = require('mysql');
 var crypto = require('crypto');
 var Sync = require('sync');
 
-var conn = mysql.createConnection({
-    host: DB_CONFIG.host,
-    user: DB_CONFIG.user,
-    password: DB_CONFIG.password,
-    database: DB_CONFIG.database,
-    port: DB_CONFIG.port
-});
-conn.connect();
+// var conn = mysql.createConnection({
+//     host: DB_CONFIG.host,
+//     user: DB_CONFIG.user,
+//     password: DB_CONFIG.password,
+//     database: DB_CONFIG.database,
+//     port: DB_CONFIG.port
+// });
+// conn.connect();
+
+var conn = require("../lib/db");
 
 
 //注册新账号
@@ -100,6 +102,7 @@ function login(req, res) {
                 });
         }
     } catch (e) {
+        console.log(e);
         res.json({ "code": 300, "data": { "status": "fail", "error": "unknown error" } });
     }
 

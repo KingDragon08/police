@@ -1,18 +1,20 @@
-var DB_CONFIG = require("../config/dbconfig");
-var mysql = require('mysql');
+// var DB_CONFIG = require("../config/dbconfig");
+// var mysql = require('mysql');
 var crypto = require('crypto');
 var Sync = require('sync');
 var Camera = require("./cameraController");
 var async = require('async');
 
-var conn = mysql.createConnection({
-    host: DB_CONFIG.host,
-    user: DB_CONFIG.user,
-    password: DB_CONFIG.password,
-    database: DB_CONFIG.database,
-    port: DB_CONFIG.port
-});
-conn.connect();
+// var conn = mysql.createConnection({
+//     host: DB_CONFIG.host,
+//     user: DB_CONFIG.user,
+//     password: DB_CONFIG.password,
+//     database: DB_CONFIG.database,
+//     port: DB_CONFIG.port
+// });
+// conn.connect();
+
+var conn = require("../lib/db");
 
 /****
 CREATE TABLE `task` (
