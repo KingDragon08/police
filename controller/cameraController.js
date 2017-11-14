@@ -430,7 +430,7 @@ function getCameraList(req, res) {
     var query = req.body;
     console.log(query);
     try {
-        var sql = "select count(*) as total from camera where is_del = 0";
+        var sql = "select count(cam_id) as total from camera where is_del = 0";
         var dataArr = [];
         db.query(sql, dataArr, function(err, rows) {
             if (err) {
@@ -451,11 +451,11 @@ function getCameraList(req, res) {
                 pageSize = parseInt(pageSize);
                 var start = (page - 1) * pageSize;
                 if (-1 == page) {
-                    sql = "select * from camera where is_del = 0";
+                    sql = "select cam_id,cam_loc_lan,cam_loc_lon from camera where is_del = 0";
                     pageSize = total;
                     dataArr = [];
                 } else {
-                    sql = "select * from camera where is_del = 0 order by cam_id limit ?, ?";
+                    sql = "select cam_id,cam_loc_lan,cam_loc_lon from camera where is_del = 0 order by cam_id limit ?, ?";
                     dataArr = [start, pageSize];
                 }
                 db.query(sql, dataArr, function(err, rows) {
