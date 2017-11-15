@@ -1,6 +1,6 @@
 var DB_CONFIG = {
-	host:'xiaofen809.com',
-	user:'root',
+	host:'211.103.178.205',
+	user:'KingDragon',
 	password:'939407Lq252324',
 	database:'police',
 	port:3306

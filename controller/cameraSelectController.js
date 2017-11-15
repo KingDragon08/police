@@ -1,5 +1,5 @@
-var DB_CONFIG = require("../dbconfig");
-var mysql = require('mysql');
+// var DB_CONFIG = require("../config/dbconfig");
+// var mysql = require('mysql');
 
 // create table `camera`(
 //     `cam_id` int(32) not null auto_increment comment '设备记录id',
@@ -18,14 +18,16 @@ var mysql = require('mysql');
 // ) default charset=utf8;
 
 
-var conn = mysql.createConnection({
-    host: DB_CONFIG.host,
-    user: DB_CONFIG.user,
-    password: DB_CONFIG.password,
-    database: DB_CONFIG.database,
-    port: DB_CONFIG.port
-});
-conn.connect();
+// var conn = mysql.createConnection({
+//     host: DB_CONFIG.host,
+//     user: DB_CONFIG.user,
+//     password: DB_CONFIG.password,
+//     database: DB_CONFIG.database,
+//     port: DB_CONFIG.port
+// });
+// conn.connect();
+
+var conn = require("../lib/db");
 
 /**
  * 矩形框选摄像头
@@ -343,7 +345,7 @@ function cameraSelectLine(req, res) {
  * @time 2017-11-02 afternoon
  */
 function checkMobile2Token_PC(mobile, token, callback) {
-    conn.query("select count(Id) as total from user where mobile=? and token=?", [mobile, token],
+    conn.query("select count(Id) as total from user where mobile=? and token=? and status=?", [mobile, token, 1],
         function(err, result) {
             if (result[0].total > 0) {
                 callback(true);

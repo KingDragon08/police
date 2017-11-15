@@ -1,16 +1,18 @@
-var DB_CONFIG = require("../dbconfig");
-var mysql = require('mysql');
+// var DB_CONFIG = require("../config/dbconfig");
+// var mysql = require('mysql');
 var crypto = require('crypto');
 var Sync = require('sync');
 
-var conn = mysql.createConnection({
-    host: DB_CONFIG.host,
-    user: DB_CONFIG.user,
-    password: DB_CONFIG.password,
-    database:DB_CONFIG.database,
-    port: DB_CONFIG.port
-});
-conn.connect();
+// var conn = mysql.createConnection({
+//     host: DB_CONFIG.host,
+//     user: DB_CONFIG.user,
+//     password: DB_CONFIG.password,
+//     database:DB_CONFIG.database,
+//     port: DB_CONFIG.port
+// });
+// conn.connect();
+
+var conn = require("../lib/db");
 
 //登录
 function login(req, res) {
@@ -127,8 +129,8 @@ function logout(req, res) {
 
 //验证账号和token是否匹配
 function checkMobile2Token(mobile, token, callback) {
-    conn.query("select count(Id) as total from mobileUser where mobile=? and token=?",
-    	[mobile, token],
+    conn.query("select count(Id) as total from mobileUser where mobile=? and token=? and status=?",
+    	[mobile, token, 1],
         function(err, result) {
             if (result[0].total > 0) {
                 callback(true);
@@ -143,7 +145,7 @@ function getUserInfo(mobile, token, callback) {
     try {
         checkMobile2Token(mobile, token, function(result) {
             if (result) {
-                conn.query("select * from mobileUser where mobile=?", [mobile],
+                conn.query("select * from mobileUser where mobile=? and token=? and status=?", [mobile,token,1],
                     function(err, res) {
                         ret = {};
                         ret["error"] = 0;

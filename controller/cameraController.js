@@ -1,6 +1,7 @@
 var db = require("../lib/db");
 var check = require("../lib/check");
 var User = require("./userController");
+var cameraAsync = require("./cameraAsync");
 var dbTableAttr = require("../config/dbTableAttrConf");
 // create table `camera`(
 //     `cam_id` int(32) not null auto_increment comment '设备记录id',
@@ -30,103 +31,37 @@ function addCamera(req, res) {
         User.getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
                 user_info = user.data;
-                var cam_no = query.cam_no;
-                if (check.isNull(cam_no)) {
-                    res.json({
-                        "code": 401,
-                        "data": {
-                            "status": "fail",
-                            "error": "camera no is null"
-                        }
-                    });
-                    return;
-                }
-                var cam_loc_lon = query.cam_loc_lon;
-                if (check.isNull(cam_loc_lon)) {
-                    res.json({
-                        "code": 401,
-                        "data": {
-                            "status": "fail",
-                            "error": "cam_loc_lon is null"
-                        }
-                    });
-                    return;
-                }
-                var cam_loc_lan = query.cam_loc_lan;
-                if (check.isNull(cam_loc_lan)) {
-                    res.json({
-                        "code": 401,
-                        "data": {
-                            "status": "fail",
-                            "error": "cam_loc_lan is null"
-                        }
-                    });
-                    return;
-                }
-                var cam_name = query.cam_name;
-                var cam_sta = query.cam_sta || 0;
-                var cam_desc = query.cam_desc;
-                var cam_addr = query.cam_addr;
                 var user_id = user_info.Id;
+                var cam_no = query.cam_no || -1;
+                var cam_name = query.cam_name || -1;
+                var cam_sta = query.cam_sta || -1;
+                var cam_desc = query.cam_desc || -1;
+                var cam_addr = query.cam_addr || -1;
+                var cam_loc_lan = query.cam_loc_lan || -1;
+                var cam_loc_lon = query.cam_loc_lon || -1
+                var cam_extra = query.cam_extra || -1;
                 var curtime = new Date().getTime();
-                // var sql = "select count(*) as total from camera where cam_no = '" + cam_no +"'";
-                var sql = "select * from camera where cam_no = ?";
-                db.query(sql, [cam_no], function(err, rows) {
-                    if (err) {
+                if(cam_no==-1 || cam_name==-1 || cam_sta==-1 ||
+                    cam_desc==-1 || cam_addr==-1 || cam_loc_lan==-1 ||
+                    cam_loc_lon==-1 || cam_extra==-1){
                         res.json({
-                            "code": 501,
+                            "code": 401,
                             "data": {
                                 "status": "fail",
-                                "error": err.message
+                                "error": "param error"
                             }
                         });
-                    } else {
-                        if (rows.length > 0) {
-                            is_del = rows[0].is_del || 0;
-                            if (1 == is_del) {
-                                var cam_id = rows[0].cam_id;
-                                sql = "update camera set cam_no = ?, cam_name = ?, cam_loc_lan = ?, cam_loc_lon = ?,";
-                                sql += "cam_sta = ?, cam_desc = ?, uptime = ?, is_del = 0, cam_addr = ? ";
-                                sql += "where cam_id = ?";
-                                dataArr = [cam_no, cam_name, cam_loc_lan, cam_loc_lon, cam_sta, cam_desc, curtime, cam_addr, cam_id];
-                            } else {
-                                res.json({
-                                    "code": 402,
-                                    "data": {
-                                        "status": "fail",
-                                        "error": "camera exist"
-                                    }
-                                });
-                                return;
-                            }
-                        } else {
-                            sql = "insert into camera (cam_no, cam_name, cam_loc_lan, cam_loc_lon,cam_sta, cam_desc, cam_addr, user_id, addtime, uptime) ";
-                            sql += "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                            var dataArr = [cam_no, cam_name, cam_loc_lan, cam_loc_lon, cam_sta, cam_desc, cam_addr, user_id, curtime, curtime];
-                        }
-                        db.query(sql, dataArr, function(err, rows) {
-                            if (err) {
-                                res.json({
-                                    "code": 501,
-                                    "data": {
-                                        "status": "fail",
-                                        "error": err.message
-                                    }
-                                });
-                            } else {
-                                cam_id = check.isNull(cam_id) ? rows.insertId : cam_id;
-                                res.json({
-                                    "code": 200,
-                                    "data": {
-                                        "status": "success",
-                                        "error": "success",
-                                        "cam_id": cam_id
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
+                        return;    
+                } else {
+                    cam_extra = JSON.parse(cam_extra);
+                    createNewCamera(cam_no,cam_name,cam_sta,curtime,curtime,
+                                    user_id,cam_loc_lan,cam_loc_lon,cam_desc,
+                                    cam_addr,cam_extra,function(ret){
+                                        res.json(ret);
+                                    });
+                    
+                }
+                
             } else {
                 res.json({
                     "code": 301,
@@ -148,6 +83,103 @@ function addCamera(req, res) {
         });
     }
 }
+
+/**
+ * 添加摄像头
+ * @param  cam_no 摄像头编号
+ * @param  cam_name 摄像头名字
+ * @param  cam_sta 摄像头类型
+ * @param  addtime 添加时间
+ * @param  uptime 更新时间
+ * @param  user_id 添加用户Id
+ * @param  cam_loc_lan 摄像头纬度
+ * @param  cam_loc_lon 摄像头经度
+ * @param  cam_desc 摄像头描述,来自采集信息时的文字反馈
+ * @param  cam_addr 摄像头地址文字信息
+ * @param  cam_extra 摄像头自定义属性集,hashmap
+ * @param  callback 回调函数
+ */
+function createNewCamera(cam_no,cam_name,cam_sta,addtime,uptime,
+                        user_id,cam_loc_lan,cam_loc_lon,cam_desc,
+                        cam_addr,cam_extra,callback){
+    ret = {};
+    //获取所有的额外属性名
+    db.query("select attr_name from camera_attr where Id>12",[],
+        function(err,rows){
+            if(err){
+                ret = {
+                        "code": 501,
+                        "data": {
+                            "status": "fail",
+                            "error": err.message
+                        }
+                    };
+                callback(ret);
+                return;
+            } else {
+                var flag = 1;
+                var sql_before = "insert into camera (cam_no, cam_name, cam_sta, addtime, uptime, "+
+                            "user_id, cam_loc_lan, cam_loc_lon, cam_desc, cam_addr, is_del";
+                var sql_after = "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+                var dataArr = [cam_no,cam_name,cam_sta,addtime,uptime,user_id,cam_loc_lan,
+                                cam_loc_lon,cam_desc,cam_addr,0];
+                for(var i=0; i<rows.length; i++){
+                    if(cam_extra[rows[i].attr_name]!=undefined){
+                        sql_before += ", " + rows[i].attr_name;
+                        sql_after += ",?";
+                        dataArr.push(cam_extra[rows[i].attr_name])
+                    }// else {
+                    //    flag = 0;
+                    //    break;
+                    //}
+                }
+                if(!flag){
+                    ret = {
+                            "code": 502,
+                            "data": {
+                                "status": "fail",
+                                "error": "cam_extra not fully justified"
+                            }
+                        };
+                    callback(ret);
+                    return;
+                } else {
+                    sql_before += ")";
+                    sql_after += ")";
+                    var sql = sql_before + sql_after;
+                    db.query(sql,dataArr,function(err,rows){
+                        if(err){
+                            ret = {
+                                "code": 503,
+                                "data": {
+                                    "status": "fail",
+                                    "error": err.message
+                                }
+                            };
+                            callback(ret);
+                        } else {
+                            //同步摄像头图层的数据
+                            var cam_id = rows.insertId;
+                            cameraAsync.createNewCamera(cam_id,cam_loc_lan,cam_loc_lon,cam_sta,function(result){
+                                ret = {
+                                    "code": 200,
+                                    "data": {
+                                        "status": "success",
+                                        "error": "success",
+                                        "cam_id": rows.insertId
+                                    }
+                                };
+                                callback(ret);
+                            });
+                        }
+                    });
+                }
+                
+            }
+        });
+}
+
+
 /**
  * 删除摄像头
  * @param  {[type]} req [description]
@@ -199,13 +231,27 @@ function delCamera(req, res) {
                                         }
                                     });
                                 } else {
-                                    res.json({
-                                        "code": 200,
-                                        "data": {
-                                            "status": "success",
-                                            "error": "success"
+                                    //同步更新摄像头地图表
+                                    cameraAsync.deleteCamera(cam_id,function(result){
+                                        if(result){
+                                            res.json({
+                                                "code": 200,
+                                                "data": {
+                                                    "status": "success",
+                                                    "error": "success"
+                                                }
+                                            });        
+                                        } else {
+                                            res.json({
+                                                "code": 500,
+                                                "data": {
+                                                    "status": "fail",
+                                                    "error": "async error"
+                                                }
+                                            });        
                                         }
                                     });
+                                    
                                 }
                             });
                         } else {
@@ -248,131 +294,121 @@ function delCamera(req, res) {
  */
 function editCamera(req, res) {
     var query = req.body;
+    console.log(query);
     try {
         var mobile = query.mobile;
         var token = query.token;
         User.getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
                 user_info = user.data;
-            }
-            var cam_id = query.cam_id;
-            if (check.isNull(cam_id)) {
+            } else {
                 res.json({
-                    "code": 401,
+                    "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "cam_id is null"
+                        "error": "user not login"
                     }
                 });
                 return;
             }
-            var sql = "select count(*) as total from camera where cam_id = ?";
-            var dataArr = [cam_id];
-            db.query(sql, dataArr, function(err, rows) {
-                if (err) {
-                    res.json({
-                        "code": 501,
+            var cam_id = query.cam_id || -1;
+            var cam_no = query.cam_no || -1;
+            var cam_name = query.cam_name || -1;
+            var cam_desc = query.cam_desc || -1;
+            var cam_addr = query.cam_addr || -1;
+            var cam_loc_lon = query.cam_loc_lon || -1;
+            var cam_loc_lan = query.cam_loc_lan || -1;
+            var cam_sta = query.cam_sta || -1;
+            var cam_extra = query.cam_extra || -1;
+            if(cam_id==-1 || cam_no==-1 || cam_name==-1 ||
+                cam_desc==-1 || cam_addr==-1 || cam_loc_lon==-1 ||
+                cam_loc_lan==-1 || cam_sta==-1 || cam_extra==-1){
+                res.json({
+                        "code": 300,
                         "data": {
                             "status": "fail",
-                            "error": err.message
+                            "error": "param error1"
                         }
                     });
-                } else {
-                    if (rows[0].total > 0) {
-                        var editType = query.editType || '';
-                        switch (editType) {
-                            case 'status':
-                                // 更新设备状态
-                                var cam_sta = query.cam_sta || 0;
-                                sql = "update camera set cam_sta = ?, uptime = ? ";
-                                sql += "where cam_id = ?";
-                                dataArr = [cam_sta, curtime, cam_id];
-                                break;
-                            case 'all':
-                                // 更新设备全部信息
-                                var cam_no = query.cam_no;
-                                if (check.isNull(cam_no)) {
-                                    res.json({
-                                        "code": 401,
-                                        "data": {
-                                            "status": "fail",
-                                            "error": "camera no is null"
-                                        }
-                                    });
-                                    return;
-                                }
-                                var cam_loc_lon = query.cam_loc_lon;
-                                if (check.isNull(cam_loc_lon)) {
-                                    res.json({
-                                        "code": 401,
-                                        "data": {
-                                            "status": "fail",
-                                            "error": "cam_loc_lon is null"
-                                        }
-                                    });
-                                    return;
-                                }
-                                var cam_loc_lan = query.cam_loc_lan;
-                                if (check.isNull(cam_loc_lan)) {
-                                    res.json({
-                                        "code": 401,
-                                        "data": {
-                                            "status": "fail",
-                                            "error": "cam_loc_lan is null"
-                                        }
-                                    });
-                                    return;
-                                }
-                                var cam_name = query.cam_name || '';
-                                var cam_sta = query.cam_sta || 0;
-                                var cam_desc = query.cam_desc || '';
-                                var cam_addr = query.cam_addr || '';
-                                var curtime = new Date().getTime();
-                                sql = "update camera set cam_no = ?, cam_name = ?, cam_loc_lan = ?, cam_loc_lon = ?,";
-                                sql += "cam_sta = ?, cam_desc = ?, uptime = ?, cam_addr = ? ";
-                                sql += "where cam_id = ?";
-                                dataArr = [cam_no, cam_name, cam_loc_lan, cam_loc_lon, cam_sta, cam_desc, curtime, cam_addr, cam_id];
-                                break;
-                            default:
-                                res.json({
-                                    "code": 403,
-                                    "data": {
-                                        "status": "fail",
-                                        "error": "editType is illegal"
-                                    }
-                                });
-                                return;
-                        }
-                        db.query(sql, dataArr, function(err, rows) {
-                            if (err) {
-                                res.json({
-                                    "code": 501,
-                                    "data": {
-                                        "status": "fail",
-                                        "error": err.message
-                                    }
-                                });
-                            } else {
-                                res.json({
-                                    "code": 200,
-                                    "data": {
-                                        "status": "success",
-                                        "error": "success"
-                                    }
-                                });
+            } else {
+                cam_id = parseInt(cam_id);
+                cam_sta = parseInt(cam_sta);
+                var sql = "select count(*) as total from camera where cam_id = ?";
+                var dataArr = [cam_id];
+                db.query(sql, dataArr, function(err, rows) {
+                    if (err) {
+                        res.json({
+                            "code": 501,
+                            "data": {
+                                "status": "fail",
+                                "error": err.message
                             }
                         });
                     } else {
-                        res.json({
-                            "code": 404,
-                            "data": {
-                                "status": "fail",
-                                "error": "camera not exist"
-                            }
-                        });
+                        var curtime = new Date().getTime();
+                        if (rows[0].total > 0) {
+                            var sql = "update camera set cam_no=?,cam_name=?,cam_sta=?,"+
+                                                "uptime=?,cam_loc_lan=?,cam_loc_lon=?,"+
+                                                "cam_desc=?,cam_addr=?"
+                            var dataArr = [cam_no,cam_name,cam_sta,curtime,cam_loc_lan,cam_loc_lon,
+                                            cam_desc,cam_addr];
+                            db.query("select attr_name from camera_attr where Id>12",[],
+                                function(err,rows){
+                                    cam_extra = JSON.parse(cam_extra);
+                                    for(var i=0; i<rows.length; i++){
+                                        if(cam_extra[rows[i].attr_name]!=undefined){
+                                            sql += "," + rows[i].attr_name + "=?";
+                                            dataArr.push(cam_extra[rows[i].attr_name])
+                                        }
+                                    }
+                                    sql += " where cam_id=?";
+                                    dataArr.push(cam_id);
+                                    console.log(sql);
+                                    db.query(sql,dataArr,function(err,result){
+                                        if(err){
+                                            res.json({
+                                                "code": 500,
+                                                "data": {
+                                                    "status": "fail",
+                                                    "error": err.message
+                                                }
+                                            });
+                                        } else {
+                                            //同步更新摄像头图层数据表
+                                            cameraAsync.updateCamera(cam_id,cam_loc_lan,cam_loc_lon,cam_sta,function(result){
+                                                if(result){
+                                                    res.json({
+                                                        "code": 200,
+                                                        "data": {
+                                                            "status": "success",
+                                                            "error": "success"
+                                                        }
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        "code": 500,
+                                                        "data": {
+                                                            "status": "fail",
+                                                            "error": "async error"
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    });
+                                });
+                        } else {
+                            res.json({
+                                "code": 404,
+                                "data": {
+                                    "status": "fail",
+                                    "error": "camera not exist"
+                                }
+                            });
+                        }
                     }
-                }
-            });
+                });
+            }
         });
     } catch (e) {
         res.json({
@@ -392,8 +428,9 @@ function editCamera(req, res) {
  */
 function getCameraList(req, res) {
     var query = req.body;
+    console.log(query);
     try {
-        var sql = "select count(*) as total from camera where is_del = 0";
+        var sql = "select count(cam_id) as total from camera where is_del = 0";
         var dataArr = [];
         db.query(sql, dataArr, function(err, rows) {
             if (err) {
@@ -411,13 +448,14 @@ function getCameraList(req, res) {
                 if (page < 1 && page != -1) {
                     page = 1;
                 }
+                pageSize = parseInt(pageSize);
                 var start = (page - 1) * pageSize;
                 if (-1 == page) {
-                    sql = "select * from camera where is_del = 0";
+                    sql = "select cam_id,cam_loc_lan,cam_loc_lon from camera where is_del = 0";
                     pageSize = total;
                     dataArr = [];
                 } else {
-                    sql = "select * from camera where is_del = 0 order by cam_id limit ?, ?";
+                    sql = "select cam_id,cam_loc_lan,cam_loc_lon from camera where is_del = 0 order by cam_id limit ?, ?";
                     dataArr = [start, pageSize];
                 }
                 db.query(sql, dataArr, function(err, rows) {
@@ -486,9 +524,10 @@ function getCameraListByAttr(req, res) {
         return;
     }
     try {
-        var sql = "select count(*) as total from camera where is_del = 0 and " + attrName + " like '%3%'";
+        var sql = "select count(*) as total from camera where is_del = 0 and " + attrName + " like " +
+                    conn.escape('%' + attrValue + '%') ;
         // var dataArr = [attrName, attrValue];
-        var dataArr = [attrValue];
+        var dataArr = [];
         db.query(sql, dataArr, function(err, rows) {
             if (err) {
                 res.json({
@@ -507,12 +546,14 @@ function getCameraListByAttr(req, res) {
                 }
                 var start = (page - 1) * pageSize;
                 if (-1 == page) {
-                    sql = "select * from camera where is_del = 0 and " + attrName + " like '%?%'";
+                    sql = "select * from camera where is_del = 0 and " + attrName + " like " +
+                            conn.escape('%' + attrValue + '%') ;
                     pageSize = total;
-                    dataArr = [attrValue];
+                    dataArr = [];
                 } else {
-                    sql = "select * from camera where is_del = 0 and " + attrName + " like '%?%' order by cam_id limit ?, ?";
-                    dataArr = [attrValue, start, pageSize];
+                    sql = "select * from camera where is_del = 0 and " + attrName + " like " +
+                            conn.escape('%' + attrValue + '%') + " order by cam_id limit ?, ?";
+                    dataArr = [start, pageSize];
                 }
                 db.query(sql, dataArr, function(err, rows) {
                     if (err) {
@@ -563,6 +604,15 @@ function getCameraInfo(req, res) {
         User.getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
                 user_info = user.data;
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "user not login"
+                    }
+                });
+                return;
             }
             var cam_id = query.cam_id;
             if (check.isNull(cam_id)) {
@@ -640,90 +690,165 @@ function getCameraInfo(req, res) {
  * @param  {[type]} res [description]
  * @return {[type]}     [description]
  */
-function searchCamera(req, res) {
+// function searchCamera(req, res) {
+//     var query = req.body;
+//     try {
+//         var mobile = query.mobile;
+//         var token = query.token;
+//         User.getUserInfo(mobile, token, function(user) {
+//             if (user.error == 0) {
+//                 user_info = user.data;
+//             } else {
+//                 res.json({
+//                     "code": 301,
+//                     "data": {
+//                         "status": "fail",
+//                         "error": "user not login"
+//                     }
+//                 });
+//                 return;
+//             }
+//             var loc_lon = query.loc_lon || '';
+//             if (check.isNull(loc_lon)) {
+//                 res.json({
+//                     "code": 401,
+//                     "data": {
+//                         "status": "fail",
+//                         "error": "loc_lon is null"
+//                     }
+//                 });
+//                 return;
+//             }
+//             var loc_lan = query.loc_lan || '';
+//             if (check.isNull(loc_lan)) {
+//                 res.json({
+//                     "code": 401,
+//                     "data": {
+//                         "status": "fail",
+//                         "error": "loc_lan is null"
+//                     }
+//                 });
+//                 return;
+//             }
+//             var radius = query.radius || 20;
+//             var size = query.size || 20;
+//             var sql = "select count(*) as total from camera where is_del = 0 ";
+//             sql += "and (cam_name like " +
+//                     conn.escape('%' + keyword + '%') +
+//                     " or cam_addr like ?)";
+//             var dataArr = [info, info];
+//             console.log(dataArr);
+//             db.query(sql, dataArr, function(err, rows) {
+//                 if (err) {
+//                     res.json({
+//                         "code": 501,
+//                         "data": {
+//                             "status": "fail",
+//                             "error": err.message
+//                         }
+//                     });
+//                 } else {
+//                     console.log(rows);
+//                     var total = rows[0].total;
+//                     if (rows[0].total > 0) {
+//                         sql = "select * from camera where is_del = 0 and (cam_name like ? or cam_addr like ?)";
+//                         dataArr = [info, info];
+//                         db.query(sql, dataArr, function(err, rows) {
+//                             if (err) {
+//                                 res.json({
+//                                     "code": 501,
+//                                     "data": {
+//                                         "status": "fail",
+//                                         "error": err.message
+//                                     }
+//                                 });
+//                             } else {
+//                                 res.json({
+//                                     "code": 200,
+//                                     "data": {
+//                                         "status": "success",
+//                                         "error": "success",
+//                                         "rows": rows,
+//                                         "total": total
+//                                     }
+//                                 });
+//                             }
+//                         });
+//                     } else {
+//                         res.json({
+//                             "code": 404,
+//                             "data": {
+//                                 "status": "fail",
+//                                 "error": "camera not exist"
+//                             }
+//                         });
+//                     }
+//                 }
+//             });
+//         });
+//     } catch (e) {
+//         res.json({
+//             "code": 500,
+//             "data": {
+//                 "status": "fail",
+//                 "error": e.message
+//             }
+//         });
+//     }
+// }
+
+/********************************KingDragon*************************************/
+
+/*
+ *获取摄像头的所有属性
+ *@param type 1=>获取用户自定义属性,-1=>获取所有属性,默认－1
+ */
+function getCameraAttrs(req,res){
     var query = req.body;
     try {
         var mobile = query.mobile;
         var token = query.token;
         User.getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
-                user_info = user.data;
-            }
-            var loc_lon = query.loc_lon || '';
-            if (check.isNull(loc_lon)) {
-                res.json({
-                    "code": 401,
-                    "data": {
-                        "status": "fail",
-                        "error": "loc_lon is null"
-                    }
-                });
-                return;
-            }
-            var loc_lan = query.loc_lan || '';
-            if (check.isNull(loc_lan)) {
-                res.json({
-                    "code": 401,
-                    "data": {
-                        "status": "fail",
-                        "error": "loc_lan is null"
-                    }
-                });
-                return;
-            }
-            var radius = query.radius || 20;
-            var size = query.size || 20;
-            var sql = "select count(*) as total from camera where is_del = 0 ";
-            sql += "and (cam_name like ? or cam_addr like ?)";
-            var dataArr = [info, info];
-            console.log(dataArr);
-            db.query(sql, dataArr, function(err, rows) {
-                if (err) {
-                    res.json({
-                        "code": 501,
-                        "data": {
-                            "status": "fail",
-                            "error": err.message
-                        }
-                    });
+                // user_info = user.data;
+                var type = query.type || -1;
+                if(type==-1){
+                    var sql = "select * from camera_attr";
+                    var data = Array();
                 } else {
-                    console.log(rows);
-                    var total = rows[0].total;
-                    if (rows[0].total > 0) {
-                        sql = "select * from camera where is_del = 0 and (cam_name like ? or cam_addr like ?)";
-                        dataArr = [info, info];
-                        db.query(sql, dataArr, function(err, rows) {
-                            if (err) {
-                                res.json({
-                                    "code": 501,
-                                    "data": {
-                                        "status": "fail",
-                                        "error": err.message
-                                    }
-                                });
-                            } else {
-                                res.json({
-                                    "code": 200,
-                                    "data": {
-                                        "status": "success",
-                                        "error": "success",
-                                        "rows": rows,
-                                        "total": total
-                                    }
-                                });
+                    var sql = "select * from camera_attr where Id>?";
+                    var data = [12];
+                }
+                db.query(sql,data,function(err,rows){
+                    if (err) {
+                        res.json({
+                            "code": 501,
+                            "data": {
+                                "status": "fail",
+                                "error": err.message
                             }
                         });
                     } else {
                         res.json({
-                            "code": 404,
+                            "code": 200,
                             "data": {
-                                "status": "fail",
-                                "error": "camera not exist"
+                                "status": "success",
+                                "error": "success",
+                                "rows": rows
                             }
                         });
                     }
-                }
-            });
+                });
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "user not login"
+                    }
+                });
+                return;
+            }
         });
     } catch (e) {
         res.json({
@@ -735,10 +860,401 @@ function searchCamera(req, res) {
         });
     }
 }
+
+/*
+ *获取摄像头的所有属性_APP
+ *@param type 1=>获取用户自定义属性,-1=>获取所有属性,默认－1
+ */
+function getCameraAttrs_APP(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        checkMobile2Token_MOBILE(mobile, token, function(result) {
+            if (result) {
+                // user_info = user.data;
+                var type = query.type || -1;
+                if(type==-1){
+                    var sql = "select * from camera_attr";
+                    var data = Array();
+                } else {
+                    var sql = "select * from camera_attr where Id>?";
+                    var data = [12];
+                }
+                db.query(sql,data,function(err,rows){
+                    if (err) {
+                        res.json({
+                            "code": 501,
+                            "data": {
+                                "status": "fail",
+                                "error": err.message
+                            }
+                        });
+                    } else {
+                        res.json({
+                            "code": 200,
+                            "data": {
+                                "status": "success",
+                                "error": "success",
+                                "rows": rows
+                            }
+                        });
+                    }
+                });
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "user not login"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
+/*
+ *添加摄像头属性
+ *@param attr_name=>属性名字
+ *@param attr_desc=>属性描述
+ */
+function addCameraAttr(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                // user_info = user.data;
+                var attr_name = query.attr_name || -1;
+                var attr_desc = query.attr_desc || -1;
+                var attr_comment = query.attr_comment || -1;
+                var attr_show_1 = query.attr_show_1 || 1;
+                var attr_show_2 = query.attr_show_2 || 1;
+                var attr_show_3 = query.attr_show_3 || 1;
+                var reg= /^[A-Za-z]+$/;
+                if(attr_name==-1 || attr_desc==-1 || attr_comment==-1){
+                    res.json({
+                        "code": 303,
+                        "data": {
+                            "status": "fail",
+                            "error": "param error"
+                        }
+                    });
+                    return;
+                }
+                if(reg.test(attr_name)){
+                    //给camera表添加字段
+                    var sql = "alter table camera add column "+attr_name+" varchar(1000)";
+                    var dataArr = [];
+                    db.query(sql,dataArr,function(err,rows){
+                        if(err){
+                            res.json({
+                                "code": 501,
+                                "data": {
+                                    "status": "fail",
+                                    "error": err.message
+                                }
+                            });
+                        } else {
+                            //给camera_attr添加记录
+                            sql = "insert into camera_attr(attr_name,attr_desc,attr_comment,attr_show_1,attr_show_2,attr_show_3)"+
+                                    "values(?,?,?,?)";
+                            dataArr = [attr_name,attr_desc,attr_comment,attr_show_1,attr_show_2,attr_show_3];
+                            db.query(sql,dataArr,function(err,rows){
+                                if(err){
+                                    res.json({
+                                        "code": 502,
+                                        "data": {
+                                            "status": "fail",
+                                            "error": err.message
+                                        }
+                                    }); 
+                                } else {
+                                    res.json({
+                                        "code": 200,
+                                        "data": {
+                                            "status": "success",
+                                            "error": "success"
+                                        }
+                                    });   
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    res.json({
+                        "code": 302,
+                        "data": {
+                            "status": "fail",
+                            "error": "attr_name must be alphabet"
+                        }
+                    });
+                    return;    
+                }
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "user not login"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
+/*
+ *编辑摄像头属性
+ *@param attrId=>属性Id >12 is needed
+ *@param attrNewName=>属性名字
+ *@param attrNewDesc=>属性描述
+ */
+function editCameraAttr(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                // user_info = user.data;
+                var attrId = query.attrId || -1;
+                var attrNewName = query.attrNewName || -1;
+                var attrNewDesc = query.attrNewDesc || -1;
+                var attrNewComment = query.attrNewComment || -1;
+                var attr_show_1 = query.attr_show_1 || 1;
+                var attr_show_2 = query.attr_show_2 || 1;
+                var attr_show_3 = query.attr_show_3 || 1;
+                if(attrId==-1 || attrNewName==-1 || attrNewDesc==-1){
+                    res.json({
+                        "code": 302,
+                        "data": {
+                            "status": "fail",
+                            "error": "param error"
+                        }
+                    });
+                    return;    
+                } else {
+                    if(attrId<13){
+                        res.json({
+                            "code": 403,
+                            "data": {
+                                "status": "fail",
+                                "error": "attrId must bigger than 12"
+                            }
+                        });
+                        return;    
+                    }
+                    //获取对应Id的字段名称
+                    db.query("select attr_name from camera_attr where Id=?",
+                        [parseInt(attrId)],function(err,rows){
+                            if(rows && rows.length && rows[0].attr_name){
+                                var attrName = rows[0].attr_name;
+                                //更新camera表
+                                var sql = "alter table camera change "+attrName+" "+
+                                            attrNewName+" varchar(1000)";
+                                db.query(sql,[],function(err,rows){
+                                    if(err){
+                                        res.json({
+                                            "code": 501,
+                                            "data": {
+                                                "status": "fail",
+                                                "error": err.message
+                                            }
+                                        }); 
+                                    } else {
+                                        //更新camera_attr表
+                                        sql = "update camera_attr set attr_name=?,attr_desc=?,attr_comment=?,attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?";
+                                        db.query(sql,[attrNewName,attrNewDesc,attrNewComment,attr_show_1,attr_show_2,attr_show_3,attrId],function(err,rows){
+                                            if(err){
+                                                res.json({
+                                                    "code": 502,
+                                                    "data": {
+                                                        "status": "fail",
+                                                        "error": err.message
+                                                    }
+                                                }); 
+                                            } else {
+                                                res.json({
+                                                    "code": 200,
+                                                    "data": {
+                                                        "status": "success",
+                                                        "error": "success"
+                                                    }
+                                                });   
+                                            }
+                                        });
+                                    }
+                                });
+
+                            } else {
+                                res.json({
+                                    "code": 401,
+                                    "data": {
+                                        "status": "fail",
+                                        "error": "attr not found"
+                                    }
+                                });         
+                            }
+                        });
+                }
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "user not login"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
+//验证账号和token是否匹配_手机端
+function checkMobile2Token_MOBILE(mobile, token, callback) {
+    db.query("select count(Id) as total from mobileUser where mobile=? and token=? and status=?", [mobile, token, 1],
+        function(err, result) {
+            if (result && result.length && result[0].total > 0) {
+                callback(true);
+            } else {
+                callback(false);
+            }
+        });
+}
+
+
+//编辑摄像头属性的展示方式
+function editCameraAttrShow(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var attrId = query.attrId;
+                var attr_show_1 = query.attr_show_1;
+                var attr_show_2 = query.attr_show_2;
+                var attr_show_3 = query.attr_show_3;
+                db.query("update camera_attr set attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?",
+                            [attr_show_1,attr_show_2,attr_show_3,attrId],
+                            function(err,result){
+                                if(err){
+                                    res.json({
+                                        "code": 404,
+                                        "data": {
+                                            "status": "fail",
+                                            "error": err.message
+                                        }
+                                    });                    
+                                } else {
+                                    res.json({
+                                        "code": 200,
+                                        "data": {
+                                            "status": "success",
+                                            "error": "success"
+                                        }
+                                    });   
+                                }
+                            });
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "user not login"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
+function funcName(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                // user_info = user.data;
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "user not login"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
+
+
+
+
+
+
 exports.addCamera = addCamera;
 exports.delCamera = delCamera;
 exports.editCamera = editCamera;
 exports.getCameraList = getCameraList;
 exports.getCameraInfo = getCameraInfo;
-exports.searchCamera = searchCamera;
+// exports.searchCamera = searchCamera;
 exports.getCameraListByAttr = getCameraListByAttr;
+exports.getCameraAttrs = getCameraAttrs;
+exports.addCameraAttr = addCameraAttr;
+exports.editCameraAttr = editCameraAttr;
+exports.createNewCamera = createNewCamera;
+exports.getCameraAttrs_APP = getCameraAttrs_APP;
+exports.editCameraAttrShow = editCameraAttrShow;
+

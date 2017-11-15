@@ -37,7 +37,7 @@ function addFeedBack(req,res){
 	try{
         var mobile = query.mobile;
         var token = query.token;
-
+        
         mobileUser.getUserInfo(mobile, token, function(user){
             if (user.error == 0) {
                 user_info = user.data;
@@ -196,26 +196,60 @@ function getFeedBackListByCamIdFromPc(req,res){
 					return ;
 				}
 
-				taskControl.getTaskStatus(cam_id, function(status){
-					if (3 == status) {
-				        var condition = 'cam_id';
-				        var dataArr = [cam_id];
+				ret = {};
+				//获取摄像头对应的所有任务
+				db.query("select * from task where cameraId=?",[cam_id],
+					function(err,rows){
+						if(rows && rows.length){
+							async.map(rows,function(item,call){
+								var taskId = item.Id;
+								db.query("select * from taskFeedBack where taskId=?",
+											[taskId],function(err,taskFeedBacks){
+												async.map(taskFeedBacks,function(item1,call1){
+													db.query("select * from taskFeedBackPics where taskFeedBackId=?",
+																[item1.Id],function(err,taskFeedBackPics){
+																	item1.pics = taskFeedBackPics;
+																	call1(null,item1);
+																});
+												},function(err,res){
+													item.taskFeedBacks = taskFeedBacks;
+													call(null,item);
+												});
+											});
+							},function(err,results){
+								ret["code"] = 200;
+								ret["status"] = "success";
+								ret["data"] = results;
+								res.json(ret);
+							});
+						} else {
+							ret["code"] = 200;
+							ret["status"] = "success";
+							ret["data"] = Array();
+							res.json(ret);
+						}
+					});
 
-						var page = query.page || -1;
-						var pageSize = query.pageSize || 20;
+				// taskControl.getTaskStatus(cam_id, function(status){
+				// 	if (3 == status) {
+				//         var condition = 'cam_id';
+				//         var dataArr = [cam_id];
 
-						getCameraFeedBackWithPics(condition, dataArr, page, pageSize, function(err, result){
-							if (err) {
-								res.json({"code": 500, "data":{"status":"fail","error":err}});
-								return ;
-							}
-							res.json(result);
-						});
-					}else {
-						res.json({"code": 405, "data":{"status":"fail","error":"cameara not been checked"}});
-						return ;
-					}
-				});
+				// 		var page = query.page || -1;
+				// 		var pageSize = query.pageSize || 20;
+
+				// 		getCameraFeedBackWithPics(condition, dataArr, page, pageSize, function(err, result){
+				// 			if (err) {
+				// 				res.json({"code": 500, "data":{"status":"fail","error":err}});
+				// 				return ;
+				// 			}
+				// 			res.json(result);
+				// 		});
+				// 	}else {
+				// 		res.json({"code": 405, "data":{"status":"fail","error":"cameara not been checked"}});
+				// 		return ;
+				// 	}
+				// });
 			}
 			else {
 				res.json({"code": 301, "data":{"status":"fail","error":"user not login"}});

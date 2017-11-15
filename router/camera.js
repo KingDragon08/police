@@ -21,6 +21,7 @@ server.post("/camera/add",function(req,res,next){
 	return next();
 });
 
+
 // 删除摄像头
 server.post("/camera/del",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
@@ -63,12 +64,12 @@ server.post("/camera/info",function(req,res,next){
 	return next();
 });
 
-// 查找摄像头
-server.post("/camera/search",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	camera.searchCamera(req,res);
-	return next();
-});
+// 根据经纬度查找摄像头
+// server.post("/camera/search",function(req,res,next){
+// 	res.setHeader("Access-Control-Allow-Origin","*");
+// 	camera.searchCamera(req,res);
+// 	return next();
+// });
 
 // 添加摄像头周边信息反馈
 server.post("/camera/feedback",function(req,res,next){
@@ -88,6 +89,45 @@ server.post("/camera/fbselflist",function(req,res,next){
 server.post("/camera/pccamfblist",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
 	CameraFB.getFeedBackListByCamIdFromPc(req,res);
+	return next();
+});
+
+
+/********************************KingDragon*************************************/
+
+
+//获取摄像头属性及其描述
+server.post("/camera/getCameraAttrs",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.getCameraAttrs(req,res);
+	return next();
+});
+
+//获取摄像头属性及其描述-APP
+server.post("/camera/getCameraAttrs_APP",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.getCameraAttrs_APP(req,res);
+	return next();
+});
+
+//添加摄像头属性
+server.post("/camera/addCameraAttr",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.addCameraAttr(req,res);
+	return next();
+});
+
+//编辑摄像头属性
+server.post("/camera/editCameraAttr",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.editCameraAttr(req,res);
+	return next();
+});
+
+//编辑摄像头属性的展示方式
+server.post("/camera/editCameraAttrShow",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.editCameraAttrShow(req,res);
 	return next();
 });
 

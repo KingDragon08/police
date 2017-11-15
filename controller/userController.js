@@ -1,16 +1,18 @@
-var DB_CONFIG = require("../dbconfig");
-var mysql = require('mysql');
+// var DB_CONFIG = require("../config/dbconfig");
+// var mysql = require('mysql');
 var crypto = require('crypto');
 var Sync = require('sync');
 
-var conn = mysql.createConnection({
-    host: DB_CONFIG.host,
-    user: DB_CONFIG.user,
-    password: DB_CONFIG.password,
-    database: DB_CONFIG.database,
-    port: DB_CONFIG.port
-});
-conn.connect();
+// var conn = mysql.createConnection({
+//     host: DB_CONFIG.host,
+//     user: DB_CONFIG.user,
+//     password: DB_CONFIG.password,
+//     database: DB_CONFIG.database,
+//     port: DB_CONFIG.port
+// });
+// conn.connect();
+
+var conn = require("../lib/db");
 
 
 //注册新账号
@@ -40,7 +42,7 @@ function register(req, res) {
                         conn.query("insert into user(name,password,plainPassword," +
                             "sex,company,NO,mobile,createTime,lastLoginTime,status)" +
                             "values(?,?,?,?,?,?,?,?,?,?)", [name, password, plainPassword, sex, company, NO, mobile,
-                                createTime, createTime, 1
+                                createTime, createTime, 0
                             ],
                             function(err, result) {
                                 if (err) {
@@ -100,6 +102,7 @@ function login(req, res) {
                 });
         }
     } catch (e) {
+        console.log(e);
         res.json({ "code": 300, "data": { "status": "fail", "error": "unknown error" } });
     }
 
@@ -163,6 +166,7 @@ function logout(req, res) {
 }
 
 //分页获取用户信息
+//@param type=>用户的类型，1：审核通过的正常用户，0:待审核的用户
 function getUsers(req, res) {
     var query = req.body;
     try {
@@ -171,6 +175,7 @@ function getUsers(req, res) {
         var mobile = query.mobile;
         var token = query.token;
         var pageSize = query.pageSize || 20;
+        var type = query.type || 1;//获取的类型
         checkMobile2Token(mobile, token, function(result) {
             if (result) {
                 if (page < 1) {
@@ -179,7 +184,7 @@ function getUsers(req, res) {
                 var start = (page - 1) * pageSize;
                 pageSize = parseInt(pageSize);
                 conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP " +
-                    "from user order by Id desc limit ?,?", [start, pageSize],
+                    "from user where status=? order by Id desc limit ?,?", [parseInt(type), start, pageSize],
                     function(err, data) {
                         console.log(err);
                         ret = {};
@@ -427,7 +432,10 @@ function delPCUser(req,res){
         var token = query.token;
         checkMobile2Token(mobile,token,function(result){
             if(result){
-
+                conn.query("delete from user where Id=?",[parseInt(Id)],
+                    function(err,result){
+                        res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
+                    });
             } else {
                 res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" }});
             }
@@ -470,24 +478,32 @@ function getUserInfo(mobile, token, callback) {
 //验证账号和密码是否匹配
 function checkMobile2Password(mobile, password, callback) {
     password = crypto.createHash("md5").update(password).digest('hex');
-    conn.query("select count(Id) as total from user where mobile=? and password=?", [mobile, password],
+    conn.query("select count(Id) as total from user where mobile=? and password=? and status=?", [mobile, password,1],
         function(err, result) {
-            if (result[0].total > 0) {
-                callback(true);
-            } else {
+            if(err){
                 callback(false);
+            } else {
+                if (result[0].total > 0) {
+                    callback(true);
+                } else {
+                    callback(false);
+                }
             }
         });
 }
 
 //验证账号和token是否匹配
 function checkMobile2Token(mobile, token, callback) {
-    conn.query("select count(Id) as total from user where mobile=? and token=?", [mobile, token],
+    conn.query("select count(Id) as total from user where mobile=? and token=? and status=?", [mobile, token,1],
         function(err, result) {
-            if (result[0].total > 0) {
-                callback(true);
+            if(err){
+                callback(false)
             } else {
-                callback(false);
+                if (result[0].total > 0) {
+                    callback(true);
+                } else {
+                    callback(false);
+                }
             }
         });
 }
@@ -549,6 +565,66 @@ function checkMobile2TokenWithPermissionBackEnd(mobile,token,permission,callback
     });
 }
 
+//审核用户
+//@param:Id=>审核用户的Id
+//@param:mobile=>mobile
+//@param:token=>token
+//@param:type=>1:审核通过,0:审核不通过,将会删除该用户的注册信息
+function checkUser(req,res){
+    var query = req.body;
+    try{
+        var Id = query.Id || -1;
+        if(-1==Id){
+            res.json({ "code": 300, "data": { "status": "fail", "error": "error params" }});
+            return;
+        }
+        var mobile = query.mobile || -1;
+        var token = query.token || -1;
+        var type = query.type || -1;
+        if(mobile==-1 || token==-1 || type==-1){
+            res.json({ "code": 300, "data": { "status": "fail", "error": "error params2" }});
+            return;
+        }
+        checkMobile2Token(mobile,token,function(result){
+            if(result){
+                //判断Id对应的用户是否存在
+                conn.query("select count(Id) as total from user where Id=?",
+                            [Id],function(err,result){
+                                if(result && result.length && result[0].total==1){
+                                    //获取用户的状态
+                                    conn.query("select status from user where Id=?",[Id],
+                                                function(err,result){
+                                                    if(result[0].status){
+                                                        res.json({ "code": 403, "data": { "status": "fail", "error": "user has already been checked" }});
+                                                    } else {
+                                                        //审核不通过，删除该用户的信息
+                                                        if(type==0){
+                                                            conn.query("delete from user where Id=?",[Id],
+                                                                        function(err,result){
+                                                                            res.json({ "code": 200, "data": {"error":"success"} });
+                                                                        });
+                                                        }
+                                                        //审核通过，更新用户状态
+                                                        if(type==1){
+                                                            conn.query("update user set status=? where Id=?",[Id],
+                                                                        function(err,result){
+                                                                           res.json({ "code": 200, "data": {"error":"success"} }); 
+                                                                        });
+                                                        }
+                                                    }
+                                                });
+                                } else {
+                                    res.json({ "code": 404, "data": { "status": "fail", "error": "user not exist" }});
+                                }
+                            });
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" }});
+            }
+        });
+    } catch(e) {
+        res.json({ "code": 300, "data": { "status": "fail", "error": "unkown error" }});
+    }
+}
 
 exports.register = register;
 exports.login = login;
@@ -568,7 +644,7 @@ exports.delPCUser = delPCUser;
 exports.checkMobile2Token_R_permission = checkMobile2Token_R_permission;
 exports.checkMobile2TokenWithPermissionFrontEnd = checkMobile2TokenWithPermissionFrontEnd;
 exports.checkMobile2TokenWithPermissionBackEnd = checkMobile2TokenWithPermissionBackEnd;
-
+exports.checkUser = checkUser;
 
 
 

@@ -1,15 +1,15 @@
 var DB_CONFIG = {
-	host:'xiaofen809.com',
-	user:'root',
+	host:'211.103.178.205',
+	user:'KingDragon',
 	password:'939407Lq252324',
 	database:'police',
 	port:3306
 }
 
 var DB_TEST_CONFIG = {
-	host:'127.0.0.1',
+	host:'xiaofen809.com',
 	user:'root',
-	password:'123456',
+	password:'939407Lq252324',
 	database:'police',
 	port:3306
 }
