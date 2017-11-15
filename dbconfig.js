@@ -14,5 +14,5 @@ var DB_TEST_CONFIG = {
 	port:3306
 }
 
-// module.exports = DB_CONFIG;
-module.exports = DB_TEST_CONFIG;
+module.exports = DB_CONFIG;
+// module.exports = DB_TEST_CONFIG;
