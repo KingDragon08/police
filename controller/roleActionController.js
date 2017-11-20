@@ -503,6 +503,7 @@ function checkUserPermission(actionUrl, userId, userType, callback) {
     // var NOPERMISSION = false;
     var NOPERMISSION = true;
     var OKPERMISSION = true;
+    console.log(actionUrl);
     try {
         var userTable = userType == 'pc' ? 'user' : 'mobileUser';
         var sql = "select ra.* ";
