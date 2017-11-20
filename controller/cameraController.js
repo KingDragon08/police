@@ -3,6 +3,11 @@ var check = require("../lib/check");
 var User = require("./userController");
 var cameraAsync = require("./cameraAsync");
 var dbTableAttr = require("../config/dbTableAttrConf");
+var xlsx = require('node-xlsx');
+var fs = require('fs');
+
+var map_db_name = "xc_baymin";
+
 // create table `camera`(
 //     `cam_id` int(32) not null auto_increment comment '设备记录id',
 //     `cam_no` varchar(32) not null comment '设备编号',
@@ -455,7 +460,7 @@ function getCameraList(req, res) {
                     pageSize = total;
                     dataArr = [];
                 } else {
-                    sql = "select cam_id,cam_loc_lan,cam_loc_lon from camera where is_del = 0 order by cam_id limit ?, ?";
+                    sql = "select * from camera where is_del = 0 order by cam_id limit ?, ?";
                     dataArr = [start, pageSize];
                 }
                 db.query(sql, dataArr, function(err, rows) {
@@ -525,7 +530,7 @@ function getCameraListByAttr(req, res) {
     }
     try {
         var sql = "select count(*) as total from camera where is_del = 0 and " + attrName + " like " +
-                    conn.escape('%' + attrValue + '%') ;
+                    "'%" + attrValue + "%'";
         // var dataArr = [attrName, attrValue];
         var dataArr = [];
         db.query(sql, dataArr, function(err, rows) {
@@ -547,13 +552,13 @@ function getCameraListByAttr(req, res) {
                 var start = (page - 1) * pageSize;
                 if (-1 == page) {
                     sql = "select * from camera where is_del = 0 and " + attrName + " like " +
-                            conn.escape('%' + attrValue + '%') ;
+                            "'%" + attrValue + "%'";
                     pageSize = total;
                     dataArr = [];
                 } else {
                     sql = "select * from camera where is_del = 0 and " + attrName + " like " +
-                            conn.escape('%' + attrValue + '%') + " order by cam_id limit ?, ?";
-                    dataArr = [start, pageSize];
+                            "'%" + attrValue + "%'" + " order by cam_id limit ?, ?";
+                    dataArr = [start, parseInt(pageSize)];
                 }
                 db.query(sql, dataArr, function(err, rows) {
                     if (err) {
@@ -1208,6 +1213,165 @@ function editCameraAttrShow(req,res){
     }
 }
 
+//批量添加摄像头数据
+function multiAddCameras(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                // user_info = user.data;
+                var excel = query.excel;//excel文件的地址
+                excel = "./upload/" + excel.split("/")[excel.split("/").length-1];
+                fs.stat(excel,function(err,stats){
+                    if(err){
+                        res.json({
+                            "code": 404,
+                            "data": {
+                                "status": "fail",
+                                "error": "file not exist"
+                            }
+                        });
+                        return;
+                    } else {
+                        var obj = xlsx.parse(excel);
+                        var excelObj = obj[0].data;
+                        console.log(excelObj);
+                        //获取摄像头属性的总数
+                        db.query("select count(*) as total from camera_attr",[],
+                            function(err,data){
+                                if(err){
+                                    res.json({
+                                        "code": 501,
+                                        "data": {
+                                            "status": "fail",
+                                            "error": err.message
+                                        }
+                                    });
+                                } else {
+                                    if(excelObj[0].length!=data[0].total-1){
+                                        //模版格式不对
+                                        res.json({
+                                            "code": 502,
+                                            "data": {
+                                                "status": "fail",
+                                                "error": "模版格式不对"
+                                            }
+                                        }); 
+                                    } else {
+                                        //对当前的数据做备份
+                                        db.query("select table_name from information_schema.tables where table_schema='police' and table_type='base table'",
+                                            [],function(err,data){
+                                                if(err){
+                                                    res.json({
+                                                        "code": 501,
+                                                        "data": {
+                                                            "status": "fail",
+                                                            "error": err.message
+                                                        }
+                                                    });
+                                                } else {
+                                                    if(data.indexOf("camera_copy")!=-1){
+                                                        //删除上次的备份表
+                                                        db.query("drop table camera_copy",[],function(err,data){
+                                                            if(err){
+                                                                res.json({
+                                                                    "code": 502,
+                                                                    "data": {
+                                                                        "status": "fail",
+                                                                        "error": err.message
+                                                                    }
+                                                                });
+                                                            } else {
+                                                                //备份数据及其他后续操作
+                                                                multiAddCamerasThen(req,res,excelObj);
+                                                            }
+                                                        });
+
+                                                    } else {
+                                                        //备份数据及其他后续操作
+                                                        multiAddCamerasThen(req,res,excelObj);
+                                                    }
+                                                }
+                                            });
+                                    }
+                                }
+                            });
+                    }
+                });
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "user not login"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
+
+//批量上传摄像头删除上次备份的后续操作
+function multiAddCamerasThen(req,res,data){
+    // res.json({
+    //     "code": 200,
+    //     "data": {
+    //         "status": "success",
+    //         "error": "success"
+    //     }
+    // });
+    db.query("create table camera_copy like camera",[],function(err,data){
+       if(err){
+            res.json({
+                "code": 503,
+                "data": {
+                    "status": "fail",
+                    "error": err.message
+                }
+            });
+       } else {
+            db.query("insert into camera_copy select * from camera",[],
+                function(err,data){
+                    if(err){
+                        res.json({
+                            "code": 504,
+                            "data": {
+                                "status": "fail",
+                                "error": err.message
+                            }
+                        });         
+                    } else {
+                        //开始导入
+                        for(var i=1; i<data.length; i++){
+                            continue;
+                        }
+                        //to do
+                        res.json({
+                            "code": 200,
+                            "data": {
+                                "status": "success",
+                                "error": "success"
+                            }
+                        });
+                    }
+                });
+       }
+    });
+}
+
+
 function funcName(req,res){
     var query = req.body;
     try {
@@ -1244,6 +1408,9 @@ function funcName(req,res){
 
 
 
+
+
+
 exports.addCamera = addCamera;
 exports.delCamera = delCamera;
 exports.editCamera = editCamera;
@@ -1257,4 +1424,5 @@ exports.editCameraAttr = editCameraAttr;
 exports.createNewCamera = createNewCamera;
 exports.getCameraAttrs_APP = getCameraAttrs_APP;
 exports.editCameraAttrShow = editCameraAttrShow;
+exports.multiAddCameras = multiAddCameras;
 

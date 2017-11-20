@@ -131,5 +131,12 @@ server.post("/camera/editCameraAttrShow",function(req,res,next){
 	return next();
 });
 
+//批量添加摄像头数据
+server.post("/camera/multiAddCameras",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.multiAddCameras(req,res);
+	return next();
+});
+
 
 module.exports = server;
