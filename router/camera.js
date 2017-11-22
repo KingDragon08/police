@@ -138,5 +138,25 @@ server.post("/camera/multiAddCameras",function(req,res,next){
 	return next();
 });
 
+//手动备份摄像头数据
+server.post("/camera/backupCameras",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.backupCameras(req,res);
+	return next();
+});
+
+//手动还原摄像头数据
+server.post("/camera/restoreCameras",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.restoreCameras(req,res);
+	return next();
+});
+
+//批量更改摄像头的列属性
+server.post("/camera/multiEditCamerasByAttr",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	camera.multiEditCamerasByAttr(req,res);
+	return next();
+});
 
 module.exports = server;

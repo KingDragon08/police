@@ -223,17 +223,41 @@ function getCarTrack(req,res){
 	}
 }
 
+function getCarAttrs(req,res){
+    var query = req.body;
+    try{
+        check(query,res,function(){
+            res.json({
+                code:200,
+                data:{
+                    status:'success',
+                    data:{
+                        'Id':'Id',
+                        'NO':'车牌号',
+                        'type':'车辆类型',
+                        'state':'JUST FOR TEMP USE'
+                    }
+                }
+            });
+        });
+    } catch(e) {
+        errorHandler(ers,e.message);
+    }
+}
 
-// function test(req,res){
-// 	var centerX = 12953877.20796;
-//     var centerY = 4829762.47364;
-// 	var sql = "insert into camera (cam_no, cam_name, cam_loc_lan, cam_loc_lon,cam_sta, cam_desc, cam_addr, user_id, addtime, uptime) ";
-//     sql += "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-//     var i = parseInt(Math.random()*1000000)+"";
-//     conn.query(sql,[i,"camera_"+i,centerY+Math.random()*1000,centerX+Math.random()*1000,1,"","test.addr",7,new Date().getTime(),""],function(err,result){
-//     	res.json("ahaahhaha");
-//     });
-// }
+
+//函数模板
+function funcName(req,res){
+    var query = req.body;
+    try{
+        check(query,res,function(){
+            
+        });
+    } catch(e) {
+        errorHandler(ers,e.message);
+    }
+}
+
 
 /*******************************************************
  ***********************公用部分***************************
@@ -261,4 +285,4 @@ exports.getSingleCarInfo = getSingleCarInfo;
 exports.searchCar = searchCar;
 exports.getCarPosition = getCarPosition;
 exports.getCarTrack = getCarTrack;
-// exports.test = test;
+exports.getCarAttrs = getCarAttrs;

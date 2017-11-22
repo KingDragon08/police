@@ -59,10 +59,13 @@ server.post("/car/getCarTrack",function(req,res,next){
 	return next();
 });
 
-// server.get("/camera/add",function(req,res,next){
-// 	Car.test(req,res);
-// 	return next();
-// });
+//获取车辆属性
+server.post("/car/getCarAttrs",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	Car.getCarAttrs(req,res);
+	return next();
+});
+
 
 
 module.exports = server;
