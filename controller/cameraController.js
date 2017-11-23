@@ -1252,7 +1252,8 @@ function multiAddCameras(req,res){
                                     });
                                 } else {
                                     console.log(attr_name);
-                                    if(excelObj[0].length!=attr_name.length-1){
+                                    //attr_name中包含cam_id和is_del,这两个属性批量导入的时候不需要
+                                    if(excelObj[0].length!=attr_name.length-2){
                                         //模版格式不对
                                         res.json({
                                             "code": 502,
@@ -1446,7 +1447,14 @@ function backupCameras(req,res){
                                 }
                             });
                         } else {
-                            if(data.indexOf("camera_copy")!=-1){
+                            var camera_copy_exist = false;
+                            for(var i=0; i<data.length; i++){
+                                if(data[i].table_name=="camera_copy"){
+                                    camera_copy_exist = true;
+                                    break;
+                                }
+                            }
+                            if(camera_copy_exist){
                                 //删除上次的备份表
                                 db.query("drop table camera_copy",[],function(err,data){
                                     if(err){
