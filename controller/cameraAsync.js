@@ -26,14 +26,24 @@ function createNewCamera(cam_id, X, Y, cam_sta, callback) {
 
 //删除摄像头
 function deleteCamera(cam_id,callback){
-	db.query("update "+map_db_name+"."+map_table_name+" set is_del=? where cam_id=?",[1,cam_id],
-		function(err,result){
-			if(err){
-				callback(false);
-			} else {
-				callback(true);
-			}
-		});
+	// db.query("update "+map_db_name+"."+map_table_name+" set is_del=? where cam_id=?",[1,cam_id],
+	// 	function(err,result){
+	// 		if(err){
+	// 			callback(false);
+	// 		} else {
+	// 			callback(true);
+	// 		}
+	// 	});
+	//真的要删数据库了,whatafuckingday
+	db.query("delete from "+map_db_name+"."+map_table_name+" where cam_id=?",
+				[cam_id],
+				function(err,result){
+					if(err){
+						callback(false);
+					} else {
+						callback(true);
+					}
+				});
 }
 
 //更新摄像头状态

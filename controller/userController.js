@@ -25,12 +25,17 @@ function register(req, res) {
         var sex = query.sex || "M";
         var NO = query.NO || "000000";
         var mobile = query.mobile || "00000000000";
-        var company = query.company || "west";
+        var company = query.company || "0";
+        var role = query.role || -1;
         var createTime = new Date().getTime();
         if (sex != 'F' && sex != 'M') {
             res.json({ "code": 300, "data": { "status": "fail", "error": "sex must be F or M" } });
             return;
         } else {
+            if(role==-1) {
+                res.json({ "code": 301, "data": { "status": "fail", "error": "role param needed" } });
+                return;
+            }
             //查看是否已经注册
             conn.query("select count(Id) as total from user where mobile=?", [mobile],
                 function(err, result) {
@@ -40,9 +45,9 @@ function register(req, res) {
                         res.json({ "code": 300, "data": { "status": "fail", "error": "mobile already exist" } });
                     } else {
                         conn.query("insert into user(name,password,plainPassword," +
-                            "sex,company,NO,mobile,createTime,lastLoginTime,status)" +
-                            "values(?,?,?,?,?,?,?,?,?,?)", [name, password, plainPassword, sex, company, NO, mobile,
-                                createTime, createTime, 0
+                            "sex,company,NO,mobile,createTime,lastLoginTime,status,role)" +
+                            "values(?,?,?,?,?,?,?,?,?,?,?)", [name, password, plainPassword, sex, company, NO, mobile,
+                                createTime, createTime, 0, parseInt(role)
                             ],
                             function(err, result) {
                                 if (err) {
@@ -83,8 +88,8 @@ function login(req, res) {
                         var timestamp = new Date().getTime();
                         var token = mobile + "_" + timestamp;
                         token = crypto.createHash("md5").update(token).digest('hex');
-                        conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP from user " +
-                            "where mobile=? and password=? and status=?", [mobile, password, 1],
+                        conn.query("select a.Id,a.name,a.sex,a.NO,a.mobile,a.lastLoginTime,a.lastLoginIP,b.role_name,c.name as company from user a left join role b on a.role_id=b.role_id left join department2 c on a.company=c.Id " +
+                            "where a.mobile=? and a.password=? and a.status=?", [mobile, password, 1],
                             function(err, result) {
                                 result[0]["token"] = token;
                                 result[0]["status"] = "success";
@@ -121,8 +126,8 @@ function loginWithToken(req, res) {
                 var timestamp = new Date().getTime();
                 var token = mobile + "_" + timestamp;
                 token = crypto.createHash("md5").update(token).digest('hex');
-                conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP from user " +
-                    "where mobile=? and status=?", [mobile, 1],
+                conn.query("select a.Id,a.name,a.sex,a.NO,a.mobile,a.lastLoginTime,a.lastLoginIP,b.role_name,c.name as company from user a left join role b on a.role_id=b.role_id left join department2 c on a.company=c.Id " +
+                    "where a.mobile=? and a.status=?", [mobile, 1],
                     function(err, result) {
                         result[0]["token"] = token;
                         result[0]["status"] = "success";
@@ -183,8 +188,8 @@ function getUsers(req, res) {
                 }
                 var start = (page - 1) * pageSize;
                 pageSize = parseInt(pageSize);
-                conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP " +
-                    "from user where status=? order by Id desc limit ?,?", [parseInt(type), start, pageSize],
+                conn.query("select a.Id,a.name,a.sex,a.NO,a.mobile,a.lastLoginTime,a.lastLoginIP,b.role_name,c.name as company from user a left join role b on a.role_id=b.role_id left join department2 c on a.company=c.Id " +
+                    "where a.status=? order by a.Id desc limit ?,?", [parseInt(type), start, pageSize],
                     function(err, data) {
                         console.log(err);
                         ret = {};
@@ -213,8 +218,8 @@ function getSingleUserInfo(req, res) {
         } else {
             checkMobile2Token(mobile, token, function(result) {
                 if (result) {
-                    conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP " +
-                        "from user where Id=?", [Id],
+                    conn.query("select a.Id,a.name,a.sex,a.NO,a.mobile,a.lastLoginTime,a.lastLoginIP,b.role_name,c.name as company from user a left join role b on a.role_id=b.role_id left join department2 c on a.company=c.Id " +
+                        "where Id=?", [Id],
                         function(err, data) {
                             ret = {};
                             ret["status"] = "success";
@@ -243,8 +248,8 @@ function getSingleUserInfoByMobile(req, res) {
         } else {
             checkMobile2Token(mobile, token, function(result) {
                 if (result) {
-                    conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP " +
-                        "from user where mobile=?", [targetMobile],
+                    conn.query("select a.Id,a.name,a.sex,a.NO,a.mobile,a.lastLoginTime,a.lastLoginIP,b.role_name,c.name as company from user a left join role b on a.role_id=b.role_id left join department2 c on a.company=c.Id " +
+                        "where mobile=?", [targetMobile],
                         function(err, data) {
                             ret = {};
                             ret["status"] = "success";
@@ -270,8 +275,8 @@ function getUsersByKeyword(req, res) {
         var keyword = query.keyword;
         checkMobile2Token(mobile, token, function(result) {
             if (result) {
-                conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP " +
-                    "from user where name like " +
+                conn.query("select a.Id,a.name,a.sex,a.NO,a.mobile,a.lastLoginTime,a.lastLoginIP,b.role_name,c.name as company from user a left join role b on a.role_id=b.role_id left join department2 c on a.company=c.Id " +
+                    "where name like " +
                     conn.escape('%' + keyword + '%') +
                     " order by Id desc", [keyword],
                     function(err, data) {
@@ -459,7 +464,7 @@ function getUserInfo(mobile, token, callback) {
     try {
         checkMobile2Token(mobile, token, function(result) {
             if (result) {
-                conn.query("select * from user where mobile=?", [mobile],
+                conn.query("select a.*,b.role_name from user a left join role b on a.role_id=b.role_id where mobile=?", [mobile],
                     function(err, res) {
                         ret = {};
                         ret["error"] = 0;

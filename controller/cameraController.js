@@ -225,8 +225,10 @@ function delCamera(req, res) {
                     } else {
                         if (rows[0].total > 0) {
                             var curtime = new Date().getTime();
-                            sql = "update camera set is_del = 1, uptime = ? where cam_id = ?";
-                            dataArr = [curtime, cam_id];
+                            // sql = "update camera set is_del = 1, uptime = ? where cam_id = ?";
+                            //真的要从数据库里面删除摄像头了！whatafuckingday
+                            sql = "delete from camera where cam_id=?"
+                            dataArr = [cam_id];
                             db.query(sql, dataArr, function(err, rows) {
                                 if (err) {
                                     res.json({
@@ -1253,7 +1255,8 @@ function multiAddCameras(req,res){
                                 } else {
                                     console.log(attr_name);
                                     //attr_name中包含cam_id和is_del,这两个属性批量导入的时候不需要
-                                    if(excelObj[0].length!=attr_name.length-2){
+                                    // if(excelObj[0].length!=attr_name.length-2){
+                                    if(excelObj[0].length!=attr_name.length){
                                         //模版格式不对
                                         res.json({
                                             "code": 502,
@@ -1367,11 +1370,18 @@ function multiAddCamerasThen(req,res,data,attr_name){
                         });         
                     } else {
                         //弹出cam_id
-                        attr_name.shift();
+                        // attr_name.shift();
                         //弹出is_del
-                        attr_name.splice(9,1);
+                        // attr_name.splice(9,1);
+                        //弹出表头
+                        data.shift();
                         //开始导入
                         var flag = true;
+                        var attr_name_list = [];
+                        for(var i=0; i<attr_name.length; i++){
+                            attr_name_list.push(attr_name[i].attr_name);
+                        }
+
                         async.map(data,function(item,call){
                             var spaceStr = "";
                             for(var i=0; i<item.length; i++){
@@ -1380,7 +1390,7 @@ function multiAddCamerasThen(req,res,data,attr_name){
                             }
                             spaceStr = spaceStr.substring(0,spaceStr.length-1);
                             //插入摄像头数据
-                            db.query("insert into camera("+attr_name.join(',')+")values("+spaceStr+")",item,
+                            db.query("insert into camera("+attr_name_list.join(',')+")values("+spaceStr+")",item,
                                 function(err,data){
                                     if(err){
                                         flag = false;
