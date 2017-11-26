@@ -2,6 +2,8 @@ var server = global.server
 var camera = require('../controller/cameraController')
 var CameraFB = require('../controller/cameraFeedController')
 
+var transfer = require("../lib/transfer");
+var permission = require("../controller/roleActionController")
 // 测试参数
 // server.get("/camera/getParams",function(req,res,next){
 // 	res.setHeader("Access-Control-Allow-Origin","*");
@@ -17,7 +19,18 @@ var CameraFB = require('../controller/cameraFeedController')
 // 添加摄像头
 server.post("/camera/add",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
-	camera.addCamera(req,res);
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				camera.addCamera(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
 	return next();
 });
 
@@ -39,7 +52,20 @@ server.post("/camera/edit",function(req,res,next){
 // 获取摄像头列表
 server.post("/camera/list",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
-	camera.getCameraList(req,res);
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			console.log(hasPermission);
+			if(hasPermission){
+				camera.getCameraList(req,res);			
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	// transfer.ajax("/camera/list",0,req.body);
 	return next();
 });
 

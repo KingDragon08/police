@@ -405,8 +405,20 @@ function getRoleActionList(req, res) {
                 var userId = user_info.Id;
                 checkUserPermission(req.url, userId, 'pc', function(permission) {
                     if (permission) {
-                        var sql = "select count(*) as total from role_action";
-                        var dataArr = [];
+                        var role_id = query.role_id || -1;
+                        if(role_id==-1){
+                            res.json({
+                                "code": 403,
+                                "data": {
+                                    "status": "fail",
+                                    "error": "param error"
+                                }
+                            });
+                            return;
+                        }
+                        role_id = parseInt(role_id);
+                        var sql = "select count(*) as total from role_action where role_id=?";
+                        var dataArr = [role_id];
                         db.query(sql, dataArr, function(err, rows) {
                             if (err) {
                                 res.json({
@@ -425,12 +437,12 @@ function getRoleActionList(req, res) {
                                 }
                                 var start = (page - 1) * pageSize;
                                 if (-1 == page) {
-                                    sql = "select * from role_action order by id";
+                                    sql = "select a.*,b.action_name from role_action a left join action b on a.action_id=b.action_id where a.role_id=? order by id";
                                     pageSize = total;
-                                    dataArr = [];
+                                    dataArr = [role_id];
                                 } else {
-                                    sql = "select * from role_action order by id limit ?, ?";
-                                    dataArr = [start, pageSize];
+                                    sql = "select a.*,b.action_name from role_action a left join action b on a.action_id=b.action_id where a.role_id=? order by id limit ?, ?";
+                                    dataArr = [role_id, start, pageSize];
                                 }
                                 db.query(sql, dataArr, function(err, rows) {
                                     if (err) {
@@ -507,7 +519,7 @@ function checkUserPermission(actionUrl, userId, userType, callback) {
     try {
         var userTable = userType == 'pc' ? 'user' : 'mobileUser';
         var sql = "select ra.* ";
-        sql += "from role_action ra, action a, " + userTable + ", u";
+        sql += "from role_action ra, action a, " + userTable + " u";
         sql += " where ra.role_id = u.role_id and ra.action_id = a.action_id ";
         sql += " and u.Id = ? and a.action_url = ?";
         var dataArr = [userId, actionUrl];
@@ -526,8 +538,60 @@ function checkUserPermission(actionUrl, userId, userType, callback) {
         callback(NOPERMISSION);
     }
 }
+
+/**
+ * 校验用户操作权限
+ * 根据URL判断当前用户有无权限
+ * 
+ * @param  {[type]}   actionUrl [req.url]
+ * @param  {[type]}   userId    [userId]
+ * @param  {[type]}   userType  [pc|mobile]
+ * @param  {Function} callback  [description]
+ * @return {[type]}             [description]
+ */
+function checkUserPermissionByMobile(actionUrl, mobile, userType, callback) {
+    // var NOPERMISSION = false;
+    var NOPERMISSION = false;
+    var OKPERMISSION = true;
+    try {
+        var userTable = userType == 'pc' ? 'user' : 'mobileUser';
+        var sql = "select ra.* ";
+        sql += "from role_action ra, action a, " + userTable + " u";
+        sql += " where ra.role_id = u.role_id and ra.action_id = a.action_id ";
+        sql += " and u.mobile = ? and a.action_url = ?";
+        var dataArr = [mobile, actionUrl];
+        db.query(sql, dataArr, function(err, rows) {
+            if (err) {
+                callback(NOPERMISSION);
+            } else {
+                if (rows.length > 0) {
+                    callback(OKPERMISSION);
+                } else {
+                    callback(NOPERMISSION);
+                }
+            }
+        });
+    } catch (e) {
+        callback(NOPERMISSION);
+    }
+}
+
+
+function permissionDenied(res){
+    res.json({
+        "code": 301,
+        "data": {
+            "status": "fail",
+            "error": "permission deneied"
+        }
+    });
+}
+
 exports.addRoleAction = addRoleAction;
 exports.delRoleAction = delRoleAction;
 exports.editRoleAction = editRoleAction;
 exports.getRoleActionList = getRoleActionList;
 exports.checkUserPermission = checkUserPermission;
+exports.checkUserPermissionByMobile = checkUserPermissionByMobile;
+exports.permissionDenied = permissionDenied;
+
