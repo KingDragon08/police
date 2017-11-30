@@ -2,6 +2,7 @@ var db = require("../lib/db");
 var check = require("../lib/check");
 var User = require("./userController");
 var roleActionController = require("./roleActionController.js");
+var Log = require('./logController')
 // --
 // -- Table structure for table `role`
 // --
@@ -76,6 +77,7 @@ function addRole(req, res) {
                                             }
                                         });
                                     } else {
+                                        Log.insertLog(mobile,req.url,sql);
                                         res.json({
                                             "code": 200,
                                             "data": {
@@ -173,6 +175,7 @@ function delRole(req, res) {
                                                 }
                                             });
                                         } else {
+                                            Log.insertLog(mobile,req.url,sql);
                                             res.json({
                                                 "code": 200,
                                                 "data": {
@@ -311,6 +314,7 @@ function editRole(req, res) {
                                                             }
                                                         });
                                                     } else {
+                                                        Log.insertLog(mobile,req.url,sql);
                                                         res.json({
                                                             "code": 200,
                                                             "data": {
@@ -421,6 +425,7 @@ function getRoleList(req, res) {
                                             }
                                         });
                                     } else {
+                                        Log.insertLog(mobile,req.url,sql);
                                         res.json({
                                             "code": 200,
                                             "data": {

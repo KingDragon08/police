@@ -5,6 +5,7 @@ var check = require("../lib/check");
 var mobileUser = require("./mobileController");
 var pcUser = require("./userController");
 var taskControl = require("./taskController");
+var Log = require('./logController')
 
 
 // create table `camera_feedback`(
@@ -91,6 +92,7 @@ function addFeedBack(req,res){
                                   res.json({"code": 501, "data":{"status":"fail","error":err.message}});
                               }else {
 									fb_id = rows.insertId;
+									Log.insertLog(mobile,req.url,sql);
 									res.json({"code": 200, "data":{"status":"success","error":"success", "fb_id": fb_id}});
 
                                   var pics = query.pics || '';
@@ -159,6 +161,7 @@ function getSelfFeedBackList(req,res){
 					   res.json({"code": 500, "data":{"status":"fail","error":err}});
 					   return ;
 				   }
+				   Log.insertLog(mobile,req.url,"getSelfFeedBackList");
 				   res.json(result);
 				});
 			}
@@ -217,6 +220,7 @@ function getFeedBackListByCamIdFromPc(req,res){
 												});
 											});
 							},function(err,results){
+								Log.insertLog(mobile,req.url,"getFeedBackListByCamIdFromPc");
 								ret["code"] = 200;
 								ret["status"] = "success";
 								ret["data"] = results;

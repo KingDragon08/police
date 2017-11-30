@@ -4,6 +4,7 @@ var crypto = require('crypto');
 var Sync = require('sync');
 var Camera = require("./cameraController");
 var async = require('async');
+var Log = require('./logController')
 
 // var conn = mysql.createConnection({
 //     host: DB_CONFIG.host,
@@ -70,6 +71,8 @@ function publishTask(req, res) {
 		                        "taskDescription,userId,taskNO,taskStatus,cameraId)values(?,?,?,?,?,?,?)", [cameraName, cameraLocation, taskDescription, userId, taskNO, taskStatus,cameraId],
 		                        function(err, data) {
                                     console.log(err);
+                                    Log.insertLog(mobile,req.url,"insert into task(cameraName,cameraLocation," +
+                                                                    "taskDescription,userId,taskNO,taskStatus,cameraId)values(?,?,?,?,?,?,?)");
 		                            res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
 		                    });
                 		} else {
@@ -122,6 +125,10 @@ function publishTaskWithoutCamera(req,res){
                                 if(err){
                                     console.log(err);
                                 } else {
+                                    Log.insertLog(mobile,req.url,"insert into task(cameraName,cameraLocation," +
+                                                                    "taskDescription,userId,taskNO,taskStatus,"+
+                                                                    "cameraId,cameraLon,cameraLa,addtime,cameraType)"+
+                                                                    "values(?,?,?,?,?,?,?,?,?,?,?)");
                                     res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
                                 }
                             }
@@ -162,6 +169,7 @@ function getAllTask(req,res){
                         ret["status"] = "success";
                         ret["data"] = data;
                         ret["total"] = result[0].total;
+                        Log.insertLog(mobile,req.url,sql);
                         res.json({ "code": 200, "data": ret });
                     });
             	});
@@ -199,6 +207,7 @@ function getUserTask(req,res){
                             ret["total"] = result[0].total;
                             ret["status"] = "success";
                             ret["data"] = data;
+                            Log.insertLog(mobile,req.url,sql);
                             res.json({ "code": 200, "data": ret });
                         });
             	});
@@ -239,6 +248,7 @@ function searchTask(req,res){
             		ret = {};
                     ret["status"] = "success";
                     ret["data"] = data;
+                    Log.insertLog(mobile,req.url,sql);
                     res.json({ "code": 200, "data": ret });
             	});
             } else {
@@ -283,6 +293,7 @@ function getTaskPC(req,res){
                             ret["data"] = data;
                             ret["pageSize"] = pageSize;
                             ret["totalPage"] = Math.ceil(parseInt(total)/pageSize);
+                            Log.insertLog(mobile,req.url,sql);
                             res.json({ "code": 200, "data": ret });
                         });
                     });
@@ -303,6 +314,7 @@ function getTaskPC(req,res){
                             ret["data"] = data;
                             ret["pageSize"] = pageSize;
                             ret["totalPage"] = Math.ceil(parseInt(total)/pageSize);
+                            Log.insertLog(mobile,req.url,sql);
                             res.json({ "code": 200, "data": ret });
                         });
                     });
@@ -343,6 +355,7 @@ function getTaskMobile(req,res){
             		ret = {};
                     ret["status"] = "success";
                     ret["data"] = data;
+                    Log.insertLog(mobile,req.url,sql);
                     res.json({ "code": 200, "data": ret });
             	});
             } else {
@@ -412,6 +425,7 @@ function checkTask(req,res){
                                                                 //更新任务表中的cameraId
                                                                 conn.query("update task set cameraId=? where Id=?",[cameraId,taskId],
                                                                     function(err,result){
+                                                                        Log.insertLog(mobile,req.url,sql);
                                                                         res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                                                                     });
                                                             });
@@ -422,6 +436,7 @@ function checkTask(req,res){
                                     }
                                 });
                         } else {
+                            Log.insertLog(mobile,req.url,sql);
                             res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                         }
 					});            		
@@ -492,11 +507,13 @@ function getTaskStatus_PC(req, res) {
             					ret = {};
 			                    ret["status"] = "success";
 			                    ret["data"] = {"taskStatus":0};
+                                Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
 			                    res.json({ "code": 200, "data": ret });
             				} else {
             					ret = {};
 			                    ret["status"] = "success";
 			                    ret["data"] = {"taskStatus":data[0].taskStatus};
+                                Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
 			                    res.json({ "code": 200, "data": ret });
             				}
             			});
@@ -530,11 +547,13 @@ function getTaskStatus_App(req, res) {
             					ret = {};
 			                    ret["status"] = "success";
 			                    ret["data"] = {"taskStatus":0};
+                                Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
 			                    res.json({ "code": 200, "data": ret });
             				} else {
             					ret = {};
 			                    ret["status"] = "success";
 			                    ret["data"] = {"taskStatus":data[0].taskStatus};
+                                Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
 			                    res.json({ "code": 200, "data": ret });
             				}
             			});
@@ -579,6 +598,7 @@ function deleteTask(req,res){
             		taskId = parseInt(taskId);
             		conn.query("delete from task where Id=?",[taskId],
             			function(err,data){
+                            Log.insertLog(mobile,req.url,"delete from task where Id=?");
             				res.json({ "code": 200, "data": { "status": "success", "error": "success" } });	
             			});
             	}
@@ -606,6 +626,7 @@ function acceptTask(req,res){
             		taskId = parseInt(taskId);
             		conn.query("update task set taskStatus=1 where Id=?",[taskId],
             			function(err,data){
+                            Log.insertLog(mobile,req.url,"update task set taskStatus=1 where Id=?");
             				res.json({ "code": 200, "data": { "status": "success", "error": "success" } });	
             			});
             	}
@@ -690,6 +711,7 @@ function taskFeedBack(req,res){
                                                       });
                                                 }
                                             });
+                                        Log.insertLog(mobile,req.url,sql);
                                         res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                                     }
                                 });
@@ -777,6 +799,7 @@ function feedBackWithoutTask(req,res){
                                                   });
                                             }
                                         });
+                                    Log.insertLog(mobile,req.url,sql);
                                     res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                                 }
                             });
@@ -871,6 +894,7 @@ function taskFeedBackEdit(req,res){
                                                                                           });
                                                                                     }
                                                                                 });
+                                                                            Log.insertLog(mobile,req.url,sql);
                                                                             res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                                                                         }
                                                                     });
@@ -934,6 +958,7 @@ function getTaskById(req,res){
                                                 },function(err,result){
                                                     ret["taskFeedBacks"] = result;
                                                     ret["code"] = 200;
+                                                    Log.insertLog(mobile,req.url,"getTaskById");
                                                     res.json(ret);
                                                 });
                                             });
@@ -995,6 +1020,7 @@ function getTaskByIdAPP(req,res){
                                                 },function(err,result){
                                                     ret["taskFeedBacks"] = result;
                                                     ret["code"] = 200;
+                                                    Log.insertLog(mobile,req.url,"getTaskByIdAPP");
                                                     res.json(ret);
                                                 });
                                             });

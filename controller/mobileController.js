@@ -2,6 +2,7 @@
 // var mysql = require('mysql');
 var crypto = require('crypto');
 var Sync = require('sync');
+var Log = require('./logController')
 
 // var conn = mysql.createConnection({
 //     host: DB_CONFIG.host,
@@ -41,6 +42,7 @@ function login(req, res) {
                             function(err, result) {
                                 result[0]["token"] = token;
                                 result[0]["status"] = "success";
+                                Log.insertLog(mobile,req.url,"login");
                                 res.json({ "code": 200, "data": result[0] });
                                 //更新数据库
                                 conn.query("update mobileUser set token=?,lastLoginTime=?," +
@@ -81,6 +83,7 @@ function loginWithToken(req, res) {
                     	console.log(err);
                         result[0]["token"] = token;
                         result[0]["status"] = "success";
+                        Log.insertLog(mobile,req.url,"loginWithToken");
                         res.json({ "code": 200, "data": result[0] });
                         //更新数据库
                         conn.query("update mobileUser set token=?,lastLoginTime=?," +
@@ -111,6 +114,7 @@ function logout(req, res) {
                 conn.query("update mobileUser set token=? where mobile=?",
                 	["KingDragon", mobile],
                     function(err, re) {
+                        Log.insertLog(mobile,req.url,"logout");
                         res.json({ "code": 200, "data": { "status": "success", "error": "logout success" } });
                     });
             } else {

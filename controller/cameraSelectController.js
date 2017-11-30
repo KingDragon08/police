@@ -28,6 +28,7 @@
 // conn.connect();
 
 var conn = require("../lib/db");
+var Log = require('./logController')
 
 /**
  * 矩形框选摄像头
@@ -64,6 +65,7 @@ function cameraSelectRect(req, res) {
                             ret = {};
                             ret["status"] = "success";
                             ret["data"] = data;
+                            Log.insertLog(mobile,req.url,sql);
                             res.json({ "code": 200, "data": ret });
                         });
                 }
@@ -107,6 +109,7 @@ function cameraSelectCircle(req, res) {
                             ret = {};
                             ret["status"] = "success";
                             ret["data"] = data;
+                            Log.insertLog(mobile,req.url,sql);
                             res.json({ "code": 200, "data": ret });
                         });
                 }
@@ -182,6 +185,7 @@ function cameraSelectPolygon(req, res) {
                                 ret = {};
                                 ret["status"] = "success";
                                 ret["data"] = data;
+                                Log.insertLog(mobile,req.url,sql);
                                 res.json({ "code": 200, "data": ret });
                             });
                     }
@@ -321,6 +325,7 @@ function cameraSelectLine(req, res) {
                                 ret = {};
                                 ret["status"] = "success";
                                 ret["data"] = data;
+                                Log.insertLog(mobile,req.url,sql);
                                 res.json({ "code": 200, "data": ret });
                             });
                     } else {

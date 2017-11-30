@@ -6,6 +6,7 @@ var dbTableAttr = require("../config/dbTableAttrConf");
 var xlsx = require('node-xlsx');
 var fs = require('fs');
 var async = require('async')
+var Log = require('./logController')
 
 var map_db_name = "xc_baymin";
 
@@ -63,6 +64,7 @@ function addCamera(req, res) {
                     createNewCamera(cam_no,cam_name,cam_sta,curtime,curtime,
                                     user_id,cam_loc_lan,cam_loc_lon,cam_desc,
                                     cam_addr,cam_extra,function(ret){
+                                        Log.insertLog(mobile,req.url,"add Camera");
                                         res.json(ret);
                                     });
                     
@@ -242,6 +244,7 @@ function delCamera(req, res) {
                                     //同步更新摄像头地图表
                                     cameraAsync.deleteCamera(cam_id,function(result){
                                         if(result){
+                                            Log.insertLog(mobile,req.url,sql);
                                             res.json({
                                                 "code": 200,
                                                 "data": {
@@ -385,6 +388,7 @@ function editCamera(req, res) {
                                             //同步更新摄像头图层数据表
                                             cameraAsync.updateCamera(cam_id,cam_loc_lan,cam_loc_lon,cam_sta,function(result){
                                                 if(result){
+                                                    Log.insertLog(mobile,req.url,sql);
                                                     res.json({
                                                         "code": 200,
                                                         "data": {
@@ -436,7 +440,6 @@ function editCamera(req, res) {
  */
 function getCameraList(req, res) {
     var query = req.body;
-    console.log(query);
     try {
         var sql = "select count(cam_id) as total from camera where is_del = 0";
         var dataArr = [];
@@ -459,11 +462,11 @@ function getCameraList(req, res) {
                 pageSize = parseInt(pageSize);
                 var start = (page - 1) * pageSize;
                 if (-1 == page) {
-                    sql = "select cam_id,cam_loc_lan,cam_loc_lon from camera where is_del = 0";
+                    sql = "select cam_id,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon from camera where is_del = 0";
                     pageSize = total;
                     dataArr = [];
                 } else {
-                    sql = "select * from camera where is_del = 0 order by cam_id limit ?, ?";
+                    sql = "select *,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where is_del = 0 order by cam_id limit ?, ?";
                     dataArr = [start, pageSize];
                 }
                 db.query(sql, dataArr, function(err, rows) {
@@ -476,6 +479,7 @@ function getCameraList(req, res) {
                             }
                         });
                     } else {
+                        Log.insertLog(mobile,req.url,sql);
                         res.json({
                             "code": 200,
                             "data": {
@@ -573,6 +577,7 @@ function getCameraListByAttr(req, res) {
                             }
                         });
                     } else {
+                        Log.insertLog(mobile,req.url,sql);
                         res.json({
                             "code": 200,
                             "data": {
@@ -646,7 +651,7 @@ function getCameraInfo(req, res) {
                     });
                 } else {
                     if (rows[0].total > 0) {
-                        sql = "select * from camera where cam_id = ?";
+                        sql = "select *,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where cam_id=?";
                         dataArr = [cam_id];
                         db.query(sql, dataArr, function(err, rows) {
                             if (err) {
@@ -658,6 +663,7 @@ function getCameraInfo(req, res) {
                                     }
                                 });
                             } else {
+                                Log.insertLog(mobile,req.url,sql);
                                 res.json({
                                     "code": 200,
                                     "data": {
@@ -837,6 +843,7 @@ function getCameraAttrs(req,res){
                             }
                         });
                     } else {
+                        Log.insertLog(mobile,req.url,sql);
                         res.json({
                             "code": 200,
                             "data": {
@@ -899,6 +906,7 @@ function getCameraAttrs_APP(req,res){
                             }
                         });
                     } else {
+                        Log.insertLog(mobile,req.url,sql);
                         res.json({
                             "code": 200,
                             "data": {
@@ -989,6 +997,7 @@ function addCameraAttr(req,res){
                                         }
                                     }); 
                                 } else {
+                                    Log.insertLog(mobile,req.url,sql);
                                     res.json({
                                         "code": 200,
                                         "data": {
@@ -1103,6 +1112,7 @@ function editCameraAttr(req,res){
                                                     }
                                                 }); 
                                             } else {
+                                                Log.insertLog(mobile,req.url,sql);
                                                 res.json({
                                                     "code": 200,
                                                     "data": {
@@ -1185,6 +1195,7 @@ function editCameraAttrShow(req,res){
                                         }
                                     });                    
                                 } else {
+                                    Log.insertLog(mobile,req.url,"editCameraAttrShow");
                                     res.json({
                                         "code": 200,
                                         "data": {
@@ -1255,8 +1266,8 @@ function multiAddCameras(req,res){
                                 } else {
                                     console.log(attr_name);
                                     //attr_name中包含cam_id和is_del,这两个属性批量导入的时候不需要
-                                    // if(excelObj[0].length!=attr_name.length-2){
-                                    if(excelObj[0].length!=attr_name.length){
+                                    if(excelObj[0].length!=attr_name.length-2){
+                                    // if(excelObj[0].length!=attr_name.length){
                                         //模版格式不对
                                         res.json({
                                             "code": 502,
@@ -1348,7 +1359,7 @@ function multiAddCamerasThen(req,res,data,attr_name){
     //         "error": "success"
     //     }
     // });
-    db.query("create table camera_copy like camera",[],function(err,data){
+    db.query("create table camera_copy like camera",[],function(err,result){
        if(err){
             res.json({
                 "code": 503,
@@ -1359,7 +1370,7 @@ function multiAddCamerasThen(req,res,data,attr_name){
             });
        } else {
             db.query("insert into camera_copy select * from camera",[],
-                function(err,data){
+                function(err,result){
                     if(err){
                         res.json({
                             "code": 504,
@@ -1370,9 +1381,9 @@ function multiAddCamerasThen(req,res,data,attr_name){
                         });         
                     } else {
                         //弹出cam_id
-                        // attr_name.shift();
+                        attr_name.shift();
                         //弹出is_del
-                        // attr_name.splice(9,1);
+                        attr_name.splice(9,1);
                         //弹出表头
                         data.shift();
                         //开始导入
@@ -1415,6 +1426,7 @@ function multiAddCamerasThen(req,res,data,attr_name){
                                 });
                         },function(err,results){
                             if(flag){
+                                Log.insertLog(mobile,req.url,"multiAddCameras");
                                 res.json({
                                     "code": 200,
                                     "data": {
@@ -1532,6 +1544,7 @@ function backupCamerasThen(req,res){
                             }
                         }); 
                     } else {
+                        Log.insertLog(mobile,req.url,"backupCameras");
                         res.json({
                             "code": 200,
                             "data": {
@@ -1635,6 +1648,7 @@ function restoreCameras(req,res){
                                                                                                                 }
                                                                                                             });
                                                                                                         } else {
+                                                                                                            Log.insertLog(mobile,req.url,"restoreCameras");
                                                                                                             res.json({
                                                                                                                 "code": 200,
                                                                                                                 "data": {
@@ -1738,6 +1752,7 @@ function multiEditCamerasByAttr(req,res){
                                                                     });
                                                     }
                                                 }
+                                                Log.insertLog(mobile,req.url,"multiEditCamerasByAttr");
                                                 sucMessage(res);
                                             }
                                         });

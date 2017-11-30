@@ -2,6 +2,7 @@
 // var mysql = require('mysql');
 var crypto = require('crypto');
 var Sync = require('sync');
+var Log = require('./logController')
 
 // var conn = mysql.createConnection({
 //     host: DB_CONFIG.host,
@@ -56,6 +57,7 @@ function register(req, res) {
                                     return;
                                 } else {
                                     console.log('[REGIST SUCCESS]');
+                                    Log.insertLog(mobile,req.url,"register");
                                     res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
                                 }
                             });
@@ -93,6 +95,7 @@ function login(req, res) {
                             function(err, result) {
                                 result[0]["token"] = token;
                                 result[0]["status"] = "success";
+                                Log.insertLog(mobile,req.url,"login");
                                 res.json({ "code": 200, "data": result[0] });
                                 //更新数据库
                                 conn.query("update user set token=?,lastLoginTime=?," +
@@ -131,6 +134,7 @@ function loginWithToken(req, res) {
                     function(err, result) {
                         result[0]["token"] = token;
                         result[0]["status"] = "success";
+                        Log.insertLog(mobile,req.url,"loginWithToken");
                         res.json({ "code": 200, "data": result[0] });
                         //更新数据库
                         conn.query("update user set token=?,lastLoginTime=?," +
@@ -159,6 +163,7 @@ function logout(req, res) {
                 //更新token
                 conn.query("update user set token=? where mobile=?", ["KingDragon", mobile],
                     function(err, re) {
+                        Log.insertLog(mobile,req.url,"logout");
                         res.json({ "code": 200, "data": { "status": "success", "error": "logout success" } });
                     });
             } else {
@@ -195,6 +200,7 @@ function getUsers(req, res) {
                         ret = {};
                         ret["status"] = "success";
                         ret["data"] = data;
+                        Log.insertLog(mobile,req.url,"getUsers");
                         res.json({ "code": 200, "data": ret });
                     });
             } else {
@@ -224,6 +230,7 @@ function getSingleUserInfo(req, res) {
                             ret = {};
                             ret["status"] = "success";
                             ret["data"] = data;
+                            Log.insertLog(mobile,req.url,"getSingleUserInfo");
                             res.json({ "code": 200, "data": ret });
                         });
                 } else {
@@ -254,6 +261,7 @@ function getSingleUserInfoByMobile(req, res) {
                             ret = {};
                             ret["status"] = "success";
                             ret["data"] = data;
+                            Log.insertLog(mobile,req.url,"getSingleUserInfoByMobile");
                             res.json({ "code": 200, "data": ret });
                         });
                 } else {
@@ -284,6 +292,7 @@ function getUsersByKeyword(req, res) {
                         ret = {};
                         ret["status"] = "success";
                         ret["data"] = data;
+                        Log.insertLog(mobile,req.url,"getUsersByKeyword");
                         res.json({ "code": 200, "data": ret });
                     });
             } else {
@@ -335,6 +344,7 @@ function addMobileUser(req, res) {
 		                                    res.json({ "code": 300, "data": { "status": "fail", "err": err}});
 		                                    return;
 		                                } else {
+                                            Log.insertLog(mobile,req.url,"addMobileUser");
 		                                    res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
 		                                }
 		                            });
@@ -379,6 +389,7 @@ function delMobileUser(req,res){
 										console.log(err);
 										res.json({ "code": 300, "data": { "status": "fail", "error": "unkown error" } });
 									} else {
+                                        Log.insertLog(mobile,req.url,"delMobileUser");
 										res.json({ "code": 200, "data": { "status": "success", "error": "success" } });	
 									}
 								});
@@ -413,6 +424,7 @@ function getMobileUsers(req,res){
                         ret = {};
                         ret["status"] = "success";
                         ret["data"] = data;
+                        Log.insertLog(mobile,req.url,"getMobileUsers");
                         res.json({ "code": 200, "data": ret });
                     });
             } else {
@@ -439,6 +451,7 @@ function delPCUser(req,res){
             if(result){
                 conn.query("delete from user where Id=?",[parseInt(Id)],
                     function(err,result){
+                        Log.insertLog(mobile,req.url,"delPCUser");
                         res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                     });
             } else {
@@ -606,6 +619,7 @@ function checkUser(req,res){
                                                         if(type==0){
                                                             conn.query("delete from user where Id=?",[Id],
                                                                         function(err,result){
+                                                                            Log.insertLog(mobile,req.url,"checkUser");
                                                                             res.json({ "code": 200, "data": {"error":"success"} });
                                                                         });
                                                         }
@@ -613,6 +627,7 @@ function checkUser(req,res){
                                                         if(type==1){
                                                             conn.query("update user set status=? where Id=?",[Id],
                                                                         function(err,result){
+                                                                            Log.insertLog(mobile,req.url,"checkUser");
                                                                            res.json({ "code": 200, "data": {"error":"success"} }); 
                                                                         });
                                                         }

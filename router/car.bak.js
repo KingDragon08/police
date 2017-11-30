@@ -59,43 +59,13 @@ server.post("/car/getCarTrack",function(req,res,next){
 	return next();
 });
 
-/******************************忧伤的分割线******************************/
-//获得车辆属性
+//获取车辆属性
 server.post("/car/getCarAttrs",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
 	Car.getCarAttrs(req,res);
 	return next();
 });
-//添加车辆属性
-server.post("/car/addCarAttr",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	Car.addCarAttr(req,res);
-	return next();
-});
-//修改车辆属性
-server.post("/car/editCarAttr",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	Car.editCarAttr(req,res);
-	return next();
-});
-//修改车辆属性展示
-server.post("/car/editCarAttrShow",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	Car.editCarAttrShow(req,res);
-	return next();
-});
 
-//指定字段获取车辆列表
-server.post("/car/pclistbyattr",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	Car.getCarListByAttr(req,res);
-	return next();
-});
-
-// server.get("/camera/add",function(req,res,next){
-// 	Car.test(req,res);
-// 	return next();
-// });
 
 
 module.exports = server;

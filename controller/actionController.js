@@ -1,7 +1,8 @@
 var db = require("../lib/db");
 var check = require("../lib/check");
 var User = require("./userController");
-var roleActionController = require("./roleActionController.js");
+var roleActionController = require("./roleActionController");
+var Log = require('./logController')
 // --
 // -- Table structure for table `action`
 // --
@@ -32,6 +33,7 @@ function addAction(req, res) {
                     if (permission) {
                         var actionName = query.actionName || '';
                         if (check.isNull(actionName)) {
+                            Log.insertLog(mobile,req.url,"actionName is null");
                             res.json({
                                 "code": 401,
                                 "data": {
@@ -43,6 +45,7 @@ function addAction(req, res) {
                         }
                         var actionUrl = query.actionUrl || '';
                         if (check.isNull(actionUrl)) {
+                            Log.insertLog(mobile,req.url,"actionUrl is null");
                             res.json({
                                 "code": 401,
                                 "data": {
@@ -89,6 +92,7 @@ function addAction(req, res) {
                                             }
                                         });
                                     } else {
+                                        Log.insertLog(mobile,req.url,sql);
                                         res.json({
                                             "code": 200,
                                             "data": {
@@ -186,6 +190,7 @@ function delAction(req, res) {
                                                 }
                                             });
                                         } else {
+                                            Log.insertLog(mobile,req.url,sql);
                                             res.json({
                                                 "code": 200,
                                                 "data": {
@@ -335,6 +340,7 @@ function editAction(req, res) {
                                                             }
                                                         });
                                                     } else {
+                                                        Log.insertLog(mobile,req.url,sql);
                                                         res.json({
                                                             "code": 200,
                                                             "data": {
@@ -444,6 +450,7 @@ function getActionList(req, res) {
                                             }
                                         });
                                     } else {
+                                        Log.insertLog(mobile,req.url,sql);
                                         res.json({
                                             "code": 200,
                                             "data": {

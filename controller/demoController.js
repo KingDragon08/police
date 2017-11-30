@@ -11,6 +11,7 @@
 // conn.connect();
 
 var conn = require("../lib/db");
+var Log = require('./logController')
 
 function demo(req,res){
 	var query = req.query;

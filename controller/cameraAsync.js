@@ -1,5 +1,6 @@
 //摄像头数据与地图数据同步,必须在不执行其他sql语句时使用
 var db = require("../lib/db");
+var Log = require('./logController')
 
 var map_db_name = "xc_baymin";
 var map_table_name = "smdtv_2";

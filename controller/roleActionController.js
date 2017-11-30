@@ -1,6 +1,7 @@
 var db = require("../lib/db");
 var check = require("../lib/check");
 var User = require("./userController");
+var Log = require('./logController')
 // --
 // -- Table structure for table `role_action`
 // --
@@ -87,6 +88,7 @@ function addRoleAction(req, res) {
                                             }
                                         });
                                     } else {
+                                        Log.insertLog(mobile,req.url,sql);
                                         res.json({
                                             "code": 200,
                                             "data": {
@@ -184,6 +186,7 @@ function delRoleAction(req, res) {
                                                 }
                                             });
                                         } else {
+                                            Log.insertLog(mobile,req.url,sql);
                                             res.json({
                                                 "code": 200,
                                                 "data": {
@@ -333,6 +336,7 @@ function editRoleAction(req, res) {
                                                             }
                                                         });
                                                     } else {
+                                                        Log.insertLog(mobile,req.url,sql);
                                                         res.json({
                                                             "code": 200,
                                                             "data": {
@@ -454,6 +458,7 @@ function getRoleActionList(req, res) {
                                             }
                                         });
                                     } else {
+                                        Log.insertLog(mobile,req.url,sql);
                                         res.json({
                                             "code": 200,
                                             "data": {

@@ -5,6 +5,7 @@ var mapConfig = require("../config/mapConfig");
 var check = require("../lib/check");
 var User = require("./userController");
 var request = require("../lib/request");
+var Log = require('./logController')
 
 /**
  * 添加摄像头
@@ -43,6 +44,7 @@ function getFuzzyAddr(req,res){
                     return;
                 }
                 console.log( response);
+                Log.insertLog(req.body.mobile,req.url,sql);
 				res.json({"code": 200, "data":{"status":"success","error":"success", "rows":""}});
             });
         });

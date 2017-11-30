@@ -3,6 +3,7 @@
 var crypto = require('crypto');
 var Sync = require('sync');
 var User = require('../controller/userController')
+var Log = require('./logController')
 
 // var conn = mysql.createConnection({
 //     host: DB_CONFIG.host,
@@ -35,6 +36,7 @@ function addPoint(req,res){
 									console.log(err);
 									errorHandler(res,"unknown error");
 								} else {
+									Log.insertLog(mobile,req.url,"addPoint");
 									res.json({"code": 200, "data":{"status":"success","error":"success"}});
 								}
 							});
@@ -64,6 +66,7 @@ function delPoint(req,res){
 							console.log(err);
 							errorHandler(res,"unknown error");
 						} else {
+							Log.insertLog(mobile,req.url,"update interestPoint set status=0 where Id=?");
 							res.json({"code": 200, "data":{"status":"success","error":"success"}});
 						}
 					});
@@ -111,6 +114,7 @@ function getPoint(req,res){
 						var ret = {};
 						ret["status"] = "success";
 						ret["data"] = data;
+						Log.insertLog(mobile,req.url,sql);
 						res.json({"code":200,"data":ret});
 					}
 				});
@@ -149,6 +153,7 @@ function updatePoint(req,res){
 										console.log(err);
 										errorHandler(res,"unknown error");
 									} else {
+										Log.insertLog(mobile,req.url,"update interestPoint set name=?,longitude=?,latitude=?,`desc`=?,status=? where Id=?");
 										res.json({"code": 200, "data":{"status":"success","error":"success"}});	
 									}
 								});
@@ -182,6 +187,10 @@ function searchPoint(req,res){
 									ret = {};
 									ret["status"] = "success";
 									ret["data"] = data;
+									Log.insertLog(mobile,req.url,"select Id,name,longitude,latitude,`desc` "+
+													"from interestPoint where name like " +
+													conn.escape('%' + keyword + '%') +
+													" order by Id desc");
 									res.json({"code":200,"data":ret});
 								}
 							});

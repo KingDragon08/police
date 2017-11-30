@@ -1,5 +1,6 @@
 var db = require("../lib/db");
 var User = require("./userController");
+var Log = require('./logController')
 
 //添加一级部门
 function add1(req,res){
@@ -29,6 +30,7 @@ function add1(req,res){
                 											if(err){
                 												errMessage(res,303,err.message);
                 											} else {
+                                                                Log.insertLog(mobile,req.url,"insert into department1(name)values(?)");
                 												sucMessage(res);
                 											}
                 										});
@@ -76,6 +78,7 @@ function add2(req,res){
                 											if(err){
                 												errMessage(res,303,err.message);
                 											} else {
+                                                                Log.insertLog(mobile,req.url,"insert into department2(p_id,name)values(?)");
                 												sucMessage(res);
                 											}
                 										});
@@ -106,6 +109,7 @@ function list1(req,res){
                 				if(err){
                 						errMessage(res,303,err.message);
                 					} else {
+                                        Log.insertLog(mobile,req.url,"select * from department1");
                 						res.json({
                 							"code": 200,
                 							"data": {
@@ -142,6 +146,7 @@ function list2(req,res){
                 				if(err){
                 						errMessage(res,303,err.message);
                 					} else {
+                                        Log.insertLog(mobile,req.url,"select * from department2 where p_id=?");
                 						res.json({
                 							"code": 200,
                 							"data": {
@@ -192,6 +197,7 @@ function edit1(req,res){
 						                					if(err){
 																errMessage(res,303,err.message);
 															} else {
+                                                                Log.insertLog(mobile,req.url,"update department1 set name=? where Id=?");
 																sucMessage(res);
 															}
 						                				});
@@ -229,6 +235,7 @@ function edit2(req,res){
                 					if(err){
 										errMessage(res,303,err.message);
 									} else {
+                                        Log.insertLog(mobile,req.url,"update department2 set name=? where Id=?");
 										sucMessage(res);
 									}
                 				});
@@ -263,6 +270,7 @@ function updateDepartment(req,res){
                 					if(err){
                 						errMessage(res,404,err.message);
                 					} else {
+                                        Log.insertLog(mobile,req.url,"update user set company=? where Id=?");
                 						sucMessage(res);
                 					}
                 				});
