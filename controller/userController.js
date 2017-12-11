@@ -317,7 +317,7 @@ function addMobileUser(req, res) {
 		        var plainPassword = query.password;
 		        var sex = query.sex || "M";
 		        var NO = query.NO || "000000";
-                var mobile = parseInt(query.mobile) || "00000000000";
+                var mobile = query.mobile || "00000000000";
 		        var company = query.company || "west";
 		        var createTime = new Date().getTime();
                 var myreg=/^[1][3,4,5,7,8][0-9]{9}$/;
@@ -375,9 +375,6 @@ function editMobileUser(req, res) {
     		if(result){
 				var id = query.Id;
     			var name = query.name || "UNKNOWN";
-//		        var password = query.password || -1;
-//		        password = crypto.createHash("md5").update(query.password).digest('hex');
-//		        var plainPassword = query.password;
 		        var sex = query.sex || "M";
 		        var NO = query.NO || "000000";
 		        var mobile = query.mobile || "00000000000";
@@ -388,20 +385,29 @@ function editMobileUser(req, res) {
 		            res.json({ "code": 300, "data": { "status": "fail", "error": "sex must be F or M" } });
 		            return;
 		        } else {
-                    conn.query("update mobileUser set name=?," +
-                        "sex=?,company=?,NO=?,mobile=?,createTime=?,lastLoginTime=?,status=?,avatar=?" +
-                        "where id = ?",
-                        [name, sex,company, NO, mobile, createTime, createTime, 1, avatar,id],
-                        function(err, result) {
-                            if (err) {
-                                console.log(err);
-                                res.json({ "code": 300, "data": { "status": "fail", "err": err}});
-                                return;
-                            } else {
-                                Log.insertLog(mobile,req.url,"addMobileUser");
-                                res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
-                            }
-                        });
+                    //判断手机号码是否重复
+                    conn.query("select count(Id) as total from mobileUser where mobile=?",
+                                [mobile],
+                                function(err,data){
+                                    if(data[0].total > 0){
+                                        res.json({ "code": 300, "data": { "status": "fail", "err": "mobile already exist"}});
+                                    } else {
+                                        conn.query("update mobileUser set name=?," +
+                                            "sex=?,company=?,NO=?,mobile=?,createTime=?,lastLoginTime=?,status=?,avatar=?" +
+                                            "where id = ?",
+                                            [name, sex,company, NO, mobile, createTime, createTime, 1, avatar,id],
+                                            function(err, result) {
+                                                if (err) {
+                                                    console.log(err);
+                                                    res.json({ "code": 300, "data": { "status": "fail", "err": err}});
+                                                    return;
+                                                } else {
+                                                    Log.insertLog(mobile,req.url,"addMobileUser");
+                                                    res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
+                                                }
+                                            });
+                                    }
+                                });
 
 		        }
     		} else {
@@ -427,7 +433,7 @@ function addPCUser(req, res) {
 		        var plainPassword = query.password;
 		        var sex = query.sex || "M";
 		        var NO = query.NO || "000000";
-                var mobilenew = parseInt(query.mobilenew) || "00000000000";
+                var mobilenew = query.mobilenew || "00000000000";
                 var company = query.company || "west";
                 var role_id=query.role_id||"-1";
                 var createTime = new Date().getTime();
@@ -502,7 +508,7 @@ function editPCUser(req, res) {
                         if(err){
                             res.json({ "code": 300, "data": { "status": "fail", "err": "查询数据库失败"}});
                             return;
-                        }else if(result!=""){
+                        }else if(result.length){
                             res.json({ "code": 300, "data": { "status": "fail", "err": "手机号已存在！"}});
                             return;
                         }else{
@@ -649,7 +655,7 @@ function getUserInfo(mobile, token, callback) {
     try {
         checkMobile2Token(mobile, token, function(result) {
             if (result) {
-                conn.query("select a.*,b.role_name from user a left join role b on a.role_id=b.role_id where mobile=?", [mobile],
+                conn.query("select a.*,b.role_name from user a left join role b on a.role_id=b.role_id where mobile=? and status=?", [mobile,1],
                     function(err, res) {
                         ret = {};
                         ret["error"] = 0;
@@ -831,7 +837,7 @@ function getDepartmentPC(req,res){
 				if(id == "-1"){
 					errMessage(res,301,"params error");
 				}else{
-					var sql = "select u.id as uId,d2.id,d2.p_id from user u LEFT JOIN department2 d2 ON u.company = d2.Id where u.id = ?";
+					var sql = "select u.id as uId,d2.id,d2.i from user u LEFT JOIN department2 d2 ON u.company = d2.Id where u.id = ?";
 					var params = [id];
 					conn.query(sql,params,function(err,result){
 						if(err){

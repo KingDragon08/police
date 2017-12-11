@@ -98,42 +98,6 @@ server.post("/user/getUsers",function(req,res,next){
 	return next();
 });
 
-//添加PC用户addPCUser
-server.post("/user/addPCUser",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");	
-	try{
-		var mobile = req.body.mobile || -1;
-		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
-			if(hasPermission){
-				User.addPCUser(req,res);
-			} else {
-				permission.permissionDenied(res);
-			}
-		});
-	} catch(e) {
-		permission.permissionDenied(res);
-	}
-	return next();
-});
-
-//editPCUser
-server.post("/user/editPCUser",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");	
-	try{
-		var mobile = req.body.mobile || -1;
-		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
-			if(hasPermission){
-				User.editPCUser(req,res);
-			} else {
-				permission.permissionDenied(res);
-			}
-		});
-	} catch(e) {
-		permission.permissionDenied(res);
-	}
-	return next();
-});
-
 
 //获取单个用户信息
 server.post("/user/getSingleUserInfo",function(req,res,next){
@@ -192,24 +156,6 @@ server.post("/user/getUsersByKeyword",function(req,res,next){
 	return next();
 });
 
-//根据Id删除管理员用户
-server.post("/user/delPCUser",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	try{
-		var mobile = req.body.mobile || -1;
-		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
-			if(hasPermission){
-				User.delPCUser(req,res);
-				//camera.delCamera(req,res);
-			} else {
-				permission.permissionDenied(res);
-			}
-		});
-	} catch(e) {
-		permission.permissionDenied(res);
-	}
-	return next();
-});
 
 //添加app用户
 server.post("/user/addMobileUser",function(req,res,next){
@@ -219,24 +165,6 @@ server.post("/user/addMobileUser",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.addMobileUser(req,res);
-			} else {
-				permission.permissionDenied(res);
-			}
-		});
-	} catch(e) {
-		permission.permissionDenied(res);
-	}
-	return next();
-});
-
-//编辑app用户
-server.post("/user/editMobileUser",function(req,res,next){
-	res.setHeader("Access-Control-Allow-Origin","*");
-	try{
-		var mobile = req.body.userMobile || -1;
-		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
-			if(hasPermission){
-				User.editMobileUser(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -313,6 +241,79 @@ server.post("/user/checkUser",function(req,res,next){
 			if(hasPermission){
 				User.checkUser(req,res);
 				//camera.delCamera(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+//添加PC用户addPCUser
+server.post("/user/addPCUser",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");	
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				User.addPCUser(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+//editPCUser
+server.post("/user/editPCUser",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");	
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				User.editPCUser(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+//根据Id删除管理员用户
+server.post("/user/delPCUser",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				User.delPCUser(req,res);
+				//camera.delCamera(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+//编辑app用户
+server.post("/user/editMobileUser",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.userMobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				User.editMobileUser(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}

@@ -7,6 +7,8 @@ var map_table_name = "smdtv_2";
 
 //创建新的摄像头
 function createNewCamera(cam_id, X, Y, cam_sta, callback) {
+	callback(true);
+	return;
 	//插入一条新纪录到摄像头表
     db.query("insert into "+map_db_name+"."+map_table_name+"(cam_id,SmX,SmY,cam_sta,is_del)values(?,?,?,?,?)", [cam_id, X, Y, cam_sta, 0],
         function(err, result) {
@@ -36,6 +38,8 @@ function deleteCamera(cam_id,callback){
 	// 		}
 	// 	});
 	//真的要删数据库了,whatafuckingday
+	callback(true);
+	return;
 	db.query("delete from "+map_db_name+"."+map_table_name+" where cam_id=?",
 				[cam_id],
 				function(err,result){
@@ -49,7 +53,8 @@ function deleteCamera(cam_id,callback){
 
 //更新摄像头状态
 function updateCamera(cam_id,X,Y,cam_sta,callback){
-	
+	callback(true);
+	return;
 	db.query("update "+map_db_name+"."+map_table_name+" set SmX=?,SmY=?,cam_sta=? where cam_id=?",[X,Y,cam_sta,cam_id],
 		function(err,result){
 			if(err){

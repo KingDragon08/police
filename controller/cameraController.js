@@ -67,6 +67,31 @@ function addCamera(req, res) {
                                         Log.insertLog(mobile,req.url,"add Camera");
                                         res.json(ret);
                                     });
+                    //删除重复记录
+                    //step1 获取摄像头所有的属性
+                    db.query("select attr_name from camera_attr",[],
+                                function(err,result){
+                                    if(err){
+                                        return;
+                                    } else {
+                                        camera_attrs = []
+                                        for(var i=0; i<result.length; i++){
+                                            //排除cam_id和is_del
+                                            if(i!=0 && i!=10){
+                                                camera_attrs.push(result[i].attr_name);
+                                            }
+                                        }
+                                        camera_attrs = camera_attrs.join(",");
+                                        //step2删除重复数据
+                                        sql = "delete a from camera a left join(select cam_id from camera group "+
+                                                "by "+camera_attrs +" )b on a.cam_id=b.cam_id where b.cam_id is null";
+                                        db.query(sql,[],function(err,result){
+                                            if(err){
+                                                console.log(err);
+                                            }
+                                        });
+                                    }
+                                });
                     
                 }
                 
@@ -1431,20 +1456,21 @@ function multiAddCamerasThen(req,res,data,attr_name){
                                         console.log(err.message);
                                         call(null, item);
                                     } else {
+                                        call(null, item);
                                         //插入地图中的摄像头数据
-                                        db.query("insert into xc_baymin.smdtv_2(SmX,SmY,cam_id,cam_no,"+
-                                                    "cam_name,cam_sta,cam_loc_la,cam_loc_lo,is_del)values("+
-                                                    "?,?,?,?,?,?,?,?,?)",
-                                                    [item[6],item[7],data.insertId,item[0],item[1],item[2],item[6],item[7],0],
-                                                    function(err,data){
-                                                        if(err){
-                                                            flag = false;
-                                                            console.log(err.message);
-                                                            call(null,item);
-                                                        } else {
-                                                            call(null, item);
-                                                        }
-                                                    });
+                                        // db.query("insert into xc_baymin.smdtv_2(SmX,SmY,cam_id,cam_no,"+
+                                        //             "cam_name,cam_sta,cam_loc_la,cam_loc_lo,is_del)values("+
+                                        //             "?,?,?,?,?,?,?,?,?)",
+                                        //             [item[6],item[7],data.insertId,item[0],item[1],item[2],item[6],item[7],0],
+                                        //             function(err,data){
+                                        //                 if(err){
+                                        //                     flag = false;
+                                        //                     console.log(err.message);
+                                        //                     call(null,item);
+                                        //                 } else {
+                                        //                     call(null, item);
+                                        //                 }
+                                        //             });
                                     }
                                 });
                         },function(err,results){
@@ -1645,46 +1671,54 @@ function restoreCameras(req,res){
                                                                             }
                                                                         });
                                                                        } else {
+                                                                            Log.insertLog(mobile,req.url,"restoreCameras");
+                                                                            res.json({
+                                                                                "code": 200,
+                                                                                "data": {
+                                                                                    "status": "success",
+                                                                                    "error": "success"
+                                                                                }
+                                                                            });
                                                                             //清空地图中的摄像头数据
                                                                             //采用清空的原因是地图中的摄像头数据字段是固定的
-                                                                            db.query("truncate table xc_baymin.smdtv_2",[],
-                                                                                function(err,data){
-                                                                                    if(err){
-                                                                                        res.json({
-                                                                                            "code": 502,
-                                                                                            "data": {
-                                                                                                "status": "fail",
-                                                                                                "error": err.message
-                                                                                            }
-                                                                                        });
-                                                                                    } else {
-                                                                                        //从camera中重新导入数据
-                                                                                        db.query("insert into xc_baymin.smdtv_2(SmX,SmY,cam_id,cam_no,"+
-                                                                                                    "cam_name,cam_sta,cam_loc_la,cam_loc_lo,is_del) select "+
-                                                                                                    "cam_loc_lan,cam_loc_lon,cam_id,cam_no,cam_name,cam_sta,"+
-                                                                                                    "cam_loc_lan,cam_loc_lon,is_del from police.camera",[],
-                                                                                                    function(err,data){
-                                                                                                        if(err){
-                                                                                                            res.json({
-                                                                                                                "code": 502,
-                                                                                                                "data": {
-                                                                                                                    "status": "fail",
-                                                                                                                    "error": err.message
-                                                                                                                }
-                                                                                                            });
-                                                                                                        } else {
-                                                                                                            Log.insertLog(mobile,req.url,"restoreCameras");
-                                                                                                            res.json({
-                                                                                                                "code": 200,
-                                                                                                                "data": {
-                                                                                                                    "status": "success",
-                                                                                                                    "error": "success"
-                                                                                                                }
-                                                                                                            });
-                                                                                                        }
-                                                                                                    });
-                                                                                    }
-                                                                                });
+                                                                            // db.query("truncate table xc_baymin.smdtv_2",[],
+                                                                            //     function(err,data){
+                                                                            //         if(err){
+                                                                            //             res.json({
+                                                                            //                 "code": 502,
+                                                                            //                 "data": {
+                                                                            //                     "status": "fail",
+                                                                            //                     "error": err.message
+                                                                            //                 }
+                                                                            //             });
+                                                                            //         } else {
+                                                                            //             //从camera中重新导入数据
+                                                                            //             db.query("insert into xc_baymin.smdtv_2(SmX,SmY,cam_id,cam_no,"+
+                                                                            //                         "cam_name,cam_sta,cam_loc_la,cam_loc_lo,is_del) select "+
+                                                                            //                         "cam_loc_lan,cam_loc_lon,cam_id,cam_no,cam_name,cam_sta,"+
+                                                                            //                         "cam_loc_lan,cam_loc_lon,is_del from police.camera",[],
+                                                                            //                         function(err,data){
+                                                                            //                             if(err){
+                                                                            //                                 res.json({
+                                                                            //                                     "code": 502,
+                                                                            //                                     "data": {
+                                                                            //                                         "status": "fail",
+                                                                            //                                         "error": err.message
+                                                                            //                                     }
+                                                                            //                                 });
+                                                                            //                             } else {
+                                                                            //                                 Log.insertLog(mobile,req.url,"restoreCameras");
+                                                                            //                                 res.json({
+                                                                            //                                     "code": 200,
+                                                                            //                                     "data": {
+                                                                            //                                         "status": "success",
+                                                                            //                                         "error": "success"
+                                                                            //                                     }
+                                                                            //                                 });
+                                                                            //                             }
+                                                                            //                         });
+                                                                            //         }
+                                                                            //     });
                                                                        }
                                                                 });
                                                         });

@@ -58,6 +58,7 @@ function addCar(req, res) {
                         } else {
                         	Log.insertLog(mobile,"添加car", sql);
                             res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
+                            
                         }
                     });
             }

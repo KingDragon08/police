@@ -283,7 +283,7 @@ function updateDepartment(req,res){
                 	errMessage(res,300,"param error");
                 } else {
                 	//更新数据库
-                	db.query("update user set company=? where Id=?",
+                	db.query("update user set company=? where Id= ?",
                 				[targetDepartmentId,targetUserId],
                 				function(err,data){
                 					if(err){
