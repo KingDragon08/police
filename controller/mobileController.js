@@ -3,6 +3,7 @@
 var crypto = require('crypto');
 var Sync = require('sync');
 var Log = require('./logController')
+var User = require("./userController");
 
 // var conn = mysql.createConnection({
 //     host: DB_CONFIG.host,
@@ -165,9 +166,43 @@ function getUserInfo(mobile, token, callback) {
     }
 }
 
+//手机获取部门id
+function getDepartmentAPP(req,res){
+ var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                //
+				var id = query.id || "-1";
+				if(id == "-1"){
+					errMessage(res,301,"params error");
+				}else{
+					var sql = "select m.id as mId,d2.id,d2.p_id from mobileuser m LEFT JOIN department2 d2 ON m.company = d2.Id where m.id = ?";
+					var params = [id];
+					conn.query(sql,params,function(err,result){
+						if(err){
+							console.log(err.message);
+						}else{
+							res.json({ "code": 200, "data": {"status":"success","message":result} });
+						}
+					});
+				}
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "not login" }});
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({ "code": 500, "data": { "status": "fail", "error": e }});
+    }
+}
+
 
 exports.login = login;
 exports.loginWithToken = loginWithToken;
 exports.logout = logout;
 exports.checkMobile2Token = checkMobile2Token;
 exports.getUserInfo = getUserInfo;
+exports.getDepartmentAPP = getDepartmentAPP;

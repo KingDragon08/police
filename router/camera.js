@@ -77,7 +77,7 @@ server.post("/camera/list",function(req,res,next){
 	try{
 		var mobile = req.body.mobile || -1;
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
-			console.log(hasPermission);
+		//	console.log(hasPermission);
 			if(hasPermission){
 				camera.getCameraList(req,res);			
 			} else {

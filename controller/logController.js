@@ -29,6 +29,8 @@ function getLogList(req, res) {
                         var total = rows[0].total;
                         var page = query.page || -1;
                         var pageSize = query.pageSize || 20;
+                        console.log("********")
+                        console.log(pageSize)
                         if (page < 1 && page != -1) {
                             page = 1;
                         }
@@ -82,7 +84,15 @@ function getLogList(req, res) {
     }
 }
 
-
+function errMessage(res,code,msg){
+    res.json({
+        "code": code,
+        "data": {
+            "status": "fail",
+            "error": msg
+        }
+    });
+}
 
 /**
  *日志查询
@@ -219,6 +229,7 @@ function listLogByMobile(req, res) {
                         } else {
                             sql = "select * from log where mobile=? and timeStamp1 BETWEEN ? AND ? limit ?, ?";
                             params = [mobile,startTime,endTime,start, pageSize];
+                            console.log(params)
                         }
                         db.query(sql, params, function (err, rows) {
                             if (err) {
@@ -265,10 +276,7 @@ function insertLog(mobile, operate, sql) {
     //插入一条新记录到日志表
     var timeStamp = new Date().getTime();
     db.query("insert into log(mobile,operate,sql1,timeStamp1) values(?,?,?,?)", [mobile, operate, sql, timeStamp],
-        function (err, result) {
-            console.log(err);
-            console.log(result);
-        });
+        function (err, result) {});
 }
 
 exports.getLogList = getLogList;

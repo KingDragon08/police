@@ -22,4 +22,11 @@ server.post("/mobile/logout",function(req,res,next){
 	return next();
 });
 
+//手机用户获取部门id
+server.post("/mobile/getDepartmentAPP",function(req,res,next){
+    res.setHeader("Access-Control-Allow-Origin","*");
+    Mobile.getDepartmentAPP(req,res);
+	return next();
+});
+
 module.exports = server;

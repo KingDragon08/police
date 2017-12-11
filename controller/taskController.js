@@ -396,8 +396,9 @@ function checkTask(req,res){
 						sql = "update task set taskStatus=3 where Id=" + taskId;
 					} else {
                         //拒绝时回滚到进行中
-						sql = "update task set taskStatus=2,rejectInfo=";
+						sql = "update task set taskStatus=4,rejectInfo=";
 						sql += conn.escape(info) + " where Id=" + taskId;
+
 					}
                     //更新记录
 					conn.query(sql,function(err,data){
@@ -655,7 +656,7 @@ function taskFeedBack(req,res){
                 var cameraExtra = query.cameraExtra || -1;//摄像头的自定义属性
                 var pics = query.pics || -1;
                 if(taskId==-1 || content==-1 || cameraLon==-1 || cameraNo==-1
-                    || cameraLa==-1 || pics==-1 || cameraExtra==-1){
+                    || cameraLa==-1 || pics==-1 ){
                     res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
                 } else {
                     try{
@@ -748,7 +749,7 @@ function feedBackWithoutTask(req,res){
                 
                 if(cameraName==-1 || cameraLocation==-1 || cameraLon==-1 ||
                     cameraLa==-1 || cameraType==-1 || userId==-1 ||
-                    content==-1 || cameraNo==-1 || cameraExtra==-1 ||
+                    content==-1 || cameraNo==-1 || 
                     pics==-1){
                     res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
                 } else {
@@ -833,7 +834,7 @@ function taskFeedBackEdit(req,res){
                 var cameraExtra = query.cameraExtra || -1;//摄像头的自定义属性
                 var pics = query.pics || -1;
                 if(taskId==-1 || content==-1 || cameraLon==-1 || cameraNo==-1
-                    || cameraLa==-1 || pics==-1 || cameraExtra==-1 ||
+                    || cameraLa==-1 || pics==-1 || 
                      taskFeedBackId==-1){
                     res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
                 } else {

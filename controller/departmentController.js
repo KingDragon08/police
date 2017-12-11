@@ -71,17 +71,36 @@ function add2(req,res){
                 						if(data[0].total==0){
                 							errMessage(res,404,"一级部门不存在");
                 						} else {
-                							//写入数据库
-                							db.query("insert into department2(p_id,name)values(?,?)",
-                										[parseInt(parentId),name],
-                										function(err,data){
-                											if(err){
-                												errMessage(res,303,err.message);
-                											} else {
+                                            db.query("select count(Id) as total from department2 where name=?",[name],function(err,result){
+                                                if(err){
+                                                    errMessage(res,303,err.message);
+                                                }else if(result[0].total>0){
+                                                    res.json({"code":300,"err":"二级部门已存在"});
+                                                }else{
+                                                    //写入数据库
+                                                    db.query("insert into department2(p_id,name)values(?,?)",
+                                                        [parseInt(parentId),name],
+                                                        function(err,data){
+                                                            if(err){
+                                                                errMessage(res,303,err.message);
+                                                            } else {
                                                                 Log.insertLog(mobile,req.url,"insert into department2(p_id,name)values(?)");
-                												sucMessage(res);
-                											}
-                										});
+                                                                sucMessage(res);
+                                                            }
+                                                        });
+                                                }
+                                            });
+                							//写入数据库
+                							// db.query("insert into department2(p_id,name)values(?,?)",
+                							// 			[parseInt(parentId),name],
+                							// 			function(err,data){
+                							// 				if(err){
+                							// 					errMessage(res,303,err.message);
+                							// 				} else {
+                                             //                    Log.insertLog(mobile,req.url,"insert into department2(p_id,name)values(?)");
+                							// 					sucMessage(res);
+                							// 				}
+                							// 			});
                 						}
                 					}
                 				});
@@ -284,7 +303,85 @@ function updateDepartment(req,res){
         errMessage(res,500,e.message);
     }
 }
+/**************************************************忧伤的分割线**************************************************/
+//删除二级部门
+function del2(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var id = query.id;
+                var sql = "select count(company) as num from user where company = ?";
+                var params = [id];
+                db.query(sql,params,function(err,result){
+                    if (err) {
+                        console.log(err.message);
+                        return;
+                    } else if(result[0].num > 0){
+                        errMessage(res,301,"该部门下有员工，请勿删除");
+                        return;
+                    }else{
+                        var sql = "delete from department2 where id = ?";
+                        db.query(sql,params,function(err,result){
+                            if (err) {
+                                console.log(err.message);
+                            } else {
+                                sucMessage(res);
+                            }
+                        });
+                    }
+                });
+            } else {
+                errMessage(res,301,"user not login");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
 
+//删除一级部门
+function del1(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                //
+                var id = query.id;
+                var sql = "select count(p_id) as num from department2 where p_id = ?";
+                var params = [id];
+                db.query(sql,params,function(err,result){
+                    if (err) {
+                        console.log(err.message);
+                        return;
+                    } else if(result[0].num > 0){
+                        errMessage(res,301,"该部门下有子部门，请勿删除");
+                        return;
+                    }else{
+                        var sql = "delete from department1 where id = ?";
+                        db.query(sql,params,function(err,result){
+                            if (err) {
+                                console.log(err.message);
+                            } else {
+                                sucMessage(res);
+                            }
+                        });
+                    }
+                });
+            } else {
+                errMessage(res,301,"user not login");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
 
 //公用错误输出函数
 function errMessage(res,code,msg){
@@ -335,4 +432,6 @@ exports.list2 = list2;
 exports.edit1 = edit1;
 exports.edit2 = edit2;
 exports.updateDepartment = updateDepartment;
+exports.del1 = del1;
+exports.del2 = del2;
 

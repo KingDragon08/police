@@ -1,8 +1,21 @@
 var server = global.server
 var Demo = require('../controller/demoController')
+var permission = require("../controller/roleActionController")
 
 server.post("/demo",function(req,res,next){
-	Demo.demo(req,res);
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				Demo.demo(req,res);
+				//camera.delCamera(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
 	return next();
 });
 

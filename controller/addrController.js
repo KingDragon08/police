@@ -15,10 +15,6 @@ var Log = require('./logController')
 function getFuzzyAddr(req,res){
 	var query = req.body;
 	try{
-
-        res.json({"code": 502, "data":{"status":"fail","error":"network is not accessable."}});
-        return ;        
-
         var info = query.info || "";
         if (check.isNull(info)) {
             res.json({"code": 401, "data":{"status":"fail","error":"info is null"}});

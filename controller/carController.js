@@ -16,27 +16,47 @@ var Log=require("./logController");
 // });
 // conn.connect();
 
+
+var CAR_TABLE = "car.smdtv_1";
+
+/*
++----------+---------------+------+-----+---------+----------------+
+| Field    | Type          | Null | Key | Default | Extra          |
++----------+---------------+------+-----+---------+----------------+
+| id       | int(11)       | NO   | PRI | NULL    | auto_increment |
+| car_x    | double(255,2) | NO   |     | 0.00    |                |
+| car_y    | double(255,2) | NO   |     | 0.00    |                |
+| car_no   | varchar(255)  | NO   |     | 1       |                |
+| car_addr | varchar(255)  | NO   |     | 0       |                |
+| car_type | int(4)        | YES  |     | NULL    |                |
+| is_del   | int(4)        | NO   |     | NULL    |                |
++----------+---------------+------+-----+---------+----------------+
+*/
 //添加车辆
 function addCar(req, res) {
     var query = req.body;
     try {
+        var mobile = query.mobile;
         check(query, res, function() {
-            var car_x = query.NO || -1;
-			var NO = query.NO || -1;
-			var NO = query.NO || -1;
-			var NO = query.NO || -1;
-            var type = parseInt(query.type) || 1;
-            if (NO == -1) {
+            var car_x = query.car_x || -1;
+			var car_y = query.car_y || -1;
+			var car_no = query.car_no || -1;
+			var car_addr = query.car_addr || -1;
+			var car_type = query.car_type || -1;
+            if (car_x == -1 || car_y == -1 || car_no == -1 || car_addr == -1 || car_type == -1) {
                 errorHandler(res, "params error");
             } else {
-                db.query("insert into car values(?,?)", [NO, type],
+                // var sql = "insert into (car_x,car_y,car_no,car_addr,car_type,is_del) values(?,?,?,?,?,?)";
+                var sql = "insert into " + CAR_TABLE + "(SmX,SmyY,car_no,car_addr,car_type,is_del) values(?,?,?,?,?,?)";
+                db.query(sql,
+                     [car_x,car_y,car_no,car_addr,car_type,0],
                     function(err, result) {
                         if (err) {
-                        	Log.insertLog(mobile,"car--addCar","insert into car values(?,?)");
+                        	// Log.insertLog(mobile,"car--addCar","insert into car values(?,?)");
                             console.log(err);
                             errorHandler(res, err.message);
                         } else {
-                        	Log.insertLog(mobile,"car--addCar","insert into car values(?,?)");
+                        	Log.insertLog(mobile,"添加car", sql);
                             res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
                         }
                     });
@@ -51,19 +71,22 @@ function addCar(req, res) {
 function delCar(req, res) {
     var query = req.body;
     try {
+        var mobile = query.mobile;
         check(query, res, function() {
             var id = query.id || -1;
             if (id == -1) {
                 errorHandler(res, "params error");
             } else {
-                db.query("delete from car where id=?", [id],
+                // var sql = "update car set is_del = 1 where id = ?";
+                var sql = "update " + CAR_TABLE + " set is_del = 1 where SmID = ?";
+                db.query(sql, [id],
                     function(err, result) {
                         if (err) {
-                        	Log.insertLog(mobile,"car--delCar","delCarinsert into car values(?,?)");
+                        	// Log.insertLog(mobile,"car--delCar","delCarinsert into car values(?,?)");
                             console.log(err);
                             errorHandler(res, err.message);
                         } else {
-                        	Log.insertLog(mobile,"car--delCar","delCarinsert into car values(?,?)");
+                        	Log.insertLog(mobile,"删除car", sql);
                             res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
                         }
                     });
@@ -84,38 +107,63 @@ function getCar(req, res) {
             var pageSize = parseInt(query.pageSize) || 20;
             
 			if (page == -1) {
-                db.query("select * from car order by id desc",
+                // var sql = "select * from car order by id desc limit 0,100"
+                var sql = "select * from " + CAR_TABLE + " order by SmID desc limit 0,100"
+                db.query( sql, [],
                     function(err, data) {
                         if (err) {
-                        	Log.insertLog(mobile,"car--getCar","select * from car order by id desc");
+                        	// Log.insertLog(mobile,"car--getCar","select * from car order by id desc");
                             console.log(err);
                             errorHandler(res, err.message);
                         } else {
-                            ret = {};
-                            ret["status"] = "success";
-                            ret["data"] = data;
-                            Log.insertLog(mobile,"car--getCar","select * from car order by id desc");
-                            res.json({ "code": 200, "data": ret });
+                            // ret = {};
+                            // ret["status"] = "success";
+                            // ret["data"] = data;
+                            // Log.insertLog(mobile,"获取car列表","select * from car order by id desc");
+                            // res.json({ "code": 200, "data": ret });
+
+                            // 随机更新车辆位置
+                            var tmpsql = "update " + CAR_TABLE + " set SmX = SmX + floor(rand()*1000 - 500), SmY = SmY + floor(rand()*1000 - 500) order by rand() limit 30";
+                            db.query(tmpsql, [], function(merr, mdata){
+                                ret = {};
+                                ret["status"] = "success";
+                                ret["data"] = data;
+                                Log.insertLog(mobile,"获取car列表", sql);
+                                res.json({ "code": 200, "data": ret });
+                                
+                            });
                         }
+
                     });
             } else {
                 if (page < 1) {
                     page = 1;
                 }
                 var start = (page - 1) * pageSize;
-                db.query("select * from car  order by id " +
-                    "desc limit ?,?", [start, pageSize],
+                // var sql = "select * from car  order by id desc limit ?,?";
+                var sql = "select * from " + CAR_TABLE + " order by SmID desc limit ?,?";
+                db.query(sql, [start, pageSize],
                     function(err, data) {
                         if (err) {
-                        	Log.insertLog(mobile,"car--getCar","select * from car  order by id desc limit ?,?");
+                        	// Log.insertLog(mobile,"car--getCar","select * from car  order by id desc limit ?,?");
                             console.log(err);
                             errorHandler(res, err.message);
                         } else {
-                            ret = {};
-                            ret["status"] = "success";
-                            ret["data"] = data;
-                            Log.insertLog(mobile,"car--getCar","select * from car  order by id desc limit ?,?");
-                            res.json({ "code": 200, "data": ret });
+                            // ret = {};
+                            // ret["status"] = "success";
+                            // ret["data"] = data;
+                            // Log.insertLog(mobile,"分页获取car列表","select * from car  order by id desc limit ?,?");
+                            // res.json({ "code": 200, "data": ret });
+                            
+                            // 随机更新车辆位置
+                            var tmpsql = "update " + CAR_TABLE + " set SmX = SmX + floor(rand()*1000 - 500), SmY = SmY + floor(rand()*1000 - 500) order by rand() limit 30";
+                            db.query(tmpsql, [], function(merr, mdata){
+                                ret = {};
+                                ret["status"] = "success";
+                                ret["data"] = data;
+                                Log.insertLog(mobile,"分页获取car列表", sql);
+                                res.json({ "code": 200, "data": ret });
+                            });
                         }
                     });
             }
@@ -129,16 +177,19 @@ function getCar(req, res) {
 function getSingleCarInfo(req, res) {
     var query = req.body;
     try {
+        var mobile = query.mobile;
         check(query, res, function() {
             var id = query.id || -1;
-            console.log(id);
+            // console.log(id);
             if (id == -1) {
                 errorHandler(res, "params error");
             } else {
-                db.query("select * from car where id=?", [id],
+                // var sql = "select * from car where id=?";
+                var sql = "select * from " + CAR_TABLE + " where SmID=?";
+                db.query(sql, [id],
                     function(err, data) {
                         if (err) {
-                        	Log.insertLog(mobile,"car--getSingleCarInfo","select * from car where id=?");
+                        	// Log.insertLog(mobile,"car--getSingleCarInfo","select * from car where id=?");
                             console.log(err);
                             errorHandler(res, err.message);
                         } else {
@@ -161,24 +212,25 @@ function searchCar(req, res) {
     var query = req.body;
     try {
         check(query, res, function() {
-            var keyword = query.keyword;
-            db.query("select * from car where car_no like " +
-                db.escape('%' + keyword + '%') +
-                " order by id desc", [keyword],
+            var car_no = query.car_no;
+            // var sql = "select * from car where car_no like '%"+car_no+"%' order by id desc";
+            var sql = "select * from " + CAR_TABLE + " where car_no like '%"+car_no+"%' order by SmID desc";
+            db.query(sql, 
+                [car_no],
                 function(err, data) {
                 	if (err) {
-                		Log.insertLog(mobile,"car--searchCar","select * from car where car_no like " +
+                		/* Log.insertLog(mobile,"car--searchCar","select * from car where car_no like " +
                 db.escape('%' + keyword + '%') +
-                " order by id desc");
+                " order by id desc"); */
                         console.log(err);
                         errorHandler(res, err.message);
                     } else {
                         ret = {};
                         ret["status"] = "success";
                         ret["data"] = data;
-                        Log.insertLog(mobile,"car--searchCar","select * from car where car_no like " +
+                        /* Log.insertLog(mobile,"car--searchCar","select * from car where car_no like " +
                                 db.escape('%' + keyword + '%') +
-                                " order by id desc");
+                                " order by id desc"); */
                         res.json({ "code": 200, "data": ret });
                     }
                 });
@@ -206,7 +258,7 @@ function getCarPosition(req,res){
             	var ret = {};
                 ret["status"] = "success";
                 ret["data"] = data;
-                Log.insertLog(mobile,"car--getCarPosition","getCarPosition");
+                Log.insertLog(mobile,"获取car位置","getCarPosition");
                 res.json({ "code": 200, "data": ret });
             }
 		});
@@ -238,7 +290,7 @@ function getCarTrack(req,res){
             	var ret = {};
                 ret["status"] = "success";
                 ret["data"] = track;
-                Log.insertLog(mobile,"car--getCarTrack","getCarTrack");
+                Log.insertLog(mobile,"获取car路径","getCarTrack");
                 res.json({ "code": 200, "data": ret });
             }
 		});
@@ -258,7 +310,7 @@ function check(query, res, callback) {
     var token = query.token;
     User.checkMobile2Token(mobile, token, function(result) {
         if (result) {
-        	Log.insertLog(mobile,"car--check","insert into car values(?,?)");
+        	// Log.insertLog(mobile,"car--check","insert into car values(?,?)");
             callback();
         } else {
             errorHandler(res, "mobile not match token");
@@ -290,7 +342,7 @@ function getCarAttrs(req,res){
                 }
                 db.query(sql,data,function(err,rows){
                     if (err) {
-                    	 Log.insertLog(mobile,"car--getCarAttrs","select * from car_attr");
+                    	//  Log.insertLog(mobile,"car--getCarAttrs","select * from car_attr");
                         res.json({
                             "code": 501,
                             "data": {
@@ -299,7 +351,7 @@ function getCarAttrs(req,res){
                             }
                         });
                     } else {
-                    	 Log.insertLog(mobile,"car--getCarAttrs","select * from car_attr where Id>?");
+                    	 Log.insertLog(mobile,"获取car属性","select * from car_attr where Id>?");
                         res.json({
                             "code": 200,
                             "data": {
@@ -363,11 +415,12 @@ function addCarAttr(req,res){
                 }
                 if(reg.test(attr_name)){
                     //给car表添加字段
-                    var sql = "alter table car add column "+attr_name+" varchar(1000)";
+                    // var sql = "alter table car add column "+attr_name+" varchar(1000)";
+                    var sql = "alter table " + CAR_TABLE + " add column "+attr_name+" varchar(1000)";
                     var dataArr = [];
                     db.query(sql,dataArr,function(err,rows){
                         if(err){
-                        	 Log.insertLog(mobile,"car--addCarAttr","alter table car add column attr_name varchar(1000)");
+                        	//  Log.insertLog(mobile,"car--addCarAttr","alter table car add column attr_name varchar(1000)");
                             res.json({
                                 "code": 501,
                                 "data": {
@@ -382,7 +435,7 @@ function addCarAttr(req,res){
                             dataArr = [attr_name,attr_desc,attr_comment,attr_show_1,attr_show_2,attr_show_3];
                             db.query(sql,dataArr,function(err,rows){
                                 if(err){
-                                	 Log.insertLog(mobile,"car--addCarAttr","insert into car_attr(attr_name,attr_desc,attr_comment,attr_show_1,attr_show_2,attr_show_3) values(?,?,?,?,?,?)");
+                                	//  Log.insertLog(mobile,"car--addCarAttr","insert into car_attr(attr_name,attr_desc,attr_comment,attr_show_1,attr_show_2,attr_show_3) values(?,?,?,?,?,?)");
                                     res.json({
                                         "code": 502,
                                         "data": {
@@ -391,7 +444,7 @@ function addCarAttr(req,res){
                                         }
                                     }); 
                                 } else {
-                               	 Log.insertLog(mobile,"car--addCarAttr","insert into car_attr(attr_name,attr_desc,attr_comment,attr_show_1,attr_show_2,attr_show_3) values(?,?,?,?,?,?)");
+                               	 Log.insertLog(mobile,"添加car属性", sql);
                                     res.json({
                                         "code": 200,
                                         "data": {
@@ -482,11 +535,11 @@ function editCarAttr(req,res){
                             if(rows && rows.length && rows[0].attr_name){
                                 var attrName = rows[0].attr_name;
                                 //更新car表
-                                var sql = "alter table car change "+attrName+" "+
-                                            attrNewName+" varchar(1000)";
+                                // var sql = "alter table car change "+attrName+" "+attrNewName+" varchar(1000)";
+                                var sql = "alter table " + CAR_TABLE + " change "+attrName+" "+attrNewName+" varchar(1000)";
                                 db.query(sql,[],function(err,rows){
                                     if(err){
-                                      	 Log.insertLog(mobile,"car--addCarAttr","alter table car change attrNewName varchar(1000)");
+                                      	//  Log.insertLog(mobile,"car--addCarAttr","alter table car change attrNewName varchar(1000)");
                                         res.json({
                                             "code": 501,
                                             "data": {
@@ -499,7 +552,7 @@ function editCarAttr(req,res){
                                         sql = "update car_attr set attr_name=?,attr_desc=?,attr_comment=?,attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?";
                                         db.query(sql,[attrNewName,attrNewDesc,attrNewComment,parseInt(attr_show_1),parseInt(attr_show_2),parseInt(attr_show_3),parseInt(attrId)],function(err,rows){
                                             if(err){
-                                           	 Log.insertLog(mobile,"car--editCarAttr","update car_attr set attr_name=?,attr_desc=?,attr_comment=?,attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?");
+                                           	//  Log.insertLog(mobile,"car--editCarAttr","update car_attr set attr_name=?,attr_desc=?,attr_comment=?,attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?");
                                                 console.log(err);
                                                 res.json({
                                                     "code": 502,
@@ -509,7 +562,7 @@ function editCarAttr(req,res){
                                                     }
                                                 }); 
                                             } else {
-                                              	 Log.insertLog(mobile,"car--editCarAttr","update car_attr set attr_name=?,attr_desc=?,attr_comment=?,attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?");
+                                              	 Log.insertLog(mobile,"编辑car属性", sql);
                                                 res.json({
                                                     "code": 200,
                                                     "data": {
@@ -567,11 +620,12 @@ function editCarAttrShow(req, res) {
                 var attr_show_1 = query.attr_show_1;
                 var attr_show_2 = query.attr_show_2;
                 var attr_show_3 = query.attr_show_3;
-                db.query("update car_attr set attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?",
+                var sql = "update car_attr set attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?";
+                db.query(sql,
                     [attr_show_1, attr_show_2, attr_show_3, attrId],
                     function (err, result) {
                         if (err) {
-                          	 Log.insertLog(mobile,"car--editCarAttrShow","update car_attr set attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?");
+                          	//  Log.insertLog(mobile,"car--editCarAttrShow","update car_attr set attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?");
                             res.json({
                                 "code": 404,
                                 "data": {
@@ -580,7 +634,7 @@ function editCarAttrShow(req, res) {
                                 }
                             });
                         } else {
-                        	Log.insertLog(mobile,"car--editCarAttrShow","update car_attr set attr_show_1=?,attr_show_2=?,attr_show_3=? where Id=?");
+                        	Log.insertLog(mobile,"编辑car展示", sql);
                             res.json({
                                 "code": 200,
                                 "data": {
@@ -644,13 +698,13 @@ function getCarListByAttr(req, res) {
         return;
     }
     try {
-        var sql = "select count(*) as total from car where is_del = 0 and " + attrName + " like " +
-                    "'%" + attrValue + "%'";
+        // var sql = "select count(*) as total from car where is_del = 0 and " + attrName + " like " + "'%" + attrValue + "%'";
+        var sql = "select count(*) as total from " + CAR_TABLE + " where is_del = 0 and " + attrName + " like " + "'%" + attrValue + "%'";
         // var dataArr = [attrName, attrValue];
         var dataArr = [];
         db.query(sql, dataArr, function(err, rows) {
             if (err) {
-            	Log.insertLog(mobile,"car--getCarListByAttr","select count(*) as total from car where is_del = 0 and   attrName like attrValue%");
+            	// Log.insertLog(mobile,"car--getCarListByAttr","select count(*) as total from car where is_del = 0 and   attrName like attrValue%");
                 res.json({
                     "code": 501,
                     "data": {
@@ -667,18 +721,18 @@ function getCarListByAttr(req, res) {
                 }
                 var start = (page - 1) * pageSize;
                 if (-1 == page) {
-                    sql = "select * from car where is_del = 0 and " + attrName + " like " +
-                            "'%" + attrValue + "%'";
+                    // sql = "select * from car where is_del = 0 and " + attrName + " like " + "'%" + attrValue + "%'";
+                    sql = "select * from " + CAR_TABLE + " where is_del = 0 and " + attrName + " like " + "'%" + attrValue + "%'";
                     pageSize = total;
                     dataArr = [];
                 } else {
-                    sql = "select * from car where is_del = 0 and " + attrName + " like " +
-                            "'%" + attrValue + "%'" + " order by id limit ?, ?";
+                    // sql = "select * from car where is_del = 0 and " + attrName + " like " + "'%" + attrValue + "%'" + " order by id limit ?, ?";
+                    sql = "select * from " + CAR_TABLE + " where is_del = 0 and " + attrName + " like " + "'%" + attrValue + "%'" + " order by SmID limit ?, ?";
                     dataArr = [start, parseInt(pageSize)];
                 }
                 db.query(sql, dataArr, function(err, rows) {
                     if (err) {
-                    	Log.insertLog(mobile,"car--getCarListByAttr","select * from car where is_del = 0 and  attrValue ");
+                    	// Log.insertLog(mobile,"car--getCarListByAttr","select * from car where is_del = 0 and  attrValue ");
                         res.json({
                             "code": 501,
                             "data": {
@@ -687,7 +741,7 @@ function getCarListByAttr(req, res) {
                             }
                         });
                     } else {
-                    	Log.insertLog(mobile,"car--getCarListByAttr","select * from car where is_del = 0 and  attrValue order by id limit ?,? ");
+                    	Log.insertLog(mobile,"根据car属性展示", sql);
                         res.json({
                             "code": 200,
                             "data": {

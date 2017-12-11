@@ -37,6 +37,7 @@ var server = global.server
 var roleController = require('../controller/roleController')
 var actionController = require('../controller/actionController')
 var roleActionController = require('../controller/roleActionController')
+var permission = require("../controller/roleActionController")
 //判断用户是否拥有权限
 // server.post("/user/checkUserPermission",function(req,res,next){
 // 	res.setHeader("Access-Control-Allow-Origin","*");
@@ -46,73 +47,207 @@ var roleActionController = require('../controller/roleActionController')
 // 添加角色
 server.post("/role/addrole", function(req, res, next) {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    roleController.addRole(req, res);
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				roleController.addRole(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
     return next();
 });
 // 删除角色
 server.post("/role/delrole", function(req, res, next) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    roleController.delRole(req, res);
+    res.setHeader("Access-Control-Allow-Origin", "*");  
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+			    roleController.delRole(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
     return next();
 });
 // 编辑角色
 server.post("/role/editrole", function(req, res, next) {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    roleController.editRole(req, res);
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+			    roleController.editRole(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+
     return next();
 });
 // 获取角色列表
 server.post("/role/getrolelist", function(req, res, next) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    roleController.getRoleList(req, res);
+    res.setHeader("Access-Control-Allow-Origin", "*");   
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+			    roleController.getRoleList(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
     return next();
 });
 // 添加操作
 server.post("/role/addaction", function(req, res, next) {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    actionController.addAction(req, res);
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+			    actionController.addAction(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
     return next();
 });
 // 删除操作
 server.post("/role/delaction", function(req, res, next) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    actionController.delAction(req, res);
+    res.setHeader("Access-Control-Allow-Origin", "*");  
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+			   actionController.delAction(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
     return next();
 });
 // 编辑操作
 server.post("/role/editaction", function(req, res, next) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    actionController.editAction(req, res);
+    res.setHeader("Access-Control-Allow-Origin", "*");   
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+			   actionController.editAction(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
     return next();
 });
 // 获取操作列表
 server.post("/role/getactionlist", function(req, res, next) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    actionController.getActionList(req, res);
+    res.setHeader("Access-Control-Allow-Origin", "*");   
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+			    actionController.getActionList(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
     return next();
 });
 // 添加角色操作
 server.post("/role/addroleaction", function(req, res, next) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    roleActionController.addRoleAction(req, res);
+    res.setHeader("Access-Control-Allow-Origin", "*");  
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+			   roleActionController.addRoleAction(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
     return next();
 });
 // 删除角色操作
 server.post("/role/delroleaction", function(req, res, next) {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    roleActionController.delRoleAction(req, res);
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				roleActionController.delRoleAction(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
     return next();
 });
 // 编辑角色操作
 server.post("/role/editroleaction", function(req, res, next) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    roleActionController.editRoleAction(req, res);
+    res.setHeader("Access-Control-Allow-Origin", "*");    
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				roleActionController.editRoleAction(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
     return next();
 });
 // 获取角色操作列表
 server.post("/role/getroleactionlist", function(req, res, next) {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    roleActionController.getRoleActionList(req, res);
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				roleActionController.getRoleActionList(req, res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+
     return next();
 });
 module.exports = server;

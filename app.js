@@ -13,9 +13,20 @@ server.get(/\/upload\//, restify.plugins.serveStatic({
   default: '1505817979604.JPG'
 }));
 
+//uncaughtException event
+server.on('uncaughtException', function(req, res, route, err) {
+    // this event will be fired, with the error object from above:
+    // ReferenceError: x is not defined
+    res.json({
+        code:500,
+        err:err.message,
+        url:route,
+    });
+    console.log(route,err.message);
+});
+
 global.server = server;
 
-require('./router/demo');
 require('./router/user');
 require('./router/role');
 require('./router/camera');
@@ -28,7 +39,10 @@ require('./router/task');
 require('./router/cameraSelect');
 require('./router/department');
 require('./router/log');
+require('./router/carSelect');
+require('./router/speed');
+require('./router/addressTest');
 
-server.listen(8080, function() {
+server.listen(8081, function() {
   console.log('%s listening at %s', server.name, server.url);
 });

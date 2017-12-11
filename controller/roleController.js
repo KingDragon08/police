@@ -1,4 +1,4 @@
-var db = require("../lib/db");
+ var db = require("../lib/db");
 var check = require("../lib/check");
 var User = require("./userController");
 var roleActionController = require("./roleActionController.js");
@@ -383,7 +383,10 @@ function getRoleList(req, res) {
         var token = query.token;
         User.getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
+                console.log(user);
+                console.log(user.data.role_id);
                 user_info = user.data;
+                user_roleId = user.data.role_id;
                 var userId = user_info.Id;
                 roleActionController.checkUserPermission(req.url, userId, 'pc', function(permission) {
                     if (permission) {
@@ -434,7 +437,8 @@ function getRoleList(req, res) {
                                                 "rows": rows,
                                                 "total": total,
                                                 "page": page,
-                                                "pageSize": pageSize
+                                                "pageSize": pageSize,
+                                                "user_role":user_roleId
                                             }
                                         });
                                     }

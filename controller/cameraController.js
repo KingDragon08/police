@@ -462,11 +462,14 @@ function getCameraList(req, res) {
                 pageSize = parseInt(pageSize);
                 var start = (page - 1) * pageSize;
                 if (-1 == page) {
-                    sql = "select cam_id,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon from camera where is_del = 0";
+                    //sql = "select cam_id,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon from camera where is_del = 0 order by cam_id limit 0,100";
+                    sql = "select *,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where is_del = 0 order by cam_id";
+
                     pageSize = total;
                     dataArr = [];
                 } else {
-                    sql = "select *,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where is_del = 0 order by cam_id limit ?, ?";
+                    //sql = "select *,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where is_del = 0 order by cam_id limit ?, ?";
+                    sql = "select *,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where is_del = 0 order by cam_id limit ?, ?";
                     dataArr = [start, pageSize];
                 }
                 db.query(sql, dataArr, function(err, rows) {
@@ -479,7 +482,15 @@ function getCameraList(req, res) {
                             }
                         });
                     } else {
-                        Log.insertLog(mobile,req.url,sql);
+                        Log.insertLog(query.mobile,req.url,sql);
+
+                        /**************************************************忧伤的分割线**************************************************/
+                        for(var i = 0;i<rows.length;i++){
+                            rows[i].cam_loc_lan = parseFloat(rows[i].cam_loc_lan).toFixed(2);
+                            rows[i].cam_loc_lon = parseFloat(rows[i].cam_loc_lon).toFixed(2);
+                        }
+                        /**************************************************忧伤的分割线**************************************************/
+
                         res.json({
                             "code": 200,
                             "data": {
@@ -577,6 +588,7 @@ function getCameraListByAttr(req, res) {
                             }
                         });
                     } else {
+                        var mobile = req.body.mobile || -1;
                         Log.insertLog(mobile,req.url,sql);
                         res.json({
                             "code": 200,
@@ -651,7 +663,9 @@ function getCameraInfo(req, res) {
                     });
                 } else {
                     if (rows[0].total > 0) {
-                        sql = "select *,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where cam_id=?";
+                        //sql = "select *,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where cam_id=?";
+                        sql = "select *,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where cam_id=?";
+
                         dataArr = [cam_id];
                         db.query(sql, dataArr, function(err, rows) {
                             if (err) {
@@ -664,6 +678,15 @@ function getCameraInfo(req, res) {
                                 });
                             } else {
                                 Log.insertLog(mobile,req.url,sql);
+
+/**************************************************忧伤的分割线**************************************************/
+                                //console.log(rows);
+                                for(var i = 0;i<rows.length;i++){
+                                    rows[i].cam_loc_lan = parseFloat(rows[i].cam_loc_lan).toFixed(2);
+                                    rows[i].cam_loc_lon = parseFloat(rows[i].cam_loc_lon).toFixed(2);
+                                }
+/**************************************************忧伤的分割线**************************************************/
+
                                 res.json({
                                     "code": 200,
                                     "data": {
@@ -971,7 +994,7 @@ function addCameraAttr(req,res){
                 }
                 if(reg.test(attr_name)){
                     //给camera表添加字段
-                    var sql = "alter table camera add column "+attr_name+" varchar(1000)";
+                    var sql = "alter table camera add column "+attr_name+" text";
                     var dataArr = [];
                     db.query(sql,dataArr,function(err,rows){
                         if(err){
@@ -985,7 +1008,7 @@ function addCameraAttr(req,res){
                         } else {
                             //给camera_attr添加记录
                             sql = "insert into camera_attr(attr_name,attr_desc,attr_comment,attr_show_1,attr_show_2,attr_show_3)"+
-                                    "values(?,?,?,?)";
+                                    "values(?,?,?,?,?,?)";
                             dataArr = [attr_name,attr_desc,attr_comment,attr_show_1,attr_show_2,attr_show_3];
                             db.query(sql,dataArr,function(err,rows){
                                 if(err){
@@ -1266,7 +1289,7 @@ function multiAddCameras(req,res){
                                 } else {
                                     console.log(attr_name);
                                     //attr_name中包含cam_id和is_del,这两个属性批量导入的时候不需要
-                                    if(excelObj[0].length!=attr_name.length-2){
+                                    if(excelObj.length && excelObj[0].length!=attr_name.length-2){
                                     // if(excelObj[0].length!=attr_name.length){
                                         //模版格式不对
                                         res.json({
@@ -1426,7 +1449,7 @@ function multiAddCamerasThen(req,res,data,attr_name){
                                 });
                         },function(err,results){
                             if(flag){
-                                Log.insertLog(mobile,req.url,"multiAddCameras");
+                                Log.insertLog(req.body.mobile,req.url,"multiAddCameras");
                                 res.json({
                                     "code": 200,
                                     "data": {
@@ -1523,6 +1546,8 @@ function backupCameras(req,res){
 
 //备份摄像头数据
 function backupCamerasThen(req,res){
+	var query=req.body;
+	var mobile=query.mobile;
     db.query("create table camera_copy like camera",[],function(err,data){
        if(err){
             res.json({
@@ -1544,7 +1569,7 @@ function backupCamerasThen(req,res){
                             }
                         }); 
                     } else {
-                        Log.insertLog(mobile,req.url,"backupCameras");
+                        Log.insertLog(req.body.mobile,req.url,"backupCameras");
                         res.json({
                             "code": 200,
                             "data": {
@@ -1811,15 +1836,6 @@ function funcName(req,res){
         errMessage(res,500,e.message);
     }
 }
-
-
-
-
-
-
-
-
-
 
 
 exports.addCamera = addCamera;

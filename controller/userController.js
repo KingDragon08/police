@@ -180,7 +180,6 @@ function logout(req, res) {
 function getUsers(req, res) {
     var query = req.body;
     try {
-        console.log(query);
         var page = query.page || 1;
         var mobile = query.mobile;
         var token = query.token;
@@ -196,7 +195,6 @@ function getUsers(req, res) {
                 conn.query("select a.Id,a.name,a.sex,a.NO,a.mobile,a.lastLoginTime,a.lastLoginIP,b.role_name,c.name as company from user a left join role b on a.role_id=b.role_id left join department2 c on a.company=c.Id " +
                     "where a.status=? order by a.Id desc limit ?,?", [parseInt(type), start, pageSize],
                     function(err, data) {
-                        console.log(err);
                         ret = {};
                         ret["status"] = "success";
                         ret["data"] = data;
@@ -304,6 +302,7 @@ function getUsersByKeyword(req, res) {
     }
 }
 
+/**************************************************忧伤的分割线**************************************************/
 //添加app用户
 function addMobileUser(req, res) {
     var query = req.body;
@@ -313,18 +312,23 @@ function addMobileUser(req, res) {
     	checkMobile2Token(userMobile,token,function(result){
     		if(result){
     			var name = query.name || "UNKNOWN";
-		        var password = crypto.createHash("md5").update(query.password).digest('hex');
+		        var password = query.password || -1;
+		        password = crypto.createHash("md5").update(query.password).digest('hex');
 		        var plainPassword = query.password;
 		        var sex = query.sex || "M";
 		        var NO = query.NO || "000000";
-		        var mobile = query.mobile || "00000000000";
+                var mobile = parseInt(query.mobile) || "00000000000";
 		        var company = query.company || "west";
 		        var createTime = new Date().getTime();
+                var myreg=/^[1][3,4,5,7,8][0-9]{9}$/;
 		        var avatar = query.avatar || "http://via.placeholder.com/2000x200?text=avatar";
-		        if (sex != 'F' && sex != 'M') {
-		            res.json({ "code": 300, "data": { "status": "fail", "error": "sex must be F or M" } });
+                if (sex != 'F' && sex != 'M') {
+		            res.json({ "code": 300, "data": { "status": "fail", "error": "sex must be F or M " } });
 		            return;
-		        } else {
+		        }else if(!myreg.test(mobile)){
+                    res.json({ "code": 300, "data": { "status": "fail", "error": " mobile err" } });
+                    return;
+                } else {
 		            //查看是否已经注册
 		            conn.query("select count(Id) as total from mobileUser where mobile=?", 
 		            	[mobile],
@@ -360,6 +364,170 @@ function addMobileUser(req, res) {
         res.json({ "code": 300, "data": { "status": "fail", "error": "unkown error" } });
     }
 }
+
+//修改app用户
+function editMobileUser(req, res) {
+    var query = req.body;
+    try {
+    	var userMobile = query.userMobile;
+    	var token = query.token;
+    	checkMobile2Token(userMobile,token,function(result){
+    		if(result){
+				var id = query.Id;
+    			var name = query.name || "UNKNOWN";
+//		        var password = query.password || -1;
+//		        password = crypto.createHash("md5").update(query.password).digest('hex');
+//		        var plainPassword = query.password;
+		        var sex = query.sex || "M";
+		        var NO = query.NO || "000000";
+		        var mobile = query.mobile || "00000000000";
+		        var company = query.company || "west";
+		        var createTime = new Date().getTime();
+		        var avatar = query.avatar || "http://via.placeholder.com/2000x200?text=avatar";
+		        if (sex != 'F' && sex != 'M') {
+		            res.json({ "code": 300, "data": { "status": "fail", "error": "sex must be F or M" } });
+		            return;
+		        } else {
+                    conn.query("update mobileUser set name=?," +
+                        "sex=?,company=?,NO=?,mobile=?,createTime=?,lastLoginTime=?,status=?,avatar=?" +
+                        "where id = ?",
+                        [name, sex,company, NO, mobile, createTime, createTime, 1, avatar,id],
+                        function(err, result) {
+                            if (err) {
+                                console.log(err);
+                                res.json({ "code": 300, "data": { "status": "fail", "err": err}});
+                                return;
+                            } else {
+                                Log.insertLog(mobile,req.url,"addMobileUser");
+                                res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
+                            }
+                        });
+
+		        }
+    		} else {
+    			res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+    		}
+    	});
+    } catch (e) {
+        res.json({ "code": 300, "data": { "status": "fail", "error": "unkown error" } });
+    }
+}
+/**************************************************忧伤的分割线**************************************************/
+
+//添加PC用户
+function addPCUser(req, res) {
+    var query = req.body;
+    try {
+    	var mobile = query.mobile;
+    	var token = query.token;
+    	checkMobile2Token(mobile,token,function(result){
+    		if(result){
+    			var name = query.name || "UNKNOWN";
+		        var password = crypto.createHash("md5").update(query.password).digest('hex');
+		        var plainPassword = query.password;
+		        var sex = query.sex || "M";
+		        var NO = query.NO || "000000";
+                var mobilenew = parseInt(query.mobilenew) || "00000000000";
+                var company = query.company || "west";
+                var role_id=query.role_id||"-1";
+                var createTime = new Date().getTime();
+                var myreg=/^[1][3,4,5,7,8][0-9]{9}$/;
+		       // var avatar = query.avatar || "http://via.placeholder.com/2000x200?text=avatar";
+                if (sex != 'F' && sex != 'M') {
+		            res.json({ "code": 300, "data": { "status": "fail", "error": "sex must be F or M or mobilenew err" } });
+		            return;
+		        } else if(!myreg.test(mobilenew)){
+                    res.json({ "code": 300, "data": { "status": "fail", "error": "mobilephone err" } });
+                    return;
+                } else {
+		            //查看是否已经注册
+		            conn.query("select count(Id) as total from user where mobile=?",
+		            	[mobilenew],
+		                function(err, result) {
+		                    if (result[0].total > 0) {
+		                        res.json({ "code": 300, "data": { "status": "fail", "error": "手机号已注册！" } });
+		                    } else {
+		                        conn.query("insert into user(name,password,plainPassword," +
+		                            "sex,company,NO,mobile,role_id,createTime,lastLoginTime,status)" +
+		                            "values(?,?,?,?,?,?,?,?,?,?,?)", 
+		                            [name, password, plainPassword, sex, 
+		                            	company, NO, mobilenew, role_id,createTime, createTime, 1
+		                            ],
+		                            function(err, result) {
+		                                if (err) {
+		                                    console.log(err);
+		                                    res.json({ "code": 300, "data": { "status": "fail", "err": err}});
+		                                    return;
+		                                } else {
+		                                    res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
+		                                }
+		                            });
+		                    }
+		                });
+
+		        }
+    		} else {
+    			res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+    		}
+    	});
+    } catch (e) {
+        res.json({ "code": 300, "data": { "status": "fail", "error": "unkown error" } });
+    }
+}
+
+//修改PC用户
+function editPCUser(req, res) {
+    var query = req.body;
+	//console.log(query);
+    try {
+    	var mobile = query.mobile;
+    	var token = query.token;
+    	checkMobile2Token(mobile,token,function(result){
+    		if(result){
+    			var Id=query.Id;
+    			var name = query.name || "UNKNOWN";
+		        var sex = query.sex || "M";
+		        var NO = query.NO || "000000";
+		        var mobilenew = query.mobilenew || "00000000000";
+		        var company = query.company || "west";
+		        var role_id=query.role_id||"-1";
+				console.log("********")
+		        if (name=="UNKNOWN"||(sex!="M"&&sex!="F")||NO=="000000"||mobilenew=="00000000000"||company=="west"||role_id=="-1") {
+		            res.json({ "code": 300, "data": { "status": "fail", "error": "params error" } });
+		            return;
+		        } else {
+                    var sqls ="select * from user where mobile=?";
+                    var dataarr=[mobilenew];
+                    conn.query(sqls,dataarr,function (err,result) {
+                        if(err){
+                            res.json({ "code": 300, "data": { "status": "fail", "err": "查询数据库失败"}});
+                            return;
+                        }else if(result!=""){
+                            res.json({ "code": 300, "data": { "status": "fail", "err": "手机号已存在！"}});
+                            return;
+                        }else{
+                            //进行修改  把所对应的字段传过来
+                            var sql="update user set name=?,sex=?,NO=?,mobile=?,company=?,role_id=? where Id=?";
+                            var params=[name,sex,NO,mobilenew,company,role_id,Id];
+                            conn.query(sql,params,function(err,data){
+                                if (err) {
+                                    console.log(err);
+                                    res.json({ "code": 300, "data": { "status": "fail", "err": err}});
+                                    return;
+                                } else {
+                                    res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
+                                }
+                            });
+                        }
+                    });
+		              }
+    		} 
+    	});
+    } catch (e) {
+        res.json({ "code": 500, "data": { "status": "fail", "error": "unkown error" } });
+    }
+}
+
 
 //删除app用户
 function delMobileUser(req,res){
@@ -418,8 +586,12 @@ function getMobileUsers(req,res){
                 }
                 var start = (page - 1) * pageSize;
                 pageSize = parseInt(pageSize);
-                conn.query("select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP,avatar " +
-                    "from mobileUser order by Id desc limit ?,?", [start, pageSize],
+//                var sql = "select Id,name,sex,company,NO,mobile,lastLoginTime,lastLoginIP,avatar " +
+//                    "from mobileUser order by Id desc limit ?,?";
+
+                var sql = "select u.id as Id,u.name,u.sex,d2.name as d_name,u.NO,u.mobile from mobileuser u left join department2 d2 on u.company = d2.id limit ?,?";
+
+                conn.query(sql, [start, pageSize],
                     function(err, data) {
                         ret = {};
                         ret["status"] = "success";
@@ -646,6 +818,39 @@ function checkUser(req,res){
     }
 }
 
+//获取部门id
+function getDepartmentPC(req,res){
+ var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                //
+				var id = query.id || "-1";
+				if(id == "-1"){
+					errMessage(res,301,"params error");
+				}else{
+					var sql = "select u.id as uId,d2.id,d2.p_id from user u LEFT JOIN department2 d2 ON u.company = d2.Id where u.id = ?";
+					var params = [id];
+					conn.query(sql,params,function(err,result){
+						if(err){
+							console.log(err.message);
+						}else{
+							res.json({ "code": 200, "data": {"status":"success","message":result} });
+						}
+					});
+				}
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "not login" }});
+                return;
+            }
+        });
+    } catch (e) {
+         res.json({ "code": 500, "data": { "status": "fail", "error": e }});
+    }
+}
+
 exports.register = register;
 exports.login = login;
 exports.loginWithToken = loginWithToken;
@@ -658,6 +863,7 @@ exports.getSingleUserInfo = getSingleUserInfo;
 exports.getSingleUserInfoByMobile = getSingleUserInfoByMobile;
 exports.getUsersByKeyword = getUsersByKeyword;
 exports.addMobileUser = addMobileUser;
+exports.editMobileUser = editMobileUser;
 exports.delMobileUser = delMobileUser;
 exports.getMobileUsers = getMobileUsers;
 exports.delPCUser = delPCUser;
@@ -665,7 +871,12 @@ exports.checkMobile2Token_R_permission = checkMobile2Token_R_permission;
 exports.checkMobile2TokenWithPermissionFrontEnd = checkMobile2TokenWithPermissionFrontEnd;
 exports.checkMobile2TokenWithPermissionBackEnd = checkMobile2TokenWithPermissionBackEnd;
 exports.checkUser = checkUser;
-
+//addPCUser
+exports.addPCUser = addPCUser;
+//editPCUser
+exports.editPCUser = editPCUser;
+//根据id查询部门id
+exports.getDepartmentPC = getDepartmentPC;
 
 
 
