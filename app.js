@@ -42,6 +42,7 @@ require('./router/log');
 require('./router/carSelect');
 require('./router/speed');
 require('./router/addressTest');
+require('./router/layer');
 
 server.listen(8081, function() {
   console.log('%s listening at %s', server.name, server.url);
