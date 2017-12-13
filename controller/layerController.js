@@ -619,7 +619,7 @@ function getLayerAttrByLayerId(req, res) {
 
                 var sql = "select * from " + LayerExtTable + " where layer_id = ? order by ext_id";
                 var dataArr = [layerId];
-                
+                var userId = userInfo.Id;
                 Log.insertLog(userId,"get layer attr", sql);
 
                 db.query(sql, dataArr, function(err, rows) {
