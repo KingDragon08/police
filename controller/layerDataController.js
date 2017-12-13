@@ -131,6 +131,7 @@ function getTableNameByLayerId(layerId, callback) {
                     "error": err.message
                 }
             };
+            callback(ret);
         } else {
             if (!check.isNull(rows[0].table_name)) {
                 var tableName = rows[0].table_name;
@@ -145,10 +146,9 @@ function getTableNameByLayerId(layerId, callback) {
                     }
                 };
             }
+            callback(ret);
         }
     });
-
-    callback(ret);
 }
 
 
@@ -178,7 +178,8 @@ function doAddLayerData(layerId, tableName, locLan, locLon, userId, curtime, ext
                             "status": "fail",
                             "error": err.message
                         }
-                    };
+                };
+                callback(ret);
             } else {
                 var sql_before = "insert into " + tableName + " (loc_lon, loc_lan, user_id, addtime, uptime) ";
                 var sql_after = " values(?, ?, ?, ?, ?";
@@ -217,12 +218,11 @@ function doAddLayerData(layerId, tableName, locLan, locLon, userId, curtime, ext
                                 }
                             };
                     }
+                    callback(ret);
                 });
                 
             }
         });
-
-    callback(ret);
 }
 
 
@@ -322,10 +322,8 @@ function doDelLayerData(userId, tableName, layerDataId, callback) {
         } else {
             ret = {"code": 200, "data": {"status": "success", "error": "success"}};
         }
-
+        callback(ret);
     });
-
-    callback(ret);
 }
 
 /**
@@ -416,6 +414,7 @@ function getLayerDataList(tableName, query, userId, callback) {
                     "error": err.message
                 }
             };
+            callback(ret);
         } else {
           
             var total = rows[0].total;
@@ -458,11 +457,10 @@ function getLayerDataList(tableName, query, userId, callback) {
                         }
                     };
                 }
+                callback(ret);
             });
         }
     });
-
-    callback(ret);
 } 
 
 /**
@@ -560,6 +558,7 @@ function updateLayerData(layerId, layerDataId, tableName, locLan, locLon, userId
     db.query(sql, dataArr, function(err,rows){
         if (err) {
             ret = {"code": 501, "data": {"status": "fail","error": err.message}};
+            callback(ret);
         } else {
             sql = "update " + tableName + " set loc_lon=?, loc_lan=?,uptime=?";
             dataArr = [locLon, locLan, curtime];
@@ -581,11 +580,10 @@ function updateLayerData(layerId, layerDataId, tableName, locLan, locLon, userId
                 } else {
                     ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                 }
+                callback(ret);
             });      
         }
     });
-
-    callback(ret);
 }
 
 

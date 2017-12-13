@@ -128,16 +128,15 @@ function createNewLayer(layerName, imgPath, userId, curtime, callback){
                         "error": err.message
                     }
                 };
+            callback(ret);
         } else {
-
             var layerId = rows.insertId;
-            createNewLayerTable(layerId, tableName, function(res){
+            createNewLayerTable(layerId, tableName, userId, function(res){
                 ret = res;
+                callback(ret);
             });
         }
     });
-
-    callback(ret);
 }
 
 
@@ -148,7 +147,7 @@ function createNewLayer(layerName, imgPath, userId, curtime, callback){
  * @param  {Function} callback  [description]
  * @return {[type]}             [description]
  */
-function createNewLayerTable(layerId, tableName, callback) {
+function createNewLayerTable(layerId, tableName, userId, callback) {
     ret = {};
     var sql = "create table `" + tableName + "` (" +
                     "`id` int(32) not null auto_increment comment '图层数据id'," +
@@ -166,7 +165,7 @@ function createNewLayerTable(layerId, tableName, callback) {
        if (mErr) {
         ret = {"code": 501, "data": {"status": "fail", "error": mErr.message}};
        } else {
-        ret = {
+            ret = {
                 "code": 200,
                 "data": {
                     "status": "success",
@@ -175,9 +174,8 @@ function createNewLayerTable(layerId, tableName, callback) {
                 }
             };
        }
+       callback(ret);
     });
-
-    callback(ret);
 }
 
 
@@ -313,6 +311,7 @@ function doDelLayer(userId, tableName, layerId, callback) {
                     "error": err.message
                 }
             };
+            callback(ret);
         } else {
             // 再删除扩展属性
             sql = "delete from " + LayerExtTable + " where layer_id = ?";
@@ -329,19 +328,19 @@ function doDelLayer(userId, tableName, layerId, callback) {
                             "error": mErr.message
                         }
                     };
+                    callback(ret);
                 } else {
                     // 最后删除基础图层
                     sql = "delete from " + LayerBasicTable + " where layer_id = ?";
                     dataArr = [layerId];
-
                     Log.insertLog(userId, "delete layer", sql);
-
                     db.query(sql, dataArr, function(mmErr, mmRows){
                         if (mmErr) {
                             ret = {"code": 501, "data": {"status": "fail","error": mmErr.message}};
                         } else {
                             ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                         }
+                        callback(ret);
                     });                                    
                 }
             });
@@ -349,7 +348,6 @@ function doDelLayer(userId, tableName, layerId, callback) {
 
     });
 
-    callback(ret);
 }
 
 
@@ -469,6 +467,7 @@ function addLayerTableAttr(layerId, tableName, extName, extDesc, userId, curtime
                     "error": mErr.message
                 }
             };
+            callback(ret);
         } else {
             // 再写入图层属性表
             sql = "insert into " +  LayerExtTable + " (layer_id, ext_name, ext_desc, user_id, addtime) ";
@@ -483,12 +482,10 @@ function addLayerTableAttr(layerId, tableName, extName, extDesc, userId, curtime
                 } else {
                     ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                 }
+                callback(ret);
             });                                    
         }
     });
-
-
-    callback(ret);
 }
 
 
@@ -747,9 +744,9 @@ function updateLayer(layerId, layerName, imgPath, userId, callback) {
 
     db.query(sql, dataArr, function(mErr, mRows) {
        if (mErr) {
-        ret = {"code": 501, "data": {"status": "fail", "error": mErr.message}};
-       } else {
-        ret = {
+            ret = {"code": 501, "data": {"status": "fail", "error": mErr.message}};
+        } else {
+            ret = {
                 "code": 200,
                 "data": {
                     "status": "success",
@@ -757,10 +754,9 @@ function updateLayer(layerId, layerName, imgPath, userId, callback) {
                     "layerId": layerId
                 }
             };
-       }
+        }
+        callback(ret);
     });
-
-    callback(ret);
 }
 
 
@@ -887,6 +883,7 @@ function updateLayerAttr(layerId, extId, tableName, oldExtName, extName, extDesc
                     "error": mErr.message
                 }
             };
+            callback(ret);
         } else {
             // 再修改图层属性表
             sql = "update  " +  LayerExtTable + " set ext_name = ?, ext_desc = ? where ext_id = ?";
@@ -900,11 +897,10 @@ function updateLayerAttr(layerId, extId, tableName, oldExtName, extName, extDesc
                 } else {
                     ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                 }
+                callback(ret);
             });                                    
         }
     });
-
-    callback(ret);
 }
 
 
@@ -1025,6 +1021,7 @@ function doDelLayerAttr(layerId, extId, tableName, extName, userId, callback) {
                     "error": mErr.message
                 }
             };
+            callback(ret);
         } else {
             // 再删除图层属性表记录
             sql = "delte from " +  LayerExtTable + " where ext_id = ?";
@@ -1038,11 +1035,10 @@ function doDelLayerAttr(layerId, extId, tableName, extName, userId, callback) {
                 } else {
                     ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                 }
+                callback(ret);
             });                                    
         }
     });
-
-    callback(ret);
 }
 
 
