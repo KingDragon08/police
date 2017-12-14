@@ -361,4 +361,78 @@ server.post("/camera/multiEditCamerasByAttr",function(req,res,next){
 	return next();
 });
 
+
+//获取摄像头类型
+server.post("/camera/getCameraTypes",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				camera.getCameraTypes(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+//编辑摄像头类型
+server.post("/camera/editCameraTypes",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				camera.editCameraTypes(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+//增加摄像头类型
+server.post("/camera/addCameraTypes",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				camera.addCameraTypes(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+//删除摄像头类型
+server.post("/camera/delCameraTypes",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				camera.delCameraTypes(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+
 module.exports = server;

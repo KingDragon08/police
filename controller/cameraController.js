@@ -137,7 +137,7 @@ function createNewCamera(cam_no,cam_name,cam_sta,addtime,uptime,
                         cam_addr,cam_extra,callback){
     ret = {};
     //获取所有的额外属性名
-    db.query("select attr_name from camera_attr where Id>12",[],
+    db.query("select attr_name from camera_attr where Id>43",[],
         function(err,rows){
             if(err){
                 ret = {
@@ -388,7 +388,7 @@ function editCamera(req, res) {
                                                 "cam_desc=?,cam_addr=?"
                             var dataArr = [cam_no,cam_name,cam_sta,curtime,cam_loc_lan,cam_loc_lon,
                                             cam_desc,cam_addr];
-                            db.query("select attr_name from camera_attr where Id>12",[],
+                            db.query("select attr_name from camera_attr where Id>43",[],
                                 function(err,rows){
                                     cam_extra = JSON.parse(cam_extra);
                                     for(var i=0; i<rows.length; i++){
@@ -879,7 +879,7 @@ function getCameraAttrs(req,res){
                     var data = Array();
                 } else {
                     var sql = "select * from camera_attr where Id>?";
-                    var data = [12];
+                    var data = [43];
                 }
                 db.query(sql,data,function(err,rows){
                     if (err) {
@@ -942,7 +942,7 @@ function getCameraAttrs_APP(req,res){
                     var data = Array();
                 } else {
                     var sql = "select * from camera_attr where Id>?";
-                    var data = [12];
+                    var data = [43];
                 }
                 db.query(sql,data,function(err,rows){
                     if (err) {
@@ -1091,7 +1091,7 @@ function addCameraAttr(req,res){
 
 /*
  *编辑摄像头属性
- *@param attrId=>属性Id >12 is needed
+ *@param attrId=>属性Id >43 is needed
  *@param attrNewName=>属性名字
  *@param attrNewDesc=>属性描述
  */
@@ -1125,7 +1125,7 @@ function editCameraAttr(req,res){
                             "code": 403,
                             "data": {
                                 "status": "fail",
-                                "error": "attrId must bigger than 12"
+                                "error": "attrId must bigger than 43"
                             }
                         });
                         return;    
@@ -1830,6 +1830,177 @@ function multiEditCamerasByAttr(req,res){
     }
 }
 
+//获取摄像头类别
+function getCameraTypes(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id
+                db.query("select * from camera_type",[],function(err,data){
+                    if(err){
+                        errMessage(res,500,"database error");
+                    } else {
+                        res.json({
+                            "code": 200,
+                            "data": {
+                                "status": "success",
+                                "error": "success",
+                                "rows": data
+                            }
+                        });
+                    }
+                })
+            } else {
+                errMessage(res,301,"user not login");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
+//编辑摄像头类型
+function editCameraTypes(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                var Id = query.Id || -1;
+                var name = query.name || -1;
+                var url = query.url || -1;
+                if(Id==-1 || name==-1 || url==-1){
+                    errMessage(res,300,"param error");
+                    return;
+                }
+                db.query("update camera_type set name=?,url=? where id=?",
+                            [name, url, Id],
+                            function(err, result){
+                                if(err){
+                                    errMessage(res, 500, "database error");
+                                } else {
+                                    sucMessage(res);
+                                }
+                            });
+            } else {
+                errMessage(res,301,"user not login");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
+
+//添加摄像头类别
+function addCameraTypes(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                var name = query.name || -1;
+                var url = query.url || -1;
+                if(name==-1 || url==-1){
+                    errMessage(res,300,"param error");
+                    return;
+                }
+                //判断类别是否已经存在
+                db.query("select count(0) as total from camera_type where name=?",
+                            [name],
+                            function(err, result){
+                                if(err){
+                                    errMessage(res, 500, "database error");
+                                } else {
+                                    if(result[0].total>0){
+                                        errMessage(res, 300, "name already exist");
+                                    } else {
+                                        db.query("insert into camera_type(name,url)values(?,?)",
+                                                    [name, url],
+                                                    function(err, result){
+                                                        if(err){
+                                                            errMessage(res, 501, "database error");
+                                                        } else {
+                                                            sucMessage(res);
+                                                        }
+                                                    });
+                                    }
+                                }
+                            });
+            } else {
+                errMessage(res,301,"user not login");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
+//删除类别
+function delCameraTypes(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                var Id = query.Id || -1;
+                if(Id==-1){
+                    errMessage(res, 500, 'param error');
+                } else {
+                    //判断类别是否存在
+                    db.query("select name from camera_type where id=?",
+                                [Id],
+                                function(err, result){
+                                    if(err){
+                                        errMessage(res, 500, "database error");
+                                    } else {
+                                        if(result[0].name){
+                                            var name = result[0].name;
+                                            //删除摄像头类别表记录
+                                            db.query("delete from camera_type where id=?",[Id],function(err,result){
+                                                if(err){
+                                                    errMessage(res, 500, "database error");
+                                                } else {
+                                                    //删除这一个类别的摄像头数据
+                                                    db.query("delete from camera where cam_category=?",
+                                                                [name],
+                                                                function(err, result){
+                                                                    if(err){
+                                                                        errMessage(res, 500, "database error");
+                                                                    } else {
+                                                                        sucMessage(res);
+                                                                    }
+                                                                });
+                                                }
+                                            });
+                                        } else {
+                                            errMessage(res, 404, "类别不存在");
+                                        }
+                                    }
+                                });
+                }
+            } else {
+                errMessage(res,301,"user not login");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
 //公用错误输出函数
 function errMessage(res,code,msg){
     res.json({
@@ -1889,4 +2060,8 @@ exports.multiAddCameras = multiAddCameras;
 exports.backupCameras = backupCameras;
 exports.restoreCameras = restoreCameras;
 exports.multiEditCamerasByAttr = multiEditCamerasByAttr;
+exports.getCameraTypes = getCameraTypes;
+exports.addCameraTypes = addCameraTypes;
+exports.editCameraTypes = editCameraTypes;
+exports.delCameraTypes = delCameraTypes;
 
