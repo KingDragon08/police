@@ -1,6 +1,7 @@
 var server = global.server
 var layerController = require('../controller/layerController.js')
 var layerDataController = require('../controller/layerDataController.js')
+var layerTypeController = require('../controller/layerTyepController.js')
 
 var transfer = require("../lib/transfer");
 var permission = require("../controller/roleActionController")
@@ -212,6 +213,78 @@ server.post("/layer/layerdatalistbyid",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				layerDataController.getLayerDataListByLayerId(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+// 添加图层类型
+server.post("/layer/addlayertype",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				layerTypeController.addLayerType(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+// 删除图层类型
+server.post("/layer/dellayertype",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				layerTypeController.delLayerType(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+// 编辑图层类型
+server.post("/layer/editlayertype",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				layerTypeController.editLayerType(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+// 获取图层类型列表
+server.post("/layer/layertypelist",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				layerTypeController.getLayerTypeList(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
