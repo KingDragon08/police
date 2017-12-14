@@ -9,6 +9,7 @@ var LayerTablePre = "layer_table_";
 
 // create table `layer_basic`(
 //     `layer_id` int(32) not null auto_increment comment '图层id',
+//     `type_id` int(32) comment '图层类型id',
 //     `layer_name` varchar(16) comment '图层名称',
 //     `img_path` varchar(255) comment '图层图片路径',
 //     `table_name` varchar(255) comment '图层数据表名称',
@@ -49,8 +50,9 @@ function addLayer(req, res) {
     try {
 
         var layerName = query.layerName || "";
+        var layerTypeId = query.layerTypeId || "";
 
-        if (check.isNull(layerName)) {
+        if (check.isNull(layerName) || check.isNull(layerTypeId)) {
             res.json({
                 "code": 401,
                 "data": {
@@ -71,7 +73,7 @@ function addLayer(req, res) {
                 var curtime = new Date().getTime();
                 var imgPath = query.imgPath || "";
 
-                createNewLayer(layerName, imgPath, userId, curtime, function(ret){
+                createNewLayer(layerName, imgPath, userId, curtime, layerTypeId, function(ret){
                     Log.insertLog(userId, req.url, "add Basic Layer");
                     res.json(ret);
                 });
@@ -108,16 +110,17 @@ function addLayer(req, res) {
  * @param  {[type]}   imgPath   [description]
  * @param  {[type]}   userId    [description]
  * @param  {[type]}   curtime   [description]
+ * @param  {[type]}   layerTypeId   [description]
  * @param  {Function} callback  [description]
  * @return {[type]}             [description]
  */
-function createNewLayer(layerName, imgPath, userId, curtime, callback){
+function createNewLayer(layerName, imgPath, userId, curtime, layerTypeId, callback){
     ret = {};
 
     var tableName = getTableName(curtime, userId);
-    var sql = "insert into " + LayerBasicTable + " (layer_name, img_path, table_name, user_id, addtime) ";
-    sql += "values(?, ?, ?, ?, ?)";
-    var dataArr = [layerName, imgPath, tableName, userId, curtime];
+    var sql = "insert into " + LayerBasicTable + " (layer_name, img_path, table_name, user_id, addtime, type_id) ";
+    sql += "values(?, ?, ?, ?, ?, ?)";
+    var dataArr = [layerName, imgPath, tableName, userId, curtime, layerTypeId];
 
     db.query(sql, dataArr, function(err, rows) {
         if (err) {
@@ -678,8 +681,9 @@ function editLayer(req, res) {
 
         var layerId = query.layerId || "";
         var layerName = query.layerName || "";
+        var layerTypeId = query.layerTypeId || "";
 
-        if (check.isNull(layerId) || check.isNull(layerName)) {
+        if (check.isNull(layerId) || check.isNull(layerName) || check.isNull(layerTypeId)) {
             res.json({
                 "code": 401,
                 "data": {
@@ -699,7 +703,7 @@ function editLayer(req, res) {
                 
                 var imgPath = query.imgPath || "";
 
-                updateLayer(layerId, layerName, imgPath, userId, function(ret){
+                updateLayer(layerId, layerName, imgPath, userId, layerTypeId, function(ret){
                     Log.insertLog(userId, req.url, "update Basic Layer");
                     res.json(ret);
                 });
@@ -731,14 +735,15 @@ function editLayer(req, res) {
  * @param  {[type]}   layerName [description]
  * @param  {[type]}   imgPath   [description]
  * @param  {[type]}   userId    [description]
+ * @param  {[type]}   layerTypeId    [description]
  * @param  {Function} callback  [description]
  * @return {[type]}             [description]
  */
-function updateLayer(layerId, layerName, imgPath, userId, callback) {
+function updateLayer(layerId, layerName, imgPath, userId, layerTypeId, callback) {
     ret = {};
-    var sql = "update " + LayerBasicTable + " set layer_name = ?, img_path = ? ";
+    var sql = "update " + LayerBasicTable + " set layer_name = ?, img_path = ?, type_id = ? ";
     sql += " where layer_id = ?";
-    var dataArr = [layerName, imgPath, layerId];
+    var dataArr = [layerName, imgPath, layerTypeId, layerId];
 
     Log.insertLog(userId, "update layer table", sql);
 

@@ -205,7 +205,7 @@ server.post("/layer/editlayerdata",function(req,res,next){
 });
 
 // 根据图层id获取图层数据
-server.post("/layer/layerdatabyid",function(req,res,next){
+server.post("/layer/layerdatalistbyid",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
 	try{
 		var mobile = req.body.mobile || -1;
