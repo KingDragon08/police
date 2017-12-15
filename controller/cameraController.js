@@ -488,13 +488,13 @@ function getCameraList(req, res) {
                 var start = (page - 1) * pageSize;
                 if (-1 == page) {
                     //sql = "select cam_id,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon from camera where is_del = 0 order by cam_id limit 0,100";
-                    sql = "select *,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where is_del = 0 order by cam_id";
+                    sql = "select * from camera where is_del = 0 order by cam_id";
 
                     pageSize = total;
                     dataArr = [];
                 } else {
                     //sql = "select *,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where is_del = 0 order by cam_id limit ?, ?";
-                    sql = "select *,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where is_del = 0 order by cam_id limit ?, ?";
+                    sql = "select * from camera where is_del = 0 order by cam_id limit ?, ?";
                     dataArr = [start, pageSize];
                 }
                 db.query(sql, dataArr, function(err, rows) {
@@ -689,7 +689,7 @@ function getCameraInfo(req, res) {
                 } else {
                     if (rows[0].total > 0) {
                         //sql = "select *,cast(cam_loc_lan as decimal(20,2)) as cam_loc_lan,cast(cam_loc_lon as decimal(20,2)) as cam_loc_lon,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where cam_id=?";
-                        sql = "select *,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from camera where cam_id=?";
+                        sql = "select * from camera where cam_id=?";
 
                         dataArr = [cam_id];
                         db.query(sql, dataArr, function(err, rows) {
