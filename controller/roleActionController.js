@@ -517,10 +517,8 @@ function getRoleActionList(req, res) {
  * @return {[type]}             [description]
  */
 function checkUserPermission(actionUrl, userId, userType, callback) {
-    // var NOPERMISSION = false;
-    var NOPERMISSION = true;
+    var NOPERMISSION = false;
     var OKPERMISSION = true;
-    console.log(actionUrl);
     try {
         var userTable = userType == 'pc' ? 'user' : 'mobileUser';
         var sql = "select ra.* ";
@@ -555,7 +553,6 @@ function checkUserPermission(actionUrl, userId, userType, callback) {
  * @return {[type]}             [description]
  */
 function checkUserPermissionByMobile(actionUrl, mobile, userType, callback) {
-    // var NOPERMISSION = false;
     var NOPERMISSION = false;
     var OKPERMISSION = true;
     try {
@@ -570,7 +567,13 @@ function checkUserPermissionByMobile(actionUrl, mobile, userType, callback) {
                 callback(NOPERMISSION);
             } else {
                 if (rows.length > 0) {
-                    callback(OKPERMISSION);
+                    //更新用户的lastLoginTime
+                    var timestamp = new Date().getTime();
+                    db.query("update user set lastLoginTime=? where mobile=?",
+                                [timestamp,mobile],
+                                function(err, result){
+                                    callback(OKPERMISSION); 
+                                });
                 } else {
                     callback(NOPERMISSION);
                 }

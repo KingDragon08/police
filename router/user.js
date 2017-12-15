@@ -11,7 +11,6 @@ server.post("/user/register",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.register(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -30,7 +29,6 @@ server.post("/user/login",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.login(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -49,7 +47,6 @@ server.post("/user/loginWithToken",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.loginWithToken(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -68,7 +65,6 @@ server.post("/user/logout",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.logout(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -87,7 +83,6 @@ server.post("/user/getUsers",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.getUsers(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -107,7 +102,6 @@ server.post("/user/getSingleUserInfo",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.getSingleUserInfo(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -126,7 +120,6 @@ server.post("/user/getSingleUserInfoByMobile",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.getSingleUserInfoByMobile(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -145,7 +138,6 @@ server.post("/user/getUsersByKeyword",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.getUsersByKeyword(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -183,7 +175,6 @@ server.post("/user/delMobileUser",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.delMobileUser(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -202,7 +193,6 @@ server.post("/user/getMobileUsers",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.getMobileUsers(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -221,7 +211,6 @@ server.post("/user/checkUserPermission",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.checkMobile2TokenWithPermissionFrontEnd(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -240,7 +229,6 @@ server.post("/user/checkUser",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.checkUser(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -295,7 +283,6 @@ server.post("/user/delPCUser",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.delPCUser(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -332,7 +319,6 @@ server.post("/user/getDepartmentPC",function(req,res,next){
 		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
 			if(hasPermission){
 				User.getDepartmentPC(req,res);
-				//camera.delCamera(req,res);
 			} else {
 				permission.permissionDenied(res);
 			}
@@ -342,5 +328,43 @@ server.post("/user/getDepartmentPC",function(req,res,next){
 	}
 	return next();
 });
+
+//当前在线人数
+server.post("/user/getOnlineCount",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				User.getOnlineCount(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+//强制用户下线
+server.post("/user/forceLogout",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				User.forceLogout(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
+
 
 module.exports = server;

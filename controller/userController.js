@@ -837,7 +837,7 @@ function getDepartmentPC(req,res){
 				if(id == "-1"){
 					errMessage(res,301,"params error");
 				}else{
-					var sql = "select u.id as uId,d2.id,d2.i from user u LEFT JOIN department2 d2 ON u.company = d2.Id where u.id = ?";
+					var sql = "select u.Id as uId,d2.Id,d2.p_id from user u LEFT JOIN department2 d2 ON u.company = d2.Id where u.id = ?";
 					var params = [id];
 					conn.query(sql,params,function(err,result){
 						if(err){
@@ -856,6 +856,98 @@ function getDepartmentPC(req,res){
          res.json({ "code": 500, "data": { "status": "fail", "error": e }});
     }
 }
+
+//当前在线人数
+function getOnlineCount(req, res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                var timestamp = new Date().getTime() - 10 * 60 * 1000;
+                conn.query("select count(0) as total from user where lastLoginTime>?",
+                            [timestamp],
+                            function(err, result){
+                                if(err){
+                                    errMessage(res,301,err.message);
+                                } else {
+                                    res.json({ "code": 200, "data": {"status":"success","data":result[0].total} });
+                                }
+                            });
+            } else {
+                errMessage(res,301,"user not login");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
+//强制用户下线
+//type 1->PC用户; 2->手机用户
+function forceLogout(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                var targetId = parseInt(query.targetId) || -1;
+                var type = parseInt(query.type) || -1;
+                if(targetId==-1 || type==-1){
+                    errMessage(res, 300, "param error");
+                } else {
+                    var timestamp = new Date().getTime();
+                    //更新token
+                    var table = "user";
+                    if(type==2){
+                        table = "mobileuser";
+                    }
+                    conn.query("update "+ table +" set token=? where Id=?",[timestamp, targetId],
+                                function(err, result){
+                                    if(err){
+                                        errMessage(res, 500, err.message);
+                                    } else {
+                                        sucMessage(res);
+                                    }
+                                });
+                }
+            } else {
+                errMessage(res,301,"user not login");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
+//公用错误输出函数
+function errMessage(res,code,msg){
+    res.json({
+        "code": code,
+        "data": {
+            "status": "fail",
+            "error": msg
+        }
+    });
+}
+
+//公用成功输出函数
+function sucMessage(res){
+    res.json({
+        "code": 200,
+        "data": {
+            "status": "success",
+            "error": "success"
+        }
+    });
+}
+
 
 exports.register = register;
 exports.login = login;
@@ -883,7 +975,8 @@ exports.addPCUser = addPCUser;
 exports.editPCUser = editPCUser;
 //根据id查询部门id
 exports.getDepartmentPC = getDepartmentPC;
-
+exports.getOnlineCount = getOnlineCount;
+exports.forceLogout = forceLogout;
 
 
 
