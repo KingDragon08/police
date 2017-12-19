@@ -34,19 +34,19 @@ function addPoint(req,res){
 							function(err,data){
 								if(err){
 									console.log(err);
-									errorHandler(res,"unknown error");
+									errorHandler(res,"添加兴趣点失败");
 								} else {
-									Log.insertLog(mobile,req.url,"addPoint");
+									Log.insertLog(mobile,"添加兴趣点","addPoint");
 									res.json({"code": 200, "data":{"status":"success","error":"success"}});
 								}
 							});
 			} else {
-				errorHandler(res,"mobile not match token");
+				errorHandler(res,"账号和token不匹配");
 			}
 		});
 	} catch(e) {
 		console.log(e);
-		errorHandler(res,"unknown error");
+		errorHandler(res,"未知错误");
 	}
 }
 
@@ -64,19 +64,19 @@ function delPoint(req,res){
 					function(err,data){
 						if(err){
 							console.log(err);
-							errorHandler(res,"unknown error");
+							errorHandler(res,"删除兴趣点失败");
 						} else {
-							Log.insertLog(mobile,req.url,"update interestPoint set status=0 where Id=?");
+							Log.insertLog(mobile,"删除兴趣点","update interestPoint set status=0 where Id=?");
 							res.json({"code": 200, "data":{"status":"success","error":"success"}});
 						}
 					});
 			} else {
-				errorHandler(res,"mobile not match token");
+				errorHandler(res,"账号和token不匹配");
 			}
 		});
 	} catch(e) {
 		console.log(e);
-		errorHandler(res,"unknown error");
+		errorHandler(res,"未知错误");
 	}
 }
 
@@ -109,22 +109,22 @@ function getPoint(req,res){
 				conn.query(sql,[1],function(err,data){
 					if(err){
 						console.log(err);
-						errorHandler(res,"unknown error");
+						errorHandler(res,"获取兴趣点失败");
 					} else {
 						var ret = {};
 						ret["status"] = "success";
 						ret["data"] = data;
-						Log.insertLog(mobile,req.url,sql);
+						//Log.insertLog(mobile,req.url,sql);
 						res.json({"code":200,"data":ret});
 					}
 				});
 			} else {
-				errorHandler(res,"mobile not match token");
+				errorHandler(res,"账号和token不匹配");
 			}
 		});
 	} catch(e) {
 		console.log(e);
-		errorHandler(res,"unknown error");
+		errorHandler(res,"未知错误");
 	}
 }
 
@@ -143,7 +143,7 @@ function updatePoint(req,res){
 				var desc = query.desc || 0;
 				var status = 1;
 				if(Id==0){
-					errorHandler(res,"params error");	
+					errorHandler(res,"参数错误");
 				} else {
 					conn.query("update interestPoint set name=?,longitude=?,"+
 								"latitude=?,`desc`=?,status=? where Id=?",
@@ -151,20 +151,20 @@ function updatePoint(req,res){
 								function(err,data){
 									if(err){
 										console.log(err);
-										errorHandler(res,"unknown error");
+										errorHandler(res,"编辑兴趣点失败");
 									} else {
-										Log.insertLog(mobile,req.url,"update interestPoint set name=?,longitude=?,latitude=?,`desc`=?,status=? where Id=?");
+										Log.insertLog(mobile,"编辑兴趣点","update interestPoint set name=?,longitude=?,latitude=?,`desc`=?,status=? where Id=?");
 										res.json({"code": 200, "data":{"status":"success","error":"success"}});	
 									}
 								});
 				}
 			} else {
-				errorHandler(res,"mobile not match token");
+				errorHandler(res,"账号和token不匹配");
 			}
 		});
 	} catch(e) {
 		console.log(e);
-		errorHandler(res,"unknown error");
+		errorHandler(res,"未知错误");
 	}
 }
 
@@ -182,22 +182,22 @@ function searchPoint(req,res){
 							function(err,data){
 								if(err){
 									console.log(err);
-									errorHandler(res,"unknown error");
+									errorHandler(res,"关键字模糊搜索兴趣点失败");
 								} else {
 									ret = {};
 									ret["status"] = "success";
 									ret["data"] = data;
-									Log.insertLog(mobile,req.url,"select Id,name,longitude,latitude,`desc` "+
-													"from interestPoint where name like " +
-													conn.escape('%' + keyword + '%') +
-													" order by Id desc");
+									// Log.insertLog(mobile,req.url,"select Id,name,longitude,latitude,`desc` "+
+									// 				"from interestPoint where name like " +
+									// 				conn.escape('%' + keyword + '%') +
+									// 				" order by Id desc");
 									res.json({"code":200,"data":ret});
 								}
 							});
 		});
 	} catch(e) {
 		console.log(e);
-		errorHandler(res,"unknown error");
+		errorHandler(res,"未知错误");
 	}
 }
 
@@ -215,7 +215,7 @@ function check(query,res,callback){
 		if(result){
 			callback();
 		} else {
-			errorHandler(res,"mobile not match token");
+			errorHandler(res,"账号和token不匹配");
 		}
 	});
 }

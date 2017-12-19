@@ -12,7 +12,7 @@ function add1(req,res){
             if (user.error == 0) {
                 var name = query.name || -1;
                 if(name==-1){
-                	errMessage(res,302,"param name error");	
+                	errMessage(res,302,"参数错误");
                 } else {
                 	//检查部门名字是否已经存在
                 	db.query("select count(Id) as total from department1 where name=?",
@@ -30,7 +30,7 @@ function add1(req,res){
                 											if(err){
                 												errMessage(res,303,err.message);
                 											} else {
-                                                                Log.insertLog(mobile,req.url,"insert into department1(name)values(?)");
+                                                                Log.insertLog(mobile,"添加一级部门","insert into department1(name)values(?)");
                 												sucMessage(res);
                 											}
                 										});
@@ -39,7 +39,7 @@ function add1(req,res){
                 				});
                 }
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -59,7 +59,7 @@ function add2(req,res){
                 var name = query.name || -1;
                 var parentId = query.parentId || -1;
                 if(name==-1 || parentId==-1){
-                	errMessage(res,403,"param error");
+                	errMessage(res,403,"参数错误");
                 } else {
                 	//判断parentId是否存在
                 	db.query("select count(Id) as total from department1 where Id=?",
@@ -84,7 +84,7 @@ function add2(req,res){
                                                             if(err){
                                                                 errMessage(res,303,err.message);
                                                             } else {
-                                                                Log.insertLog(mobile,req.url,"insert into department2(p_id,name)values(?)");
+                                                                Log.insertLog(mobile,"添加二级部门","insert into department2(p_id,name)values(?)");
                                                                 sucMessage(res);
                                                             }
                                                         });
@@ -106,7 +106,7 @@ function add2(req,res){
                 				});
                 }
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -128,7 +128,7 @@ function list1(req,res){
                 				if(err){
                 						errMessage(res,303,err.message);
                 					} else {
-                                        Log.insertLog(mobile,req.url,"select * from department1");
+                                        //Log.insertLog(mobile,req.url,"select * from department1");
                 						res.json({
                 							"code": 200,
                 							"data": {
@@ -139,7 +139,7 @@ function list1(req,res){
                 					}
                 			});
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -158,14 +158,14 @@ function list2(req,res){
             if (user.error == 0) {
             	var parentId = query.parentId || -1;
             	if(parentId==-1){
-            		errMessage(res,300,"param error");
+            		errMessage(res,300,"参数错误");
             	} else {
             		db.query("select * from department2 where p_id=?",[parentId],
                 			function(err,data){
                 				if(err){
                 						errMessage(res,303,err.message);
                 					} else {
-                                        Log.insertLog(mobile,req.url,"select * from department2 where p_id=?");
+                                        //Log.insertLog(mobile,req.url,"select * from department2 where p_id=?");
                 						res.json({
                 							"code": 200,
                 							"data": {
@@ -177,7 +177,7 @@ function list2(req,res){
                 			});
             	}
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -197,7 +197,7 @@ function edit1(req,res){
                 var name = query.name || -1;
                 var Id = query.Id || -1;
                 if(name==-1 || Id==-1){
-                	errMessage(res,300,"param error");
+                	errMessage(res,300,"参数错误");
                 } else {
                 	//查询新名字是否已经存在
                 	db.query("select count(Id) as total from department1 where name=?",
@@ -216,7 +216,7 @@ function edit1(req,res){
 						                					if(err){
 																errMessage(res,303,err.message);
 															} else {
-                                                                Log.insertLog(mobile,req.url,"update department1 set name=? where Id=?");
+                                                                Log.insertLog(mobile,"修改一级部门","update department1 set name=? where Id=?");
 																sucMessage(res);
 															}
 						                				});
@@ -225,7 +225,7 @@ function edit1(req,res){
                 				});
                 }
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -245,7 +245,7 @@ function edit2(req,res){
                 var name = query.name || -1;
                 var Id = query.Id || -1;
                 if(name==-1 || Id==-1){
-                	errMessage(res,300,"param error");
+                	errMessage(res,300,"参数错误");
                 } else {
                 	//更新数据库 
                 	db.query("update department2 set name=? where Id=?",
@@ -254,13 +254,13 @@ function edit2(req,res){
                 					if(err){
 										errMessage(res,303,err.message);
 									} else {
-                                        Log.insertLog(mobile,req.url,"update department2 set name=? where Id=?");
+                                        Log.insertLog(mobile,"修改二级部门","update department2 set name=? where Id=?");
 										sucMessage(res);
 									}
                 				});
                 }
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -280,7 +280,7 @@ function updateDepartment(req,res){
                 var targetUserId = query.targetUserId || -1;
                 var targetDepartmentId = query.targetDepartmentId || -1;
                 if(targetUserId==-1 || targetDepartmentId==-1){
-                	errMessage(res,300,"param error");
+                	errMessage(res,300,"参数错误");
                 } else {
                 	//更新数据库
                 	db.query("update user set company=? where Id= ?",
@@ -289,13 +289,13 @@ function updateDepartment(req,res){
                 					if(err){
                 						errMessage(res,404,err.message);
                 					} else {
-                                        Log.insertLog(mobile,req.url,"update user set company=? where Id=?");
+                                        Log.insertLog(mobile,"修改用户所在部门","update user set company=? where Id=?");
                 						sucMessage(res);
                 					}
                 				});
                 }
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -328,13 +328,14 @@ function del2(req,res){
                             if (err) {
                                 console.log(err.message);
                             } else {
+                                Log.insertLog(mobile,"删除二级部门","delete from department2 where id = ?");
                                 sucMessage(res);
                             }
                         });
                     }
                 });
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -368,13 +369,14 @@ function del1(req,res){
                             if (err) {
                                 console.log(err.message);
                             } else {
+                                Log.insertLog(mobile,"删除一级部门","delete from department1 where id = ?");
                                 sucMessage(res);
                             }
                         });
                     }
                 });
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -415,7 +417,7 @@ function funcName(req,res){
             if (user.error == 0) {
                 //
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });

@@ -22,7 +22,7 @@ function addressTestGetByName(req, res) {
         console.log(query);	
     	var name = query.name || "-1";
         if (name == "-1") {
-        	res.json({ "code": 300, "data": { "status": "error", "error": "params is null" } });
+        	res.json({ "code": 300, "data": { "status": "error", "error": "参数为空" } });
         } else {
         	var sql = "select * from t_addr where addr_name like '%"+name+"%'";
             conn.query(sql,function(err,data){

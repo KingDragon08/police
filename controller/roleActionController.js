@@ -35,7 +35,7 @@ function addRoleAction(req, res) {
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "roleId is null"
+                                    "error": "角色ID为空"
                                 }
                             });
                             return;
@@ -46,7 +46,7 @@ function addRoleAction(req, res) {
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "actionId is null"
+                                    "error": "权限ID为空"
                                 }
                             });
                             return;
@@ -68,7 +68,7 @@ function addRoleAction(req, res) {
                                         "code": 402,
                                         "data": {
                                             "status": "fail",
-                                            "error": "roleaction exist"
+                                            "error": "角色权限已存在"
                                         }
                                     });
                                     return;
@@ -88,7 +88,7 @@ function addRoleAction(req, res) {
                                             }
                                         });
                                     } else {
-                                        Log.insertLog(mobile,req.url,sql);
+                                        Log.insertLog(mobile,"添加角色权限",sql);
                                         res.json({
                                             "code": 200,
                                             "data": {
@@ -106,7 +106,7 @@ function addRoleAction(req, res) {
                             "code": 301,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相应权限"
                             }
                         });
                         return;
@@ -117,7 +117,7 @@ function addRoleAction(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -156,7 +156,7 @@ function delRoleAction(req, res) {
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "roleActionId is null"
+                                    "error": "角色权限ID为空"
                                 }
                             });
                             return;
@@ -186,7 +186,7 @@ function delRoleAction(req, res) {
                                                 }
                                             });
                                         } else {
-                                            Log.insertLog(mobile,req.url,sql);
+                                            Log.insertLog(mobile,"删除角色权限",sql);
                                             res.json({
                                                 "code": 200,
                                                 "data": {
@@ -201,7 +201,7 @@ function delRoleAction(req, res) {
                                         "code": 404,
                                         "data": {
                                             "status": "fail",
-                                            "error": "roleaction not exist"
+                                            "error": "角色权限不存在"
                                         }
                                     });
                                 }
@@ -212,7 +212,7 @@ function delRoleAction(req, res) {
                             "code": 301,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相应权限"
                             }
                         });
                         return;
@@ -223,7 +223,7 @@ function delRoleAction(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -262,7 +262,7 @@ function editRoleAction(req, res) {
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "roleActionId is null"
+                                    "error": "角色权限ID为空"
                                 }
                             });
                             return;
@@ -273,7 +273,7 @@ function editRoleAction(req, res) {
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "roleId is null"
+                                    "error": "角色ID为空"
                                 }
                             });
                             return;
@@ -284,7 +284,7 @@ function editRoleAction(req, res) {
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "actionId is null"
+                                    "error": "权限ID为空"
                                 }
                             });
                             return;
@@ -319,7 +319,7 @@ function editRoleAction(req, res) {
                                                     "code": 402,
                                                     "data": {
                                                         "status": "fail",
-                                                        "error": "roleaction exist"
+                                                        "error": "角色权限已存在"
                                                     }
                                                 });
                                                 return;
@@ -336,7 +336,7 @@ function editRoleAction(req, res) {
                                                             }
                                                         });
                                                     } else {
-                                                        Log.insertLog(mobile,req.url,sql);
+                                                        Log.insertLog(mobile,"修改角色权限",sql);
                                                         res.json({
                                                             "code": 200,
                                                             "data": {
@@ -354,7 +354,7 @@ function editRoleAction(req, res) {
                                         "code": 404,
                                         "data": {
                                             "status": "fail",
-                                            "error": "action not exist"
+                                            "error": "权限不存在"
                                         }
                                     });
                                 }
@@ -365,7 +365,7 @@ function editRoleAction(req, res) {
                             "code": 301,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相应权限"
                             }
                         });
                         return;
@@ -376,7 +376,7 @@ function editRoleAction(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -415,7 +415,7 @@ function getRoleActionList(req, res) {
                                 "code": 403,
                                 "data": {
                                     "status": "fail",
-                                    "error": "param error"
+                                    "error": "参数错误"
                                 }
                             });
                             return;
@@ -458,7 +458,7 @@ function getRoleActionList(req, res) {
                                             }
                                         });
                                     } else {
-                                        Log.insertLog(mobile,req.url,sql);
+                                        //Log.insertLog(mobile,req.url,sql);
                                         res.json({
                                             "code": 200,
                                             "data": {
@@ -479,7 +479,7 @@ function getRoleActionList(req, res) {
                             "code": 301,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相应权限"
                             }
                         });
                         return;
@@ -490,7 +490,7 @@ function getRoleActionList(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -569,8 +569,8 @@ function checkUserPermissionByMobile(actionUrl, mobile, userType, callback) {
                 if (rows.length > 0) {
                     //更新用户的lastLoginTime
                     var timestamp = new Date().getTime();
-                    db.query("update user set lastLoginTime=? where mobile=?",
-                                [timestamp,mobile],
+                    db.query("update user set lastLoginTime=? where mobile=? and lastLoginTime>? ",
+                                [timestamp,mobile,0],
                                 function(err, result){
                                     callback(OKPERMISSION); 
                                 });
@@ -590,7 +590,7 @@ function permissionDenied(res){
         "code": 301,
         "data": {
             "status": "fail",
-            "error": "permission deneied"
+            "error": "没有相应权限"
         }
     });
 }

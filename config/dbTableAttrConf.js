@@ -9,7 +9,8 @@ var cameraAttrList = [
 						'cam_loc_lan', 
 						'cam_loc_lon', 
 						'cam_desc', 
-						'cam_addr'
+						'cam_addr',
+    					'cam_category'
 					];
 
 exports.cameraAttrList = cameraAttrList;

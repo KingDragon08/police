@@ -44,7 +44,7 @@ function addCar(req, res) {
 			var car_addr = query.car_addr || -1;
 			var car_type = query.car_type || -1;
             if (car_x == -1 || car_y == -1 || car_no == -1 || car_addr == -1 || car_type == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
                 // var sql = "insert into (car_x,car_y,car_no,car_addr,car_type,is_del) values(?,?,?,?,?,?)";
                 var sql = "insert into " + CAR_TABLE + "(SmX,SmyY,car_no,car_addr,car_type,is_del) values(?,?,?,?,?,?)";
@@ -56,7 +56,7 @@ function addCar(req, res) {
                             console.log(err);
                             errorHandler(res, err.message);
                         } else {
-                        	Log.insertLog(mobile,"添加car", sql);
+                        	Log.insertLog(mobile,"添加车辆", sql);
                             res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
                             
                         }
@@ -64,7 +64,7 @@ function addCar(req, res) {
             }
         });
     } catch (e) {
-        errorHandler(res, "unknown error")
+        errorHandler(res, "未知错误");
     }
 }
 
@@ -76,7 +76,7 @@ function delCar(req, res) {
         check(query, res, function() {
             var id = query.id || -1;
             if (id == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
                 // var sql = "update car set is_del = 1 where id = ?";
                 var sql = "update " + CAR_TABLE + " set is_del = 1 where SmID = ?";
@@ -87,14 +87,14 @@ function delCar(req, res) {
                             console.log(err);
                             errorHandler(res, err.message);
                         } else {
-                        	Log.insertLog(mobile,"删除car", sql);
+                        	Log.insertLog(mobile,"删除车辆", sql);
                             res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
                         }
                     });
             }
         });
     } catch (e) {
-        errorHandler(res, "unknown error");
+        errorHandler(res, "未知错误");
     }
 }
 
@@ -129,7 +129,7 @@ function getCar(req, res) {
                                 ret = {};
                                 ret["status"] = "success";
                                 ret["data"] = data;
-                                Log.insertLog(mobile,"获取car列表", sql);
+                                //Log.insertLog(mobile,"获取car列表", sql);
                                 res.json({ "code": 200, "data": ret });
                                 
                             });
@@ -162,7 +162,7 @@ function getCar(req, res) {
                                 ret = {};
                                 ret["status"] = "success";
                                 ret["data"] = data;
-                                Log.insertLog(mobile,"分页获取car列表", sql);
+                                //Log.insertLog(mobile,"分页获取car列表", sql);
                                 res.json({ "code": 200, "data": ret });
                             });
                         }
@@ -170,7 +170,7 @@ function getCar(req, res) {
             }
         });
     } catch (e) {
-        errorHandler(res, "unknown error");
+        errorHandler(res, "未知错误");
     }
 }
 
@@ -183,7 +183,7 @@ function getSingleCarInfo(req, res) {
             var id = query.id || -1;
             // console.log(id);
             if (id == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
                 // var sql = "select * from car where id=?";
                 var sql = "select * from " + CAR_TABLE + " where SmID=?";
@@ -204,7 +204,7 @@ function getSingleCarInfo(req, res) {
             }
         });
     } catch (e) {
-        errorHandler(res, "unknown error");
+        errorHandler(res, "未知错误");
     }
 }
 
@@ -237,7 +237,7 @@ function searchCar(req, res) {
                 });
         });
     } catch (e) {
-        errorHandler(res, "unknown error");
+        errorHandler(res, "未知错误");
     }
 }
 
@@ -248,7 +248,7 @@ function getCarPosition(req,res){
 		check(query,res,function(){
 			var Id = query.Id || -1;
 			if (Id == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
             	//需要对接接口,自己获取不了
             	var centerX = 500377.96;
@@ -259,12 +259,12 @@ function getCarPosition(req,res){
             	var ret = {};
                 ret["status"] = "success";
                 ret["data"] = data;
-                Log.insertLog(mobile,"获取car位置","getCarPosition");
+                //Log.insertLog(mobile,"获取car位置","getCarPosition");
                 res.json({ "code": 200, "data": ret });
             }
 		});
 	} catch(e) {
-		errorHandler(res, "unknown error");
+		errorHandler(res, "未知错误");
 	}
 }
 
@@ -275,7 +275,7 @@ function getCarTrack(req,res){
 		check(query,res,function(){
 			var Id = query.Id || -1;
 			if (Id == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
             	var centerX = 305971.1;
             	var centerY = 305971.1;
@@ -291,12 +291,12 @@ function getCarTrack(req,res){
             	var ret = {};
                 ret["status"] = "success";
                 ret["data"] = track;
-                Log.insertLog(mobile,"获取car路径","getCarTrack");
+                //Log.insertLog(mobile,"获取car路径","getCarTrack");
                 res.json({ "code": 200, "data": ret });
             }
 		});
 	} catch(e) {
-		errorHandler(res, "unknown error");
+		errorHandler(res, "未知错误");
 	}
 }
 
@@ -314,7 +314,7 @@ function check(query, res, callback) {
         	// Log.insertLog(mobile,"car--check","insert into car values(?,?)");
             callback();
         } else {
-            errorHandler(res, "mobile not match token");
+            errorHandler(res, "账号和token不匹配");
         }
     });
 }
@@ -352,7 +352,7 @@ function getCarAttrs(req,res){
                             }
                         });
                     } else {
-                    	 Log.insertLog(mobile,"获取car属性","select * from car_attr where Id>?");
+                    	 //Log.insertLog(mobile,"获取car属性","select * from car_attr where Id>?");
                         res.json({
                             "code": 200,
                             "data": {
@@ -368,7 +368,7 @@ function getCarAttrs(req,res){
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -409,7 +409,7 @@ function addCarAttr(req,res){
                         "code": 303,
                         "data": {
                             "status": "fail",
-                            "error": "param error"
+                            "error": "参数错误"
                         }
                     });
                     return;
@@ -417,7 +417,7 @@ function addCarAttr(req,res){
                 if(reg.test(attr_name)){
                     //给car表添加字段
                     // var sql = "alter table car add column "+attr_name+" varchar(1000)";
-                    var sql = "alter table " + CAR_TABLE + " add column "+attr_name+" varchar(1000)";
+                    var sql = "alter table " + CAR_TABLE + " add column "+attr_name+" varchar(200)";
                     var dataArr = [];
                     db.query(sql,dataArr,function(err,rows){
                         if(err){
@@ -445,7 +445,7 @@ function addCarAttr(req,res){
                                         }
                                     }); 
                                 } else {
-                               	 Log.insertLog(mobile,"添加car属性", sql);
+                               	 Log.insertLog(mobile,"添加车辆属性", sql);
                                     res.json({
                                         "code": 200,
                                         "data": {
@@ -462,7 +462,7 @@ function addCarAttr(req,res){
                         "code": 302,
                         "data": {
                             "status": "fail",
-                            "error": "attr_name must be alphabet"
+                            "error": "属性名称必须为英文字母"
                         }
                     });
                     return;    
@@ -472,7 +472,7 @@ function addCarAttr(req,res){
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -515,7 +515,7 @@ function editCarAttr(req,res){
                         "code": 302,
                         "data": {
                             "status": "fail",
-                            "error": "param error"
+                            "error": "参数错误"
                         }
                     });
                     return;    
@@ -525,7 +525,7 @@ function editCarAttr(req,res){
                             "code": 403,
                             "data": {
                                 "status": "fail",
-                                "error": "attrId must bigger than 6"
+                                "error": "前6项属性不允许修改"
                             }
                         });
                         return;    
@@ -537,7 +537,7 @@ function editCarAttr(req,res){
                                 var attrName = rows[0].attr_name;
                                 //更新car表
                                 // var sql = "alter table car change "+attrName+" "+attrNewName+" varchar(1000)";
-                                var sql = "alter table " + CAR_TABLE + " change "+attrName+" "+attrNewName+" varchar(1000)";
+                                var sql = "alter table " + CAR_TABLE + " change "+attrName+" "+attrNewName+" varchar(200)";
                                 db.query(sql,[],function(err,rows){
                                     if(err){
                                       	//  Log.insertLog(mobile,"car--addCarAttr","alter table car change attrNewName varchar(1000)");
@@ -563,7 +563,7 @@ function editCarAttr(req,res){
                                                     }
                                                 }); 
                                             } else {
-                                              	 Log.insertLog(mobile,"编辑car属性", sql);
+                                              	 Log.insertLog(mobile,"编辑车辆属性", sql);
                                                 res.json({
                                                     "code": 200,
                                                     "data": {
@@ -581,7 +581,7 @@ function editCarAttr(req,res){
                                     "code": 401,
                                     "data": {
                                         "status": "fail",
-                                        "error": "attr not found"
+                                        "error": "属性未找到"
                                     }
                                 });         
                             }
@@ -592,7 +592,7 @@ function editCarAttr(req,res){
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -635,7 +635,7 @@ function editCarAttrShow(req, res) {
                                 }
                             });
                         } else {
-                        	Log.insertLog(mobile,"编辑car展示", sql);
+                        	Log.insertLog(mobile,"编辑车辆属性展示", sql);
                             res.json({
                                 "code": 200,
                                 "data": {
@@ -650,7 +650,7 @@ function editCarAttrShow(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -682,7 +682,7 @@ function getCarListByAttr(req, res) {
             "code": 401,
             "data": {
                 "status": "fail",
-                "error": "attrName is invalid"
+                "error": "属性名称不存在"
             }
         });
         return;
@@ -693,7 +693,7 @@ function getCarListByAttr(req, res) {
             "code": 401,
             "data": {
                 "status": "fail",
-                "error": "attrValue is null"
+                "error": "属性值为空"
             }
         });
         return;
@@ -742,7 +742,7 @@ function getCarListByAttr(req, res) {
                             }
                         });
                     } else {
-                    	Log.insertLog(mobile,"根据car属性展示", sql);
+                    	//Log.insertLog(mobile,"根据car属性展示", sql);
                         res.json({
                             "code": 200,
                             "data": {

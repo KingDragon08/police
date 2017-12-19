@@ -57,7 +57,7 @@ function addLayer(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -74,7 +74,7 @@ function addLayer(req, res) {
                 var imgPath = query.imgPath || "";
 
                 createNewLayer(layerName, imgPath, userId, curtime, layerTypeId, function(ret){
-                    Log.insertLog(userId, req.url, "add Basic Layer");
+                    Log.insertLog(userId, "添加图层", "add Basic Layer");
                     res.json(ret);
                 });
                     
@@ -84,7 +84,7 @@ function addLayer(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -162,7 +162,7 @@ function createNewLayerTable(layerId, tableName, userId, callback) {
                     "primary key (`id`)"+
                 ") default charset=utf8 comment '图层表';";
 
-    Log.insertLog(userId, "create new table", sql);
+    Log.insertLog(userId, "创建新表", sql);
 
     db.query(sql, [], function(mErr, mRows) {
        if (mErr) {
@@ -230,7 +230,7 @@ function delLayer(req, res) {
                         "code": 401,
                         "data": {
                             "status": "fail",
-                            "error": "request param is invalid"
+                            "error": "请求参数无效"
                         }
                     });
                     return;
@@ -253,7 +253,7 @@ function delLayer(req, res) {
                             var userId = userInfo.Id;
                             var tableName = rows[0].table_name;
                             doDelLayer(userId, tableName, layerId, function(ret){
-                                Log.insertLog(userId, req.url, "del all Layer");
+                                Log.insertLog(userId, " 删除基础图层，并删除图层扩展属性，以及图层数据", "del all Layer");
                                 res.json(ret);
                             });
                         } else {
@@ -261,7 +261,7 @@ function delLayer(req, res) {
                                 "code": 404,
                                 "data": {
                                     "status": "fail",
-                                    "error": "layer not exist"
+                                    "error": "图层不存在"
                                 }
                             });
                         }
@@ -272,7 +272,7 @@ function delLayer(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -304,7 +304,7 @@ function doDelLayer(userId, tableName, layerId, callback) {
     // 先删除图层数据
     var sql = "drop table " + tableName;
     var dataArr = [];
-    Log.insertLog(userId, "drop layer table", sql);
+    Log.insertLog(userId, "删除图层表", sql);
     db.query(sql, dataArr, function(err, rows){
         if (err) {
             ret = {
@@ -320,7 +320,7 @@ function doDelLayer(userId, tableName, layerId, callback) {
             sql = "delete from " + LayerExtTable + " where layer_id = ?";
             dataArr = [layerId];
 
-            Log.insertLog(userId, "delete layer attr", sql);
+            Log.insertLog(userId, "删除图层属性", sql);
 
             db.query(sql, dataArr, function(mErr, mRows) {
                 if (err) {
@@ -336,7 +336,7 @@ function doDelLayer(userId, tableName, layerId, callback) {
                     // 最后删除基础图层
                     sql = "delete from " + LayerBasicTable + " where layer_id = ?";
                     dataArr = [layerId];
-                    Log.insertLog(userId, "delete layer", sql);
+                    Log.insertLog(userId, "删除图层属性", sql);
                     db.query(sql, dataArr, function(mmErr, mmRows){
                         if (mmErr) {
                             ret = {"code": 501, "data": {"status": "fail","error": mmErr.message}};
@@ -371,7 +371,7 @@ function addLayerAttr(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -405,7 +405,7 @@ function addLayerAttr(req, res) {
                             var tableName = rows[0].table_name;
                                         
                             addLayerTableAttr(layerId, tableName, extName, extDesc, userId, curtime, function(ret){
-                                Log.insertLog(userId, req.url, "add Layer Attr");
+                                Log.insertLog(userId, "添加图层属性", "add Layer Attr");
                                 res.json(ret);
                             });
                         } else {
@@ -413,21 +413,18 @@ function addLayerAttr(req, res) {
                                 "code": 404,
                                 "data": {
                                     "status": "fail",
-                                    "error": "layer not exist"
+                                    "error": "图层不存在"
                                 }
                             });
                         }
                     }
                 });
-
-                    
-                
             } else {
                 res.json({
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -459,7 +456,7 @@ function addLayerTableAttr(layerId, tableName, extName, extDesc, userId, curtime
 
     var sql = "alter table " + tableName + " add column " + extName + " varchar(255)";
     var dataArr = [];
-    Log.insertLog(userId, "modify layer data table", sql);
+    //Log.insertLog(userId, "修改图层数据表", sql);
     // 先修改图层数据表结构
     db.query(sql, dataArr, function(mErr, mRows) {
         if (err) {
@@ -476,13 +473,11 @@ function addLayerTableAttr(layerId, tableName, extName, extDesc, userId, curtime
             sql = "insert into " +  LayerExtTable + " (layer_id, ext_name, ext_desc, user_id, addtime) ";
             sql += "values(?, ?, ?, ?, ?)";
             dataArr = [layerId, extName, extDesc, userId, curtime];
-
-            Log.insertLog(userId, "add new attr", sql);
-
             db.query(sql, dataArr, function(mmErr, mmRows){
                 if (mmErr) {
                     ret = {"code": 501, "data": {"status": "fail","error": mmErr.message}};
                 } else {
+                    Log.insertLog(userId, "添加图层操作", sql);
                     ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                 }
                 callback(ret);
@@ -550,7 +545,7 @@ function getLayerList(req, res) {
                                     }
                                 });
                             } else {
-                                Log.insertLog(userId,"get layer list", sql);
+                                //Log.insertLog(userId,"get layer list", sql);
                                 res.json({
                                     "code": 200,
                                     "data": {
@@ -572,7 +567,7 @@ function getLayerList(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -608,7 +603,7 @@ function getLayerAttrByLayerId(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -622,8 +617,8 @@ function getLayerAttrByLayerId(req, res) {
 
                 var sql = "select * from " + LayerExtTable + " where layer_id = ? order by ext_id";
                 var dataArr = [layerId];
-                var userId = userInfo.Id;
-                Log.insertLog(userId,"get layer attr", sql);
+                
+                //Log.insertLog(userId,"get layer attr", sql);
 
                 db.query(sql, dataArr, function(err, rows) {
                     if (err) {
@@ -651,7 +646,7 @@ function getLayerAttrByLayerId(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -688,7 +683,7 @@ function editLayer(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -704,7 +699,7 @@ function editLayer(req, res) {
                 var imgPath = query.imgPath || "";
 
                 updateLayer(layerId, layerName, imgPath, userId, layerTypeId, function(ret){
-                    Log.insertLog(userId, req.url, "update Basic Layer");
+                    Log.insertLog(userId,"编辑图层信息", "update Basic Layer");
                     res.json(ret);
                 });
             } else {
@@ -712,7 +707,7 @@ function editLayer(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -745,7 +740,7 @@ function updateLayer(layerId, layerName, imgPath, userId, layerTypeId, callback)
     sql += " where layer_id = ?";
     var dataArr = [layerName, imgPath, layerTypeId, layerId];
 
-    Log.insertLog(userId, "update layer table", sql);
+    //Log.insertLog(userId, "update layer table", sql);
 
     db.query(sql, dataArr, function(mErr, mRows) {
        if (mErr) {
@@ -783,7 +778,7 @@ function editLayerAttr(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -820,7 +815,7 @@ function editLayerAttr(req, res) {
                             var extDesc = query.extDesc || "";
 
                             updateLayerAttr(layerId, extId, tableName, oldExtName, extName, extDesc, userId, curtime, function(ret){
-                                Log.insertLog(userId, req.url, "update Layer attr");
+                                Log.insertLog(userId, "编辑图层数据字段", "update Layer attr");
                                 res.json(ret);
                             });
                                         
@@ -829,7 +824,7 @@ function editLayerAttr(req, res) {
                                 "code": 404,
                                 "data": {
                                     "status": "fail",
-                                    "error": "layer not exist"
+                                    "error": "图层不存在"
                                 }
                             });
                         }
@@ -841,7 +836,7 @@ function editLayerAttr(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -877,7 +872,7 @@ function updateLayerAttr(layerId, extId, tableName, oldExtName, extName, extDesc
 
     var sql = "alter table " + tableName + " change column " + oldExtName + " " + extName + " varchar(255)";
     var dataArr = [];
-    Log.insertLog(userId, "modify layer data table", sql);
+    //Log.insertLog(userId, "modify layer data table", sql);
     // 先修改图层数据表结构
     db.query(sql, dataArr, function(mErr, mRows) {
         if (err) {
@@ -894,12 +889,13 @@ function updateLayerAttr(layerId, extId, tableName, oldExtName, extName, extDesc
             sql = "update  " +  LayerExtTable + " set ext_name = ?, ext_desc = ? where ext_id = ?";
             dataArr = [extName, extDesc, extId];
 
-            Log.insertLog(userId, "update layer attr", sql);
+            //Log.insertLog(userId, "update layer attr", sql);
 
             db.query(sql, dataArr, function(mmErr, mmRows){
                 if (mmErr) {
                     ret = {"code": 501, "data": {"status": "fail","error": mmErr.message}};
                 } else {
+                    Log.insertLog(userId, "更新图层数据表结构和图层属性表", sql);
                     ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                 }
                 callback(ret);
@@ -926,7 +922,7 @@ function delLayerAttr(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -961,7 +957,7 @@ function delLayerAttr(req, res) {
                             var layerId = rows[0].layer_id;
 
                             doDelLayerAttr(layerId, extId, tableName, extName, userId, function(ret){
-                                Log.insertLog(userId, req.url, "del Layer attr");
+                                Log.insertLog(userId, "删除图层属性", "del Layer attr");
                                 res.json(ret);
                             });
                                         
@@ -970,7 +966,7 @@ function delLayerAttr(req, res) {
                                 "code": 404,
                                 "data": {
                                     "status": "fail",
-                                    "error": "layer not exist"
+                                    "error": "图层不存在"
                                 }
                             });
                         }
@@ -983,7 +979,7 @@ function delLayerAttr(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -1015,7 +1011,7 @@ function doDelLayerAttr(layerId, extId, tableName, extName, userId, callback) {
 
     var sql = "alter table " + tableName + " drop column " + extName;
     var dataArr = [];
-    Log.insertLog(userId, "del layer data table", sql);
+    //Log.insertLog(userId, "del layer data table", sql);
     // 先修改图层数据表结构
     db.query(sql, dataArr, function(mErr, mRows) {
         if (err) {
@@ -1031,13 +1027,11 @@ function doDelLayerAttr(layerId, extId, tableName, extName, userId, callback) {
             // 再删除图层属性表记录
             sql = "delte from " +  LayerExtTable + " where ext_id = ?";
             dataArr = [extId];
-
-            Log.insertLog(userId, "delte layer attr", sql);
-
             db.query(sql, dataArr, function(mmErr, mmRows){
                 if (mmErr) {
                     ret = {"code": 501, "data": {"status": "fail","error": mmErr.message}};
                 } else {
+                    Log.insertLog(userId, "删除图层数据表字段，以及删除图层属性字段记录", sql);
                     ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                 }
                 callback(ret);

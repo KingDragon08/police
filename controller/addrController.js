@@ -17,7 +17,7 @@ function getFuzzyAddr(req,res){
 	try{
         var info = query.info || "";
         if (check.isNull(info)) {
-            res.json({"code": 401, "data":{"status":"fail","error":"info is null"}});
+            res.json({"code": 401, "data":{"status":"fail","error":"信息为空"}});
             return ;
         }
 
@@ -40,7 +40,7 @@ function getFuzzyAddr(req,res){
                     return;
                 }
                 console.log( response);
-                Log.insertLog(req.body.mobile,req.url,sql);
+                //Log.insertLog(req.body.mobile,req.url,sql);
 				res.json({"code": 200, "data":{"status":"success","error":"success", "rows":""}});
             });
         });

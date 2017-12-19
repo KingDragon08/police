@@ -24,7 +24,7 @@ function addCar(req, res) {
             var NO = query.NO || -1;
             var type = parseInt(query.type) || 1;
             if (NO == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
                 conn.query("insert into car(NO,type)values(?,?)", [NO, type],
                     function(err, result) {
@@ -38,7 +38,7 @@ function addCar(req, res) {
             }
         });
     } catch (e) {
-        errorHandler(res, "unknown error")
+        errorHandler(res, "未知错误");
     }
 }
 
@@ -49,7 +49,7 @@ function delCar(req, res) {
         check(query, res, function() {
             var Id = query.Id || -1;
             if (Id == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
                 conn.query("delete from car where Id=?", [Id],
                     function(err, result) {
@@ -63,7 +63,7 @@ function delCar(req, res) {
             }
         });
     } catch (e) {
-        errorHandler(res, "unknown error");
+        errorHandler(res, "未知错误");
     }
 }
 
@@ -109,7 +109,7 @@ function getCar(req, res) {
             }
         });
     } catch (e) {
-        errorHandler(res, "unknown error");
+        errorHandler(res, "未知错误");
     }
 }
 
@@ -120,7 +120,7 @@ function getSingleCarInfo(req, res) {
         check(query, res, function() {
             var Id = query.Id || -1;
             if (Id == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
                 conn.query("select * from car where Id=?", [Id],
                     function(err, data) {
@@ -137,7 +137,7 @@ function getSingleCarInfo(req, res) {
             }
         });
     } catch (e) {
-        errorHandler(res, "unknown error");
+        errorHandler(res, "未知错误");
     }
 }
 
@@ -163,7 +163,7 @@ function searchCar(req, res) {
                 });
         });
     } catch (e) {
-        errorHandler(res, "unknown error");
+        errorHandler(res, "未知错误");
     }
 }
 
@@ -174,7 +174,7 @@ function getCarPosition(req,res){
 		check(query,res,function(){
 			var Id = query.Id || -1;
 			if (Id == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
             	//需要对接接口,自己获取不了
             	var centerX = 500377.96;
@@ -189,7 +189,7 @@ function getCarPosition(req,res){
             }
 		});
 	} catch(e) {
-		errorHandler(res, "unknown error");
+		errorHandler(res, "未知错误");
 	}
 }
 
@@ -200,7 +200,7 @@ function getCarTrack(req,res){
 		check(query,res,function(){
 			var Id = query.Id || -1;
 			if (Id == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
             	var centerX = 305971.1;
             	var centerY = 305971.1;
@@ -220,7 +220,7 @@ function getCarTrack(req,res){
             }
 		});
 	} catch(e) {
-		errorHandler(res, "unknown error");
+		errorHandler(res, "未知错误");
 	}
 }
 
@@ -236,7 +236,7 @@ function getCarAttrs(req,res){
                         'Id':'Id',
                         'NO':'车牌号',
                         'type':'车辆类型',
-                        'state':'JUST FOR TEMP USE'
+                        'state':'暂时使用'
                     }
                 }
             });
@@ -274,7 +274,7 @@ function check(query, res, callback) {
         if (result) {
             callback();
         } else {
-            errorHandler(res, "mobile not match token");
+            errorHandler(res, "账号和token不匹配");
         }
     });
 }

@@ -57,7 +57,7 @@ function addLayerData(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -80,7 +80,7 @@ function addLayerData(req, res) {
                         extData = JSON.parse(extData);
 
                         doAddLayerData(layerId, tableName, locLan, locLon, userId, curtime, extData, function(ret){
-                            Log.insertLog(userId, req.url, "add Layer Data");
+                            Log.insertLog(userId, "添加图层数据", "add Layer Data");
                             res.json(ret);
                         });
 
@@ -93,7 +93,7 @@ function addLayerData(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -142,7 +142,7 @@ function getTableNameByLayerId(layerId, callback) {
                     "code": 404,
                     "data": {
                         "status": "fail",
-                        "error": "layer not exist"
+                        "error": "图层不存在"
                     }
                 };
             }
@@ -196,9 +196,6 @@ function doAddLayerData(layerId, tableName, locLan, locLon, userId, curtime, ext
                 sql_before += ") ";
                 sql_after += ") ";
                 sql = sql_before + sql_after;
-
-                Log.insertLog(userId, "add Layer Data with ext", sql);
-
                 db.query(sql,dataArr,function(err,rows){
                     if(err){
                         ret = {
@@ -209,6 +206,7 @@ function doAddLayerData(layerId, tableName, locLan, locLon, userId, curtime, ext
                             }
                         };
                     } else {
+                            Log.insertLog(userId, "添加图层数据操作", sql);
                             ret = {
                                 "code": 200,
                                 "data": {
@@ -244,7 +242,7 @@ function delLayerData(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -262,7 +260,7 @@ function delLayerData(req, res) {
                         var tableName = resJson.data.tableName;
 
                         doDelLayerData(userId, tableName, layerDataId, function(ret){
-                                Log.insertLog(userId, req.url, "del Layer Data");
+                                Log.insertLog(userId, req.url, "删除图层数据");
                                 res.json(ret);
                             });
 
@@ -276,7 +274,7 @@ function delLayerData(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -307,9 +305,7 @@ function doDelLayerData(userId, tableName, layerDataId, callback) {
 
     var sql = "delete from " + tableName + " where id = ?";
     var dataArr = [layerDataId];
-    
-    Log.insertLog(userId, "del layer data", sql);
-
+   
     db.query(sql, dataArr, function(err, rows){
         if (err) {
             ret = {
@@ -320,6 +316,7 @@ function doDelLayerData(userId, tableName, layerDataId, callback) {
                 }
             };
         } else {
+            Log.insertLog(userId, "删除图层数据", "del Layer Data");
             ret = {"code": 200, "data": {"status": "success", "error": "success"}};
         }
         callback(ret);
@@ -343,7 +340,7 @@ function getLayerDataListByLayerId(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -361,7 +358,7 @@ function getLayerDataListByLayerId(req, res) {
                         var tableName = resJson.data.tableName;
 
                         getLayerDataList(tableName, query, userId, function(ret){
-                            Log.insertLog(userId, req.url, "get Layer Data List");
+                            //Log.insertLog(userId, req.url, "get Layer Data List");
                             res.json(ret);
                         });
 
@@ -375,7 +372,7 @@ function getLayerDataListByLayerId(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -444,7 +441,7 @@ function getLayerDataList(tableName, query, userId, callback) {
                         }
                     };
                 } else {
-                    Log.insertLog(userId,"get layer data list", sql);
+                    //Log.insertLog(userId,"get layer data list", sql);
                     ret = {
                         "code": 200,
                         "data": {
@@ -483,7 +480,7 @@ function editLayerData(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -506,7 +503,7 @@ function editLayerData(req, res) {
                         extData = JSON.parse(extData);
 
                         updateLayerData(layerId, layerDataId, tableName, locLan, locLon, userId, curtime, extData, function(ret){
-                            Log.insertLog(userId, req.url, "update Layer Data");
+                            Log.insertLog(userId, "编辑图层数据信息", "update Layer Data");
                             res.json(ret);
                         });
 
@@ -520,7 +517,7 @@ function editLayerData(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -572,7 +569,7 @@ function updateLayerData(layerId, layerDataId, tableName, locLan, locLon, userId
             sql += " where id = ?";
             dataArr.push(layerDataId);
 
-            Log.insertLog(userId, "update layer data", sql);
+            //Log.insertLog(userId, "update layer data", sql);
 
             db.query(sql, dataArr, function(mmErr, mmRows){
                 if (mmErr) {

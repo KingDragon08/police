@@ -136,6 +136,50 @@ server.post("/file/uploadPC", function(req, res, next) {
     return next();
 });
 
+/**
+ * base64图片上传
+ * @param req
+ * @param res（返回图片路径）
+ * @param next
+ */
+server.post("/file/uploadPcByBase64",function(req,res,next){
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    var query = req.body;
+    try{
+        var mobile = query.mobile;
+        var token = query.token;
+        Mobile.checkMobile2Token(mobile, token, function(result) {
+            if (result) {
+                var imgs=query.imgs;
+                console.log(query);
+                var paths=[];
+                var timestamp = new Date().getTime();
+                for(var i=0;i<imgs.length;i++){
+                    //将前台传来的base64数据去掉前缀
+                    var img = imgs[i].replace(/^data:image\/\w+;base64,/, '');
+                    var imgBuffer = new Buffer(img, 'base64');
+                    var path = './upload/'+ timestamp  + "_" + i +".jpg";
+                    paths.push(uploadBaseURL + timestamp + "_" + i + ".jpg");
+                    //写入文件
+                    fs.writeFile(path, imgBuffer,function(err,date){
+                        if(err){
+                            console.log(err);
+                        }
+                        // if(paths.length==imgs.length){
+                        //     res.json({ "code": 200, "data": { "status": "success", "error": "上传成功", "urls": paths } });
+                        // }
+                    });
+                }
+                res.json({ "code": 200, "data": { "status": "success", "error": "上传成功", "urls": paths } });
+            } else {
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
+            }
+        });
+    } catch(e) {
+        console.log(e);
+        res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误"}});
+    }
+});
 
 //多文件上传
 server.post("/file/mulUpload", function(req, res, next) {

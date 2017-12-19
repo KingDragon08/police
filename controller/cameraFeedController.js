@@ -45,13 +45,13 @@ function addFeedBack(req,res){
 
                 var cam_id = query.cam_id;
                 if (check.isNull(cam_id)) {
-                    res.json({"code": 401, "data":{"status":"fail","error":"cam_id is null"}});
+                    res.json({"code": 401, "data":{"status":"fail","error":"摄像头ID为空"}});
                     return ;
                 }
 
 				taskControl.updateTask2Checking(cam_id, function(callback){
 					if (!callback) {
-						res.json({"code": 405, "data":{"status":"fail","error":"camera without task"}});
+						res.json({"code": 405, "data":{"status":"fail","error":"任务中没有该摄像头"}});
 						return ;
 					} else {
 
@@ -67,7 +67,7 @@ function addFeedBack(req,res){
 
                                var content = query.content;
                                if (check.isNull(content)) {
-                                   res.json({"code": 401, "data":{"status":"fail","error":"content is null"}});
+                                   res.json({"code": 401, "data":{"status":"fail","error":"描述为空"}});
                                    return ;
                                }
 
@@ -83,7 +83,7 @@ function addFeedBack(req,res){
                                dataArr = [cam_id, content, curtime, user_id, fb_loc_lon, fb_loc_lan, fb_addr];
                            }
                            else {
-                               res.json({"code": 404, "data":{"status":"fail","error":"camera not exist"}});
+                               res.json({"code": 404, "data":{"status":"fail","error":"摄像头不存在"}});
                                return ;
                            }
 
@@ -92,7 +92,7 @@ function addFeedBack(req,res){
                                   res.json({"code": 501, "data":{"status":"fail","error":err.message}});
                               }else {
 									fb_id = rows.insertId;
-									Log.insertLog(mobile,req.url,sql);
+									Log.insertLog(mobile,"添加反馈",sql);
 									res.json({"code": 200, "data":{"status":"success","error":"success", "fb_id": fb_id}});
 
                                   var pics = query.pics || '';
@@ -121,7 +121,7 @@ function addFeedBack(req,res){
 				});
             }
             else {
-                res.json({"code": 301, "data":{"status":"fail","error":"user not login"}});
+                res.json({"code": 301, "data":{"status":"fail","error":"用户未登录"}});
                 return ;
             }
         });
@@ -161,12 +161,12 @@ function getSelfFeedBackList(req,res){
 					   res.json({"code": 500, "data":{"status":"fail","error":err}});
 					   return ;
 				   }
-				   Log.insertLog(mobile,req.url,"getSelfFeedBackList");
+				   //Log.insertLog(mobile,req.url,"getSelfFeedBackList");
 				   res.json(result);
 				});
 			}
 			else {
-				res.json({"code": 301, "data":{"status":"fail","error":"user not login"}});
+				res.json({"code": 301, "data":{"status":"fail","error":"用户未登录"}});
 				return ;
 			}
 		});
@@ -195,7 +195,7 @@ function getFeedBackListByCamIdFromPc(req,res){
 
 				var cam_id = query.camId || '';
 				if (check.isNull(cam_id)) {
-					res.json({"code": 401, "data":{"status":"fail","error":"camId is null"}});
+					res.json({"code": 401, "data":{"status":"fail","error":"摄像头ID为空"}});
 					return ;
 				}
 
@@ -220,7 +220,7 @@ function getFeedBackListByCamIdFromPc(req,res){
 												});
 											});
 							},function(err,results){
-								Log.insertLog(mobile,req.url,"getFeedBackListByCamIdFromPc");
+								//Log.insertLog(mobile,req.url,"getFeedBackListByCamIdFromPc");
 								ret["code"] = 200;
 								ret["status"] = "success";
 								ret["data"] = results;
@@ -256,7 +256,7 @@ function getFeedBackListByCamIdFromPc(req,res){
 				// });
 			}
 			else {
-				res.json({"code": 301, "data":{"status":"fail","error":"user not login"}});
+				res.json({"code": 301, "data":{"status":"fail","error":"用户未登录"}});
 				return ;
 			}
 		});

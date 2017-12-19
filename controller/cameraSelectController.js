@@ -50,7 +50,7 @@ function cameraSelectRect(req, res) {
                 var rightBottomY = query.rightBottomY || -1;
                 if (leftTopX == -1 || leftTopY == -1 ||
                     rightBottomX == -1 || rightBottomY == -1) {
-                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+                    res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
                     leftTopX = parseFloat(leftTopX);
                     leftTopY = parseFloat(leftTopY);
@@ -65,16 +65,16 @@ function cameraSelectRect(req, res) {
                             ret = {};
                             ret["status"] = "success";
                             ret["data"] = data;
-                            Log.insertLog(mobile,req.url,sql);
+                            Log.insertLog(mobile,"矩形框选摄像头",sql);
                             res.json({ "code": 200, "data": ret });
                         });
                 }
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误" } });
     }
 }
 
@@ -96,7 +96,7 @@ function cameraSelectCircle(req, res) {
                 var centerY = query.centerY || -1;
                 var radius = query.radius || -1;
                 if (centerX == -1 || centerY == -1 || radius == -1) {
-                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+                    res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
                     centerX = parseFloat(centerX);
                     centerY = parseFloat(centerY);
@@ -109,16 +109,16 @@ function cameraSelectCircle(req, res) {
                             ret = {};
                             ret["status"] = "success";
                             ret["data"] = data;
-                            Log.insertLog(mobile,req.url,sql);
+                            Log.insertLog(mobile,"圆形框选摄像头",sql);
                             res.json({ "code": 200, "data": ret });
                         });
                 }
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误" } });
     }
 }
 
@@ -138,7 +138,7 @@ function cameraSelectPolygon(req, res) {
             if (result) {
                 var points = query.points || -1;
                 if (points == -1 || points.length < 3) {
-                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+                    res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
                     points = JSON.parse(points);
                     var minX = 1000000;
@@ -161,7 +161,7 @@ function cameraSelectPolygon(req, res) {
                         }
                     }
                     if (maxX < 0 || maxY < 0 || minX == 1000000 || minY == 1000000) {
-                        res.json({ "code": 300, "data": { "status": "fail", "error": "param error3" } });
+                        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
                     } else {
                         //取出所有在矩形边界内的点
                         leftTopX = parseFloat(minX);
@@ -185,17 +185,17 @@ function cameraSelectPolygon(req, res) {
                                 ret = {};
                                 ret["status"] = "success";
                                 ret["data"] = data;
-                                Log.insertLog(mobile,req.url,sql);
+                                Log.insertLog(mobile,"多边形框选摄像头",sql);
                                 res.json({ "code": 200, "data": ret });
                             });
                     }
                 }
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误" } });
     }
 }
 
@@ -216,7 +216,7 @@ function cameraSelectLine(req, res) {
                 var points = query.points || -1;
                 var space = query.space || -1;
                 if (points == -1 || points.length < 2 || space == -1) {
-                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+                    res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
                     points = JSON.parse(points);
                     space = parseFloat(space);
@@ -325,19 +325,19 @@ function cameraSelectLine(req, res) {
                                 ret = {};
                                 ret["status"] = "success";
                                 ret["data"] = data;
-                                Log.insertLog(mobile,req.url,sql);
+                                Log.insertLog(mobile,"获取直线附近摄像头",sql);
                                 res.json({ "code": 200, "data": ret });
                             });
                     } else {
-                        res.json({ "code": 300, "data": { "status": "fail", "error": "param error3" } });
+                        res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                     }
                 }
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误" } });
     }
 }
 
@@ -388,11 +388,11 @@ function funcName(req, res) {
             if (result) {
 
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误" } });
     }
 }
 

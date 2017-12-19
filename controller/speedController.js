@@ -8,7 +8,7 @@ function getCarPosition(req,res){
 		check(query,res,function(){
 			var Id = query.Id || -1;
 			if (Id == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
             	//需要对接接口,自己获取不了
             	/*var centerX = 500377.96;
@@ -43,7 +43,7 @@ function getCarPosition(req,res){
             }
 		});
 	} catch(e) {
-		errorHandler(res, "unknown error");
+		errorHandler(res, "未知错误");
 	}
 }
 
@@ -54,7 +54,7 @@ function getImportantPeopleTrack(req,res){
 		check(query,res,function(){
 			var Id = query.Id || -1;
 			if (Id == -1) {
-                errorHandler(res, "params error");
+                errorHandler(res, "参数错误");
             } else {
             	var centerX = 305971.1;
             	var centerY = 305971.1;
@@ -74,7 +74,7 @@ function getImportantPeopleTrack(req,res){
             }
 		});
 	} catch(e) {
-		errorHandler(res, "unknown error");
+		errorHandler(res, "未知错误");
 	}
 }
 
@@ -88,7 +88,7 @@ function bfradio(req,res){
             if (user.error == 0) {
             	 res.json({ "code": 200, "data": { "status": "success", "url": "http://127.0.0.1:8081/upload/01.mp4" } });
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -111,7 +111,7 @@ function check(query, res, callback) {
         if (result) {
             callback();
         } else {
-            errorHandler(res, "mobile not match token");
+            errorHandler(res, "账号和token不匹配");
         }
     });
 }

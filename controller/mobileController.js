@@ -24,7 +24,7 @@ function login(req, res) {
         var password = query.password || "";
         var IP = query.IP || "0.0.0.0";
         if (mobile.length != 11) {
-            res.json({ "code": 300, "data": { "status": "fail", "error": "moblie error" }});
+            res.json({ "code": 300, "data": { "status": "fail", "error": "账号错误" }});
         } else {
             password = crypto.createHash("md5").update(password).digest('hex');
             conn.query("select count(Id) as total from mobileUser where mobile=? and " +
@@ -43,7 +43,7 @@ function login(req, res) {
                             function(err, result) {
                                 result[0]["token"] = token;
                                 result[0]["status"] = "success";
-                                Log.insertLog(mobile,req.url,"login");
+                                Log.insertLog(mobile,"用户登录","login");
                                 res.json({ "code": 200, "data": result[0] });
                                 //更新数据库
                                 conn.query("update mobileUser set token=?,lastLoginTime=?," +
@@ -54,12 +54,12 @@ function login(req, res) {
                                     });
                             });
                     } else {
-                        res.json({ "code": 300, "data": { "status": "fail", "error": "moblie not match password" } });
+                        res.json({ "code": 300, "data": { "status": "fail", "error": "账号和密码不匹配" } });
                     }
                 });
         }
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "unknown error" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误" } });
     }
 }
 
@@ -84,7 +84,7 @@ function loginWithToken(req, res) {
                     	console.log(err);
                         result[0]["token"] = token;
                         result[0]["status"] = "success";
-                        Log.insertLog(mobile,req.url,"loginWithToken");
+                        Log.insertLog(mobile,"token登录","loginWithToken");
                         res.json({ "code": 200, "data": result[0] });
                         //更新数据库
                         conn.query("update mobileUser set token=?,lastLoginTime=?," +
@@ -95,11 +95,11 @@ function loginWithToken(req, res) {
                             });
                     });
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "moblie not match token" }});
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" }});
             }
         })
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "unkown error" }});
+        res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误" }});
     }
 }
 
@@ -115,15 +115,15 @@ function logout(req, res) {
                 conn.query("update mobileUser set token=? where mobile=?",
                 	["KingDragon", mobile],
                     function(err, re) {
-                        Log.insertLog(mobile,req.url,"logout");
-                        res.json({ "code": 200, "data": { "status": "success", "error": "logout success" } });
+                        Log.insertLog(mobile,"退出登录","logout");
+                        res.json({ "code": 200, "data": { "status": "success", "error": "退出登录成功" } });
                     });
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "moblie not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "unkown error" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误" } });
     }
 }
 
@@ -158,7 +158,7 @@ function getUserInfo(mobile, token, callback) {
                         callback(ret);
                     });
             } else {
-                callback({ "error": "mobile not match token" });
+                callback({ "error": "账号和token不匹配" });
             }
         });
     } catch (e) {
@@ -183,14 +183,15 @@ function getDepartmentAPP(req,res){
 					var params = [id];
 					conn.query(sql,params,function(err,result){
 						if(err){
-							console.log(err.message);
+                            res.json({ "code": 300, "data": { "status": "fail", "error": "查询失败" }});
+                            return;
 						}else{
 							res.json({ "code": 200, "data": {"status":"success","message":result} });
 						}
 					});
 				}
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "not login" }});
+                res.json({ "code": 300, "data": { "status": "fail", "error": "用户未登录" }});
                 return;
             }
         });

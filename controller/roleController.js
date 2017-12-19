@@ -35,7 +35,7 @@ function addRole(req, res) {
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "roleName is null"
+                                    "error": "角色名称为空"
                                 }
                             });
                             return;
@@ -57,7 +57,7 @@ function addRole(req, res) {
                                         "code": 402,
                                         "data": {
                                             "status": "fail",
-                                            "error": "role exist"
+                                            "error": "角色已存在"
                                         }
                                     });
                                     return;
@@ -77,7 +77,7 @@ function addRole(req, res) {
                                             }
                                         });
                                     } else {
-                                        Log.insertLog(mobile,req.url,sql);
+                                        Log.insertLog(mobile,"添加角色",sql);
                                         res.json({
                                             "code": 200,
                                             "data": {
@@ -95,7 +95,7 @@ function addRole(req, res) {
                             "code": 301,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相关权限"
                             }
                         });
                         return;
@@ -106,7 +106,7 @@ function addRole(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -145,7 +145,7 @@ function delRole(req, res) {
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "roleId is null"
+                                    "error": "角色ID为空"
                                 }
                             });
                             return;
@@ -175,7 +175,7 @@ function delRole(req, res) {
                                                 }
                                             });
                                         } else {
-                                            Log.insertLog(mobile,req.url,sql);
+                                            Log.insertLog(mobile,"删除角色",sql);
                                             res.json({
                                                 "code": 200,
                                                 "data": {
@@ -190,7 +190,7 @@ function delRole(req, res) {
                                         "code": 404,
                                         "data": {
                                             "status": "fail",
-                                            "error": "role not exist"
+                                            "error": "角色不存在"
                                         }
                                     });
                                 }
@@ -201,7 +201,7 @@ function delRole(req, res) {
                             "code": 301,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相关权限"
                             }
                         });
                         return;
@@ -212,7 +212,7 @@ function delRole(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -251,7 +251,7 @@ function editRole(req, res) {
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "roleId is null"
+                                    "error": "角色ID为空"
                                 }
                             });
                             return;
@@ -262,7 +262,7 @@ function editRole(req, res) {
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "roleName no is null"
+                                    "error": "角色名称为空"
                                 }
                             });
                             return;
@@ -314,7 +314,7 @@ function editRole(req, res) {
                                                             }
                                                         });
                                                     } else {
-                                                        Log.insertLog(mobile,req.url,sql);
+                                                        Log.insertLog(mobile,"修改角色信息",sql);
                                                         res.json({
                                                             "code": 200,
                                                             "data": {
@@ -332,7 +332,7 @@ function editRole(req, res) {
                                         "code": 404,
                                         "data": {
                                             "status": "fail",
-                                            "error": "role not exist"
+                                            "error": "角色不存在"
                                         }
                                     });
                                 }
@@ -343,7 +343,7 @@ function editRole(req, res) {
                             "code": 301,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相应权限"
                             }
                         });
                         return;
@@ -354,7 +354,7 @@ function editRole(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -383,8 +383,6 @@ function getRoleList(req, res) {
         var token = query.token;
         User.getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
-                console.log(user);
-                console.log(user.data.role_id);
                 user_info = user.data;
                 user_roleId = user.data.role_id;
                 var userId = user_info.Id;
@@ -428,7 +426,7 @@ function getRoleList(req, res) {
                                             }
                                         });
                                     } else {
-                                        Log.insertLog(mobile,req.url,sql);
+                                        //Log.insertLog(mobile,req.url,sql);
                                         res.json({
                                             "code": 200,
                                             "data": {
@@ -450,7 +448,7 @@ function getRoleList(req, res) {
                             "code": 501,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相应权限"
                             }
                         });
                     }
@@ -460,7 +458,7 @@ function getRoleList(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;

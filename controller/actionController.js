@@ -33,24 +33,24 @@ function addAction(req, res) {
                     if (permission) {
                         var actionName = query.actionName || '';
                         if (check.isNull(actionName)) {
-                            Log.insertLog(mobile,req.url,"actionName is null");
+                            //Log.insertLog(mobile,"添加权限","actionName is null");
                             res.json({
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "actionName is null"
+                                    "error": "权限名称为空"
                                 }
                             });
                             return;
                         }
                         var actionUrl = query.actionUrl || '';
                         if (check.isNull(actionUrl)) {
-                            Log.insertLog(mobile,req.url,"actionUrl is null");
+                            //Log.insertLog(mobile,req.url,"actionUrl is null");
                             res.json({
                                 "code": 401,
                                 "data": {
                                     "status": "fail",
-                                    "error": "actionUrl is null"
+                                    "error": "权限url为空"
                                 }
                             });
                             return;
@@ -72,7 +72,7 @@ function addAction(req, res) {
                                         "code": 402,
                                         "data": {
                                             "status": "fail",
-                                            "error": "action exist"
+                                            "error": "权限已存在"
                                         }
                                     });
                                     return;
@@ -92,7 +92,7 @@ function addAction(req, res) {
                                             }
                                         });
                                     } else {
-                                        Log.insertLog(mobile,req.url,sql);
+                                        Log.insertLog(mobile,"添加权限",sql);
                                         res.json({
                                             "code": 200,
                                             "data": {
@@ -110,7 +110,7 @@ function addAction(req, res) {
                             "code": 301,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相应权限"
                             }
                         });
                         return;
@@ -121,7 +121,7 @@ function addAction(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -157,7 +157,7 @@ function delAction(req, res) {
                         "code": 401,
                         "data": {
                             "status": "fail",
-                            "error": "actionId is null"
+                            "error": "权限ID为空"
                         }
                     });
                     return;
@@ -190,7 +190,7 @@ function delAction(req, res) {
                                                 }
                                             });
                                         } else {
-                                            Log.insertLog(mobile,req.url,sql);
+                                            Log.insertLog(mobile,"删除权限",sql);
                                             res.json({
                                                 "code": 200,
                                                 "data": {
@@ -205,7 +205,7 @@ function delAction(req, res) {
                                         "code": 404,
                                         "data": {
                                             "status": "fail",
-                                            "error": "action not exist"
+                                            "error": "权限不存在"
                                         }
                                     });
                                 }
@@ -216,7 +216,7 @@ function delAction(req, res) {
                             "code": 301,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相应权限"
                             }
                         });
                         return;
@@ -227,7 +227,7 @@ function delAction(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -263,7 +263,7 @@ function editAction(req, res) {
                         "code": 401,
                         "data": {
                             "status": "fail",
-                            "error": "actionId is null"
+                            "error": "权限ID为空"
                         }
                     });
                     return;
@@ -274,7 +274,7 @@ function editAction(req, res) {
                         "code": 401,
                         "data": {
                             "status": "fail",
-                            "error": "actionName no is null"
+                            "error": "权限名称不能为空"
                         }
                     });
                     return;
@@ -285,7 +285,7 @@ function editAction(req, res) {
                         "code": 401,
                         "data": {
                             "status": "fail",
-                            "error": "actionUrl is null"
+                            "error": "权限url为空"
                         }
                     });
                     return;
@@ -323,7 +323,7 @@ function editAction(req, res) {
                                                     "code": 402,
                                                     "data": {
                                                         "status": "fail",
-                                                        "error": "action exist"
+                                                        "error": "权限已存在"
                                                     }
                                                 });
                                                 return;
@@ -340,7 +340,7 @@ function editAction(req, res) {
                                                             }
                                                         });
                                                     } else {
-                                                        Log.insertLog(mobile,req.url,sql);
+                                                        Log.insertLog(mobile,"修改权限",sql);
                                                         res.json({
                                                             "code": 200,
                                                             "data": {
@@ -358,7 +358,7 @@ function editAction(req, res) {
                                         "code": 404,
                                         "data": {
                                             "status": "fail",
-                                            "error": "action not exist"
+                                            "error": "权限不存在"
                                         }
                                     });
                                 }
@@ -369,7 +369,7 @@ function editAction(req, res) {
                             "code": 301,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相应权限"
                             }
                         });
                         return;
@@ -380,7 +380,7 @@ function editAction(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -450,7 +450,7 @@ function getActionList(req, res) {
                                             }
                                         });
                                     } else {
-                                        Log.insertLog(mobile,req.url,sql);
+                                        //Log.insertLog(mobile,req.url,sql);
                                         res.json({
                                             "code": 200,
                                             "data": {
@@ -471,7 +471,7 @@ function getActionList(req, res) {
                             "code": 301,
                             "data": {
                                 "status": "fail",
-                                "error": "permission deneied"
+                                "error": "没有相应权限"
                             }
                         });
                         return;
@@ -482,7 +482,7 @@ function getActionList(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;

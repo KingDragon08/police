@@ -54,7 +54,7 @@ function getLogList(req, res) {
                                     }
                                 });
                             } else {
-                                insertLog(mobile,req.url,sql);
+                                //insertLog(mobile,req.url,sql);
                                 res.json({
                                     "code": 200,
                                     "data": {
@@ -69,7 +69,7 @@ function getLogList(req, res) {
                     }
                 });
             } else {
-                errMessage(res, 301, "user not login");
+                errMessage(res, 301, "用户未登录");
                 return;
             }
         });
@@ -241,7 +241,7 @@ function listLogByMobile(req, res) {
                                     }
                                 });
                             } else {
-                                insertLog(mobile,req.url,sql);
+                                //insertLog(mobile,req.url,sql);
                                 res.json({
                                     "code": 200,
                                     "data": {
@@ -256,7 +256,7 @@ function listLogByMobile(req, res) {
                     }
                 });
             } else {
-                errMessage(res, 301, "user not login");
+                errMessage(res, 301, "用户未登录");
                 return;
             }
         });

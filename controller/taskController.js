@@ -60,7 +60,7 @@ function publishTask(req, res) {
                     taskNO == -1 || taskStatus == -1 ||
                     cameraId == -1
                     ) {
-					res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });	
+					res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
                 	//检查该摄像头的任务是否已经存在
                 	sql = "select count(Id) as total from task where cameraId=?";
@@ -71,21 +71,21 @@ function publishTask(req, res) {
 		                        "taskDescription,userId,taskNO,taskStatus,cameraId)values(?,?,?,?,?,?,?)", [cameraName, cameraLocation, taskDescription, userId, taskNO, taskStatus,cameraId],
 		                        function(err, data) {
                                     console.log(err);
-                                    Log.insertLog(mobile,req.url,"insert into task(cameraName,cameraLocation," +
+                                    Log.insertLog(mobile,"发布任务","insert into task(cameraName,cameraLocation," +
                                                                     "taskDescription,userId,taskNO,taskStatus,cameraId)values(?,?,?,?,?,?,?)");
 		                            res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
 		                    });
                 		} else {
-                			res.json({ "code": 300, "data": { "status": "fail", "error": "cameraId exist in tasks" } });
+                			res.json({ "code": 300, "data": { "status": "fail", "error": "任务表中没有改摄像头ID" } });
                 		}
                 	});
                 }
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 302, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 302, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -111,7 +111,7 @@ function publishTaskWithoutCamera(req,res){
                     cameraLon == -1 || cameraLa==-1 ||
                     taskDescription == -1 || userId == -1
                     ) {
-                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });   
+                    res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
                     //插入一条任务到task
                     sql = "insert into task(cameraName,cameraLocation," +
@@ -125,7 +125,7 @@ function publishTaskWithoutCamera(req,res){
                                 if(err){
                                     console.log(err);
                                 } else {
-                                    Log.insertLog(mobile,req.url,"insert into task(cameraName,cameraLocation," +
+                                    Log.insertLog(mobile,"发布采集新摄像头任务","insert into task(cameraName,cameraLocation," +
                                                                     "taskDescription,userId,taskNO,taskStatus,"+
                                                                     "cameraId,cameraLon,cameraLa,addtime,cameraType)"+
                                                                     "values(?,?,?,?,?,?,?,?,?,?,?)");
@@ -135,11 +135,11 @@ function publishTaskWithoutCamera(req,res){
                     );                    
                 }
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 302, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 302, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -169,16 +169,16 @@ function getAllTask(req,res){
                         ret["status"] = "success";
                         ret["data"] = data;
                         ret["total"] = result[0].total;
-                        Log.insertLog(mobile,req.url,sql);
+                        //Log.insertLog(mobile,req.url,sql);
                         res.json({ "code": 200, "data": ret });
                     });
             	});
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -207,16 +207,16 @@ function getUserTask(req,res){
                             ret["total"] = result[0].total;
                             ret["status"] = "success";
                             ret["data"] = data;
-                            Log.insertLog(mobile,req.url,sql);
+                            //Log.insertLog(mobile,req.url,sql);
                             res.json({ "code": 200, "data": ret });
                         });
             	});
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -248,15 +248,15 @@ function searchTask(req,res){
             		ret = {};
                     ret["status"] = "success";
                     ret["data"] = data;
-                    Log.insertLog(mobile,req.url,sql);
+                    //Log.insertLog(mobile,req.url,sql);
                     res.json({ "code": 200, "data": ret });
             	});
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -283,18 +283,28 @@ function getTaskPC(req,res){
                     conn.query(sql,[taskStatus],function(err,data){
                         var total = data[0].total;
                         var start = (page - 1)*pageSize;
-                        var sql = "select * from task where taskStatus=?"+
+                        var sql = "select *,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from task where taskStatus=?"+
                                     " order by Id desc limit ?,?";
                         conn.query(sql,[taskStatus,start,pageSize],function(err,data){
-                            // console.log(err);
-                            // console.log(data);
-                            ret = {};
-                            ret["status"] = "success";
-                            ret["data"] = data;
-                            ret["pageSize"] = pageSize;
-                            ret["totalPage"] = Math.ceil(parseInt(total)/pageSize);
-                            Log.insertLog(mobile,req.url,sql);
-                            res.json({ "code": 200, "data": ret });
+                            if(err){
+                                res.json({ "code": 300, "data": { "status": "fail", "error": "数据库查询失败" } });
+                            }else{
+                                var sqls ="select * from user";
+                                conn.query(sqls,null,function (err,result) {
+                                    if(err){
+                                        res.json({ "code": 300, "data": { "status": "fail", "error": "数据库查询失败" } });
+                                    }else{
+                                        ret = {};
+                                        ret["status"] = "success";
+                                        ret["data"] = data;
+                                        ret["pageSize"] = pageSize;
+                                        ret["totalPage"] = Math.ceil(parseInt(total)/pageSize);
+                                        ret["userData"]  = result;
+                                        //Log.insertLog(mobile,req.url,sql);
+                                        res.json({ "code": 200, "data": ret });
+                                    }
+                                });
+                            }
                         });
                     });
                 } else {
@@ -307,25 +317,35 @@ function getTaskPC(req,res){
                         var sql = "select * from task where userId=? and taskStatus=?"+
                                     " order by Id desc limit ?,?";
                         conn.query(sql,[userId,taskStatus,start,pageSize],function(err,data){
-                            // console.log(err);
-                            // console.log(data);
-                            ret = {};
-                            ret["status"] = "success";
-                            ret["data"] = data;
-                            ret["pageSize"] = pageSize;
-                            ret["totalPage"] = Math.ceil(parseInt(total)/pageSize);
-                            Log.insertLog(mobile,req.url,sql);
-                            res.json({ "code": 200, "data": ret });
+                            if(err){
+                                res.json({ "code": 300, "data": { "status": "fail", "error": "数据库查询失败" } });
+                            }else{
+                                var sqls ="select * from user";
+                                conn.query(sqls,null,function (err,result) {
+                                    if(err){
+                                        res.json({ "code": 300, "data": { "status": "fail", "error": "数据库查询失败" } });
+                                    }else{
+                                        ret = {};
+                                        ret["status"] = "success";
+                                        ret["data"] = data;
+                                        ret["pageSize"] = pageSize;
+                                        ret["totalPage"] = Math.ceil(parseInt(total)/pageSize);
+                                        ret["userData"]  = result;
+                                        //Log.insertLog(mobile,req.url,sql);
+                                        res.json({ "code": 200, "data": ret });
+                                    }
+                                });
+                            }
                         });
                     });
                 }
                 
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -355,15 +375,15 @@ function getTaskMobile(req,res){
             		ret = {};
                     ret["status"] = "success";
                     ret["data"] = data;
-                    Log.insertLog(mobile,req.url,sql);
+                    //Log.insertLog(mobile,req.url,sql);
                     res.json({ "code": 200, "data": ret });
             	});
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误1" } });
     }
 }
 
@@ -390,7 +410,7 @@ function checkTask(req,res){
             	var sql = "";
             	if(taskId==-1 || taskStatus==-1 || cameraLon==-1 || cameraLa==-1 ||
                     (taskStatus==4&&info=="")){
-            		res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+            		res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
             	} else {
 					if(taskStatus==3){
 						sql = "update task set taskStatus=3 where Id=" + taskId;
@@ -426,28 +446,28 @@ function checkTask(req,res){
                                                                 //更新任务表中的cameraId
                                                                 conn.query("update task set cameraId=? where Id=?",[cameraId,taskId],
                                                                     function(err,result){
-                                                                        Log.insertLog(mobile,req.url,sql);
+                                                                        //Log.insertLog(mobile,req.url,sql);
                                                                         res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                                                                     });
                                                             });
                                         }
                                         
                                     } else {
-                                        res.json({ "code": 300, "data": { "status": "fail", "error": "task not exist" } });
+                                        res.json({ "code": 300, "data": { "status": "fail", "error": "任务不存在" } });
                                     }
                                 });
                         } else {
-                            Log.insertLog(mobile,req.url,sql);
+                            //Log.insertLog(mobile,req.url,sql);
                             res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                         }
 					});            		
             	}
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -498,7 +518,7 @@ function getTaskStatus_PC(req, res) {
             if (result) {
             	var cameraId = query.cameraId || -1;
             	if(cameraId==-1){
-            		res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+            		res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
             	} else {
             		cameraId = parseInt(cameraId);
             		conn.query("select taskStatus from task where cameraId=?",
@@ -508,23 +528,23 @@ function getTaskStatus_PC(req, res) {
             					ret = {};
 			                    ret["status"] = "success";
 			                    ret["data"] = {"taskStatus":0};
-                                Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
+                                //Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
 			                    res.json({ "code": 200, "data": ret });
             				} else {
             					ret = {};
 			                    ret["status"] = "success";
 			                    ret["data"] = {"taskStatus":data[0].taskStatus};
-                                Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
+                                //Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
 			                    res.json({ "code": 200, "data": ret });
             				}
             			});
             	}
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -538,7 +558,7 @@ function getTaskStatus_App(req, res) {
             if (result) {
             	var cameraId = query.cameraId || -1;
             	if(cameraId==-1){
-            		res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+            		res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
             	} else {
             		cameraId = parseInt(cameraId);
             		conn.query("select taskStatus from task where cameraId=?",
@@ -548,23 +568,23 @@ function getTaskStatus_App(req, res) {
             					ret = {};
 			                    ret["status"] = "success";
 			                    ret["data"] = {"taskStatus":0};
-                                Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
+                                //Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
 			                    res.json({ "code": 200, "data": ret });
             				} else {
             					ret = {};
 			                    ret["status"] = "success";
 			                    ret["data"] = {"taskStatus":data[0].taskStatus};
-                                Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
+                                //Log.insertLog(mobile,req.url,"select taskStatus from task where cameraId=?");
 			                    res.json({ "code": 200, "data": ret });
             				}
             			});
             	}
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -594,21 +614,21 @@ function deleteTask(req,res){
             if (result) {
             	var taskId = query.taskId || -1;
             	if(taskId==-1){
-        			res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });    		
+        			res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
             	} else {
             		taskId = parseInt(taskId);
             		conn.query("delete from task where Id=?",[taskId],
             			function(err,data){
-                            Log.insertLog(mobile,req.url,"delete from task where Id=?");
+                            Log.insertLog(mobile,"删除任务","delete from task where Id=?");
             				res.json({ "code": 200, "data": { "status": "success", "error": "success" } });	
             			});
             	}
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -622,21 +642,21 @@ function acceptTask(req,res){
             if (result) {
             	var taskId = query.taskId || -1;
             	if(taskId==-1){
-        			res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });    		
+        			res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
             	} else {
             		taskId = parseInt(taskId);
             		conn.query("update task set taskStatus=1 where Id=?",[taskId],
             			function(err,data){
-                            Log.insertLog(mobile,req.url,"update task set taskStatus=1 where Id=?");
+                            //Log.insertLog(mobile,req.url,"update task set taskStatus=1 where Id=?");
             				res.json({ "code": 200, "data": { "status": "success", "error": "success" } });	
             			});
             	}
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -657,7 +677,7 @@ function taskFeedBack(req,res){
                 var pics = query.pics || -1;
                 if(taskId==-1 || content==-1 || cameraLon==-1 || cameraNo==-1
                     || cameraLa==-1 || pics==-1 ){
-                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+                    res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
                     try{
                         pics = JSON.parse(pics);    
@@ -665,7 +685,7 @@ function taskFeedBack(req,res){
                         pics = pics;
                     }
                     if(pics.length<1){
-                        res.json({ "code": 300, "data": { "status": "fail", "error": "pics can not be null" } });
+                        res.json({ "code": 300, "data": { "status": "fail", "error": "图片不能为空" } });
                         return;
                     }
                     //检查任务Id是否存在
@@ -673,7 +693,7 @@ function taskFeedBack(req,res){
                     var sql = "select count(Id) as total from task where Id=?";
                     conn.query(sql,[taskId],function(err,data){
                         if(data[0].total==0){
-                            res.json({ "code": 300, "data": { "status": "fail", "error": "taskId not exist" } });
+                            res.json({ "code": 300, "data": { "status": "fail", "error": "任务不存在" } });
                         } else {
                             //更新任务状态为审核中
                             /*
@@ -688,7 +708,7 @@ function taskFeedBack(req,res){
                                 function(err,data){
                                     if(err){
                                         console.log(err);
-                                        res.json({ "code": 300, "data": { "status": "fail", "error": "update task status fail" } });
+                                        res.json({ "code": 300, "data": { "status": "fail", "error": "修改任务状态失败" } });
                                     } else {
                                         //插入反馈信息记录
                                         var addtime = new Date().getTime();
@@ -697,7 +717,7 @@ function taskFeedBack(req,res){
                                         conn.query(sql,[taskId,content,addtime,cameraLon,cameraLa,cameraNo,cameraExtra,pics.length],
                                             function(err,data){
                                                 if(err){
-                                                    res.json({ "code": 300, "data": { "status": "fail", "error": "insert taskFeedBack fail" } });
+                                                    res.json({ "code": 300, "data": { "status": "fail", "error": "任务反馈失败" } });
                                                 } else {
                                                     //插入反馈的图片记录
                                                     var taskFeedBackId = data.insertId;
@@ -712,7 +732,7 @@ function taskFeedBack(req,res){
                                                       });
                                                 }
                                             });
-                                        Log.insertLog(mobile,req.url,sql);
+                                        Log.insertLog(mobile,"反馈任务－有任务",sql);
                                         res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                                     }
                                 });
@@ -720,11 +740,11 @@ function taskFeedBack(req,res){
                     });
                 }
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     } 
 }
 
@@ -751,7 +771,7 @@ function feedBackWithoutTask(req,res){
                     cameraLa==-1 || cameraType==-1 || userId==-1 ||
                     content==-1 || cameraNo==-1 || 
                     pics==-1){
-                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+                    res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
                     try{
                         pics = JSON.parse(pics);    
@@ -759,7 +779,7 @@ function feedBackWithoutTask(req,res){
                         pics = pics;
                     }
                     if(pics.length<1){
-                        res.json({ "code": 300, "data": { "status": "fail", "error": "pics can not be null" } });
+                        res.json({ "code": 300, "data": { "status": "fail", "error": "图片不能为空" } });
                         return;
                     }
                     //插入一条状态为审核中的任务
@@ -785,7 +805,7 @@ function feedBackWithoutTask(req,res){
                                     conn.query(sql,[taskId,content,addtime,cameraLon,cameraLa,cameraNo,cameraExtra,pics.length],
                                         function(err,data){
                                             if(err){
-                                                res.json({ "code": 300, "data": { "status": "fail", "error": "insert taskFeedBack fail" } });
+                                                res.json({ "code": 300, "data": { "status": "fail", "error": "反馈任务失败" } });
                                             } else {
                                                 //插入反馈的图片记录
                                                 var taskFeedBackId = data.insertId;
@@ -800,17 +820,17 @@ function feedBackWithoutTask(req,res){
                                                   });
                                             }
                                         });
-                                    Log.insertLog(mobile,req.url,sql);
+                                    Log.insertLog(mobile,"反馈任务－没有任务",sql);
                                     res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                                 }
                             });
                 }
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     } 
 }
 
@@ -836,7 +856,7 @@ function taskFeedBackEdit(req,res){
                 if(taskId==-1 || content==-1 || cameraLon==-1 || cameraNo==-1
                     || cameraLa==-1 || pics==-1 || 
                      taskFeedBackId==-1){
-                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });
+                    res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
                     try{
                         pics = JSON.parse(pics);    
@@ -844,7 +864,7 @@ function taskFeedBackEdit(req,res){
                         pics = pics;
                     }
                     if(pics.length<1){
-                        res.json({ "code": 300, "data": { "status": "fail", "error": "pics can not be null" } });
+                        res.json({ "code": 300, "data": { "status": "fail", "error": "图片不能为空" } });
                         return;
                     }
                     //检查任务Id是否存在
@@ -853,7 +873,7 @@ function taskFeedBackEdit(req,res){
                     var sql = "select count(Id) as total from task where Id=?";
                     conn.query(sql,[taskId],function(err,data){
                         if(data[0].total==0){
-                            res.json({ "code": 300, "data": { "status": "fail", "error": "taskId not exist" } });
+                            res.json({ "code": 300, "data": { "status": "fail", "error": "任务不存在" } });
                         } else {
                             //检查任务状态是否为审核已通过
                             conn.query("select taskStatus from task where Id=?",[taskId],
@@ -871,7 +891,7 @@ function taskFeedBackEdit(req,res){
                                                                     function(err,data){
                                                                         if(err){
                                                                             console.log(err);
-                                                                            res.json({ "code": 300, "data": { "status": "fail", "error": "update task status fail" } });
+                                                                            res.json({ "code": 300, "data": { "status": "fail", "error": "更新任务状态失败" } });
                                                                         } else {
                                                                             //插入反馈信息记录
                                                                             var addtime = new Date().getTime();
@@ -880,7 +900,7 @@ function taskFeedBackEdit(req,res){
                                                                             conn.query(sql,[taskId,content,addtime,cameraLon,cameraLa,cameraNo,cameraExtra,pics.length],
                                                                                 function(err,data){
                                                                                     if(err){
-                                                                                        res.json({ "code": 300, "data": { "status": "fail", "error": "insert taskFeedBack fail" } });
+                                                                                        res.json({ "code": 300, "data": { "status": "fail", "error": "任务反馈失败" } });
                                                                                     } else {
                                                                                         //插入反馈的图片记录
                                                                                         var taskFeedBackId = data.insertId;
@@ -895,7 +915,7 @@ function taskFeedBackEdit(req,res){
                                                                                           });
                                                                                     }
                                                                                 });
-                                                                            Log.insertLog(mobile,req.url,sql);
+                                                                            Log.insertLog(mobile,"编辑任务采集反馈",sql);
                                                                             res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                                                                         }
                                                                     });
@@ -910,11 +930,11 @@ function taskFeedBackEdit(req,res){
                     });
                 }
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }    
 }
 
@@ -930,7 +950,7 @@ function getTaskById(req,res){
             if (result) {
                 var taskId = query.taskId || -1;
                 if(taskId==-1){
-                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });           
+                    res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
                     taskId = parseInt(taskId);
                     var ret = {};
@@ -959,7 +979,7 @@ function getTaskById(req,res){
                                                 },function(err,result){
                                                     ret["taskFeedBacks"] = result;
                                                     ret["code"] = 200;
-                                                    Log.insertLog(mobile,req.url,"getTaskById");
+                                                    //Log.insertLog(mobile,req.url,"getTaskById");
                                                     res.json(ret);
                                                 });
                                             });
@@ -969,16 +989,16 @@ function getTaskById(req,res){
                                     }
                                 });
                         } else {
-                            res.json({ "code": 300, "data": { "status": "fail", "error": "task not exist" } });
+                            res.json({ "code": 300, "data": { "status": "fail", "error": "任务不存在" } });
                         }
                     });
                 }
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 
@@ -992,7 +1012,7 @@ function getTaskByIdAPP(req,res){
             if (result) {
                 var taskId = query.taskId || -1;
                 if(taskId==-1){
-                    res.json({ "code": 300, "data": { "status": "fail", "error": "param error2" } });           
+                    res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
                     taskId = parseInt(taskId);
                     var ret = {};
@@ -1011,6 +1031,7 @@ function getTaskByIdAPP(req,res){
                                             [taskId],
                                             function(err,data){
                                                 //获取反馈的图片信息
+                                                ret["taskFeedBack"] = data[0];
                                                 async.map(data,function(item,call){
                                                     var taskFeedBackId = item.Id;
                                                     conn.query("select * from taskFeedBackPics where taskFeedBackId=?",
@@ -1021,7 +1042,7 @@ function getTaskByIdAPP(req,res){
                                                 },function(err,result){
                                                     ret["taskFeedBacks"] = result;
                                                     ret["code"] = 200;
-                                                    Log.insertLog(mobile,req.url,"getTaskByIdAPP");
+                                                    //Log.insertLog(mobile,req.url,"getTaskByIdAPP");
                                                     res.json(ret);
                                                 });
                                             });
@@ -1031,16 +1052,16 @@ function getTaskByIdAPP(req,res){
                                     }
                                 });
                         } else {
-                            res.json({ "code": 300, "data": { "status": "fail", "error": "task not exist" } });
+                            res.json({ "code": 300, "data": { "status": "fail", "error": "任务不存在" } });
                         }
                     });
                 }
             } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "mobile not match token" } });
+                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
             }
         });
     } catch (e) {
-        res.json({ "code": 300, "data": { "status": "fail", "error": "param error1" } });
+        res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
     }
 }
 

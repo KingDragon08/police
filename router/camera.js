@@ -222,13 +222,13 @@ server.post("/camera/getCameraAttrs_APP",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
 	try{
 		var mobile = req.body.mobile || -1;
-		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
-			if(hasPermission){
+		// permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+		// 	if(hasPermission){
 				camera.getCameraAttrs_APP(req,res);
-			} else {
-				permission.permissionDenied(res);
-			}
-		});
+		// 	} else {
+		// 		permission.permissionDenied(res);
+		// 	}
+		// });
 	} catch(e) {
 		permission.permissionDenied(res);
 	}
@@ -305,6 +305,25 @@ server.post("/camera/multiAddCameras",function(req,res,next){
 		permission.permissionDenied(res);
 	}
 	return next();
+});
+
+//下载模板
+server.get("/camera/downloadModel",function(req,res,next){
+    res.setHeader("Access-Control-Allow-Origin","*");
+    try{
+        var mobile = req.query.mobile || -1;
+        var url = req.url.split('?')[0];
+        permission.checkUserPermissionByMobile(url, mobile, 'pc', function(hasPermission){
+            if(hasPermission){
+                camera.downloadModel(req,res);
+            } else {
+                permission.permissionDenied(res);
+            }
+        });
+    } catch(e) {
+        permission.permissionDenied(res);
+    }
+    return next();
 });
 
 //手动备份摄像头数据
