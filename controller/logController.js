@@ -4,10 +4,34 @@ var check = require("../lib/check");
 var User = require("./userController");
 var request = require("../lib/request");
 
+//获取日志操作
+function getLogOperate(req,res) {
+    var query = req.body;
+    try{
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function (user) {
+            if(user.error == 0){
+                var sql = "select operate from log_operate";
+                db.query(sql,[],function (err,data) {
+                    if(err){
+                        res.json({"code": 501, "data": {"status": "fail", "error": "数据查询错误"}});
+                    }else{
+                        res.json({"code": 200, "data": {"status": "fail", "data":data}});
+                    }
+                })
+            }else {
+                res.json({"code": 501, "data": {"status": "fail", "error":"用户未登录"}});
+            }
+        });
+    }catch (e){
+        res.json({"code": 500, "data": {"status": "fail", "error": e.message}});
+    }
+}
+
 //分页查询日志；
 function getLogList(req, res) {
     var query = req.body;
-    console.log(query);
     try {
         var mobile = query.mobile;
         var token = query.token;
@@ -29,19 +53,17 @@ function getLogList(req, res) {
                         var total = rows[0].total;
                         var page = query.page || -1;
                         var pageSize = query.pageSize || 20;
-                        console.log("********")
-                        console.log(pageSize)
                         if (page < 1 && page != -1) {
                             page = 1;
                         }
                         pageSize = parseInt(pageSize);
                         var start = (page - 1) * pageSize;
                         if (-1 == page) {
-                            sql = "select * from log";
+                            sql = "select * from log order by id desc";
                             pageSize = total;
                             dataArr = [];
                         } else {
-                            sql = "select * from log limit ?, ?";
+                            sql = "select * from log order by id desc limit ?, ? ";
                             dataArr = [start, pageSize];
                         }
                         db.query(sql, dataArr, function (err, rows) {
@@ -196,16 +218,68 @@ function listLogByMobile(req, res) {
         var token = query.token;
         User.getUserInfo(mobile1, token, function (user) {
             if (user.error == 0) {
-                //
-                var mobile=query.mobile || "-1";
+                var mobile=query.mobile || -1;
             	var startTime=query.startTime || -1;
                 var endTime=query.endTime || -1;
+                var page = query.page || -1;
+                var pageSize = query.pageSize || 20;
+                var operate = query.operate || -1;
+                var key = [];
+                var value = [];
+                var sqls = "select * from log ";
+                var sql = "select count(0) as total from log";
+                if(mobile != -1){
+                    key.push("mobile");
+                    value.push(mobile);
+                }
+                if(operate != -1){
+                    key.push("operate");
+                    value.push(operate);
+                }
+                if (page < 1 && page != -1) {
+                    page = 1;
+                }
+                pageSize = parseInt(pageSize);
+                var start = (page - 1) * pageSize;
+                for(var i=0;i<key.length;i++){
+                    if(i==0){
+                        sqls += " where ";
+                        sql += " where ";
+                    }else{
+                        sqls += " and ";
+                        sql += " and ";
+                    }
+                    sqls += key[i]+" = "+JSON.stringify(value[i]);
+                    sql += key[i]+" = "+JSON.stringify(value[i]);
+                }
+                if(startTime != -1){
+                    if(key.length<1){
+                        sqls += " where timeStamp1 > "+startTime;
+                        sql += " where timeStamp1 > "+startTime;
+                    }
+                    sqls += " and timeStamp1 > "+startTime;
+                    sql += " and timeStamp1 > "+startTime;
+                }
+                if(endTime != -1){
+                    if(key.length<1){
+                        if(startTime == -1){
+                            sqls += " where timeStamp1 < "+endTime;
+                            sql += " where timeStamp1 < "+endTime;
+                        }else{
+                            sqls += " and timeStamp1 < "+endTime;
+                            sql += " and timeStamp1 < "+endTime;
+                        }
 
-                var sql = "select count(id) as total from log where mobile=? and timeStamp1 BETWEEN ? AND ?";
-                var params = [mobile,startTime,endTime];
-                
-                db.query(sql, params, function (err, rows) {
+                    }
+                    sqls += " and timeStamp1 < "+endTime;
+                    sql += " and timeStamp1 < "+endTime;
+                }
+                sqls += " order by id desc limit "+start+","+pageSize;
+                // console.log(sqls);
+                // console.log(sql);
+                db.query(sqls, null, function (err, result) {
                     if (err) {
+                        console.log(err);
                         res.json({
                             "code": 501,
                             "data": {
@@ -214,25 +288,9 @@ function listLogByMobile(req, res) {
                             }
                         });
                     } else {
-                        var total = rows[0].total;
-                        var page = query.page || -1;
-                        var pageSize = query.pageSize || 20;
-                        if (page < 1 && page != -1) {
-                            page = 1;
-                        }
-                        pageSize = parseInt(pageSize);
-                        var start = (page - 1) * pageSize;
-                        if (-1 == page) {
-                            sql = "select * from log where mobile=? and timeStamp1 BETWEEN ? AND ?";
-                            pageSize = total;
-                            params = [mobile,startTime,endTime];
-                        } else {
-                            sql = "select * from log where mobile=? and timeStamp1 BETWEEN ? AND ? limit ?, ?";
-                            params = [mobile,startTime,endTime,start, pageSize];
-                            console.log(params)
-                        }
-                        db.query(sql, params, function (err, rows) {
-                            if (err) {
+                        //insertLog(mobile,req.url,sql);
+                        db.query(sql,null,function (err,rows) {
+                            if(err){
                                 res.json({
                                     "code": 501,
                                     "data": {
@@ -240,19 +298,19 @@ function listLogByMobile(req, res) {
                                         "error": err.message
                                     }
                                 });
-                            } else {
-                                //insertLog(mobile,req.url,sql);
+                            }else{
                                 res.json({
                                     "code": 200,
                                     "data": {
                                         "status": "success",
                                         "error": "success",
-                                        "rows": rows,
-                                        "total": total
+                                        "rows": result,
+                                        "total": rows[0].total
                                     }
                                 });
                             }
-                        });
+                        })
+
                     }
                 });
             } else {
@@ -283,3 +341,4 @@ exports.getLogList = getLogList;
 // exports.listLog = listLog;
 exports.insertLog = insertLog;
 exports.listLogByMobile = listLogByMobile;
+exports.getLogOperate = getLogOperate;

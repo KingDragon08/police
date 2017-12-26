@@ -1,8 +1,8 @@
 var DB_CONFIG_ASYNC = {
-	host:'211.103.178.205',
-	user:'KingDragon',
-	password:'939407Lq252324',
-	database:'xc_baymin',
+	host:'11.5.0.39',
+	user:'admin',
+	password:'admin',
+	database:'police',
 	port:3306
 }
 

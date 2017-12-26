@@ -52,7 +52,7 @@ function addRoleAction(req, res) {
                             return;
                         }
                         var sql = "select * from role_action where role_id = ? and action_id = ?";
-                        var dataArr = [roleId, actionId]
+                        var dataArr = [roleId, actionId];
                         db.query(sql, dataArr, function(err, rows) {
                             if (err) {
                                 res.json({
@@ -133,6 +133,9 @@ function addRoleAction(req, res) {
         });
     }
 }
+
+
+
 /**
  * 删除角色操作
  * @param  {[type]} req [description]
@@ -151,6 +154,7 @@ function delRoleAction(req, res) {
                 checkUserPermission(req.url, userId, 'pc', function(permission) {
                     if (permission) {
                         var roleActionId = query.roleActionId;
+                        var actionId = query.actionId;
                         if (check.isNull(roleActionId)) {
                             res.json({
                                 "code": 401,
@@ -161,7 +165,7 @@ function delRoleAction(req, res) {
                             });
                             return;
                         }
-                        var sql = "select count(*) as total from role_action where id = ?";
+                        var sql = "select count(*) as total from role_action where role_id = ?";
                         var dataArr = [roleActionId];
                         db.query(sql, dataArr, function(err, rows) {
                             if (err) {
@@ -174,8 +178,8 @@ function delRoleAction(req, res) {
                                 });
                             } else {
                                 if (rows[0].total > 0) {
-                                    sql = "delete from role_action where id = ?";
-                                    dataArr = [roleActionId];
+                                    sql = "delete from role_action where action_id = ? and role_id =?";
+                                    dataArr = [actionId,roleActionId];
                                     db.query(sql, dataArr, function(err, rows) {
                                         if (err) {
                                             res.json({

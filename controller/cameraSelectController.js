@@ -56,16 +56,17 @@ function cameraSelectRect(req, res) {
                     leftTopY = parseFloat(leftTopY);
                     rightBottomX = parseFloat(rightBottomX);
                     rightBottomY = parseFloat(rightBottomY);
-                    var sql = "select * from camera where cast(cam_loc_lon as decimal(20,10))>? " +
-                        "and cast(cam_loc_lon as decimal(20,10))<? and " +
-                        "cast(cam_loc_lan as decimal(20,10))>? " +
-                        "and cast(cam_loc_lan as decimal(20,10))<? and is_del=0";
+                    var sql = "select * from camera where cast(cam_BJ_Y as decimal(20,10))>? " +
+                        "and cast(cam_BJ_Y as decimal(20,10))<? and " +
+                        "cast(cam_BJ_X as decimal(20,10))>? " +
+                        "and cast(cam_BJ_X as decimal(20,10))<? and is_del=0";
                     conn.query(sql, [leftTopX, rightBottomX, leftTopY, rightBottomY],
                         function(err, data) {
                             ret = {};
                             ret["status"] = "success";
                             ret["data"] = data;
                             Log.insertLog(mobile,"矩形框选摄像头",sql);
+
                             res.json({ "code": 200, "data": ret });
                         });
                 }
@@ -102,8 +103,8 @@ function cameraSelectCircle(req, res) {
                     centerY = parseFloat(centerY);
                     radius = parseFloat(radius);
                     powRadius = radius * radius;
-                    var sql = "select * from camera where (POWER(cam_loc_lon-?,2)+" +
-                        "POWER(cam_loc_lan-?,2))<? and is_del=0";
+                    var sql = "select * from camera where (POWER(cam_BJ_Y-?,2)+" +
+                        "POWER(cam_BJ_X-?,2))<? and is_del=0";
                     conn.query(sql, [centerX, centerY, powRadius],
                         function(err, data) {
                             ret = {};
@@ -169,16 +170,16 @@ function cameraSelectPolygon(req, res) {
                         rightBottomX = parseFloat(maxX);
                         rightBottomY = parseFloat(maxY);
                         //获取符合条件的摄像头
-                        var sql = "select * from camera where cast(cam_loc_lon as decimal(20,10))>? " +
-                            "and cast(cam_loc_lon as decimal(20,10))<? and " +
-                            "cast(cam_loc_lan as decimal(20,10))>? " +
-                            "and cast(cam_loc_lan as decimal(20,10))<? and is_del=0";
+                        var sql = "select * from camera where cast(cam_BJ_Y as decimal(20,10))>? " +
+                            "and cast(cam_BJ_Y as decimal(20,10))<? and " +
+                            "cast(cam_BJ_X as decimal(20,10))>? " +
+                            "and cast(cam_BJ_X as decimal(20,10))<? and is_del=0";
                         conn.query(sql, [leftTopX, rightBottomX, leftTopY, rightBottomY],
                             function(err, result) {
                                 var data = Array();
                                 for (var i = 0; i < result.length; i++) {
-                                    if (pointInPolygon(result[i].cam_loc_lon,
-                                            result[i].cam_loc_lan, points)) {
+                                    if (pointInPolygon(result[i].cam_BJ_Y,
+                                            result[i].cam_BJ_X, points)) {
                                         data.push(result[i]);
                                     }
                                 }
@@ -309,16 +310,16 @@ function cameraSelectLine(req, res) {
                         var rightBottomX = parseFloat(maxX);
                         var rightBottomY = parseFloat(maxY);
                         //获取符合条件的摄像头
-                        var sql = "select * from camera where cast(cam_loc_lon as decimal(20,10))>? " +
-                            "and cast(cam_loc_lon as decimal(20,10))<? and " +
-                            "cast(cam_loc_lan as decimal(20,10))>? " +
-                            "and cast(cam_loc_lan as decimal(20,10))<? and is_del=0";
+                        var sql = "select * from camera where cast(cam_BJ_Y as decimal(20,10))>? " +
+                            "and cast(cam_BJ_Y as decimal(20,10))<? and " +
+                            "cast(cam_BJ_X as decimal(20,10))>? " +
+                            "and cast(cam_BJ_X as decimal(20,10))<? and is_del=0";
                         conn.query(sql, [leftTopX, rightBottomX, leftTopY, rightBottomY],
                             function(err, result) {
                                 var data = Array();
                                 for (var i = 0; i < result.length; i++) {
-                                    if (pointInPolygon(result[i].cam_loc_lon,
-                                            result[i].cam_loc_lan, points)) {
+                                    if (pointInPolygon(result[i].cam_BJ_Y,
+                                            result[i].cam_BJ_X, points)) {
                                         data.push(result[i]);
                                     }
                                 }

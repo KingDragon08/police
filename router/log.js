@@ -9,6 +9,24 @@ var permission = require("../controller/roleActionController")
 // 	return next();
 // });
 
+//获取日志操作
+server.post("/log/getLogOperate",function(req,res,next){
+    res.setHeader("Access-Control-Allow-Origin","*");
+    try{
+        var mobile = req.body.mobile || -1;
+        permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+            if(hasPermission){
+                log.getLogOperate(req,res);
+            } else {
+                permission.permissionDenied(res);
+            }
+        });
+    } catch(e) {
+        permission.permissionDenied(res);
+    }
+    return next();
+});
+
 //分页查询日志
 server.post("/log/getLogList",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");	
@@ -30,8 +48,8 @@ server.post("/log/getLogList",function(req,res,next){
 server.post("/log/listLogByMobile",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
 	try{
-		var mobile = req.body.mobile || -1;
-		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+		var mobile1 = req.body.mobile1 || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile1, 'pc', function(hasPermission){
 			if(hasPermission){
 				log.listLogByMobile(req,res);
 			} else {

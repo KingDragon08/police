@@ -125,7 +125,7 @@ function publishTaskWithoutCamera(req,res){
                                 if(err){
                                     console.log(err);
                                 } else {
-                                    Log.insertLog(mobile,"发布采集新摄像头任务","insert into task(cameraName,cameraLocation," +
+                                    Log.insertLog(mobile,"发布新摄像头采集任务","insert into task(cameraName,cameraLocation," +
                                                                     "taskDescription,userId,taskNO,taskStatus,"+
                                                                     "cameraId,cameraLon,cameraLa,addtime,cameraType)"+
                                                                     "values(?,?,?,?,?,?,?,?,?,?,?)");
@@ -300,6 +300,7 @@ function getTaskPC(req,res){
                                         ret["pageSize"] = pageSize;
                                         ret["totalPage"] = Math.ceil(parseInt(total)/pageSize);
                                         ret["userData"]  = result;
+                                        ret["total"] = total;
                                         //Log.insertLog(mobile,req.url,sql);
                                         res.json({ "code": 200, "data": ret });
                                     }
@@ -446,7 +447,7 @@ function checkTask(req,res){
                                                                 //更新任务表中的cameraId
                                                                 conn.query("update task set cameraId=? where Id=?",[cameraId,taskId],
                                                                     function(err,result){
-                                                                        //Log.insertLog(mobile,req.url,sql);
+                                                                        Log.insertLog(mobile,"审核任务",sql);
                                                                         res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                                                                     });
                                                             });
@@ -854,7 +855,7 @@ function taskFeedBackEdit(req,res){
                 var cameraExtra = query.cameraExtra || -1;//摄像头的自定义属性
                 var pics = query.pics || -1;
                 if(taskId==-1 || content==-1 || cameraLon==-1 || cameraNo==-1
-                    || cameraLa==-1 || pics==-1 || 
+                    || cameraLa==-1 || pics==-1 ||
                      taskFeedBackId==-1){
                     res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {

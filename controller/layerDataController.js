@@ -206,7 +206,7 @@ function doAddLayerData(layerId, tableName, locLan, locLon, userId, curtime, ext
                             }
                         };
                     } else {
-                            Log.insertLog(userId, "添加图层数据操作", sql);
+                            //Log.insertLog(userId, "添加图层数据操作", sql);
                             ret = {
                                 "code": 200,
                                 "data": {
@@ -316,7 +316,7 @@ function doDelLayerData(userId, tableName, layerDataId, callback) {
                 }
             };
         } else {
-            Log.insertLog(userId, "删除图层数据", "del Layer Data");
+            //Log.insertLog(userId, "删除图层数据", "del Layer Data");
             ret = {"code": 200, "data": {"status": "success", "error": "success"}};
         }
         callback(ret);
@@ -503,7 +503,7 @@ function editLayerData(req, res) {
                         extData = JSON.parse(extData);
 
                         updateLayerData(layerId, layerDataId, tableName, locLan, locLon, userId, curtime, extData, function(ret){
-                            Log.insertLog(userId, "编辑图层数据信息", "update Layer Data");
+                            Log.insertLog(userId, "编辑图层数据", "update Layer Data");
                             res.json(ret);
                         });
 

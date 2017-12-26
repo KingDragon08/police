@@ -109,7 +109,7 @@ function getCar(req, res) {
             
 			if (page == -1) {
                 // var sql = "select * from car order by id desc limit 0,100"
-                var sql = "select * from " + CAR_TABLE + " order by SmID desc limit 0,100"
+                var sql = "select * from car";
                 db.query( sql, [],
                     function(err, data) {
                         if (err) {
@@ -142,7 +142,7 @@ function getCar(req, res) {
                 }
                 var start = (page - 1) * pageSize;
                 // var sql = "select * from car  order by id desc limit ?,?";
-                var sql = "select * from " + CAR_TABLE + " order by SmID desc limit ?,?";
+                var sql = "select * from car";
                 db.query(sql, [start, pageSize],
                     function(err, data) {
                         if (err) {
@@ -150,21 +150,21 @@ function getCar(req, res) {
                             console.log(err);
                             errorHandler(res, err.message);
                         } else {
-                            // ret = {};
-                            // ret["status"] = "success";
-                            // ret["data"] = data;
-                            // Log.insertLog(mobile,"分页获取car列表","select * from car  order by id desc limit ?,?");
-                            // res.json({ "code": 200, "data": ret });
+                            ret = {};
+                            ret["status"] = "success";
+                            ret["data"] = data;
+                            Log.insertLog(mobile,"分页获取car列表","select * from car  order by id desc limit ?,?");
+                            res.json({ "code": 200, "data": ret });
                             
                             // 随机更新车辆位置
-                            var tmpsql = "update " + CAR_TABLE + " set SmX = SmX + floor(rand()*1000 - 500), SmY = SmY + floor(rand()*1000 - 500) order by rand() limit 30";
-                            db.query(tmpsql, [], function(merr, mdata){
-                                ret = {};
-                                ret["status"] = "success";
-                                ret["data"] = data;
-                                //Log.insertLog(mobile,"分页获取car列表", sql);
-                                res.json({ "code": 200, "data": ret });
-                            });
+                            // var tmpsql = "update " + CAR_TABLE + " set SmX = SmX + floor(rand()*1000 - 500), SmY = SmY + floor(rand()*1000 - 500) order by rand() limit 30";
+                            // db.query(tmpsql, [], function(merr, mdata){
+                            //     ret = {};
+                            //     ret["status"] = "success";
+                            //     ret["data"] = data;
+                            //     //Log.insertLog(mobile,"分页获取car列表", sql);
+                            //     res.json({ "code": 200, "data": ret });
+                            // });
                         }
                     });
             }
@@ -181,6 +181,7 @@ function getSingleCarInfo(req, res) {
         var mobile = query.mobile;
         check(query, res, function() {
             var id = query.id || -1;
+            var ids = query.ids;
             // console.log(id);
             if (id == -1) {
                 errorHandler(res, "参数错误");
@@ -194,11 +195,20 @@ function getSingleCarInfo(req, res) {
                             console.log(err);
                             errorHandler(res, err.message);
                         } else {
-                            ret = {};
-                            ret["status"] = "success";
-                            ret["data"] = data;
-                            //Log.insertLog(mobile,"car--getSingleCarInfo","select * from car where id=?");
-                            res.json({ "code": 200, "data": ret });
+                            var sqls ="select * from car_attr where id=?";
+                            db.query(sqls,[ids],function (err,result) {
+                                if(err){
+                                    errorHandler(res, err.message);
+                                }else{
+                                    ret = {};
+                                    ret["status"] = "success";
+                                    ret["data"] = data;
+                                    ret["result"] = result;
+                                    //Log.insertLog(mobile,"car--getSingleCarInfo","select * from car where id=?");
+                                    res.json({ "code": 200, "data": ret });
+                                }
+                            })
+
                         }
                     });
             }
@@ -330,13 +340,20 @@ function getCarAttrs(req,res){
     try {
         var mobile = query.mobile;
         var token = query.token;
+        var page = query.page || 1;
+        var pageSize = query.pageSize || 10;
         User.getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
                 // user_info = user.data;
                 var type = query.type || -1;
                 if(type==-1){
-                    var sql = "select * from car_attr";
-                    var data = Array();
+                    if (page < 1) {
+                        page = 1;
+                    }
+                    var start = (page - 1) * pageSize;
+                    pageSize = parseInt(pageSize);
+                    var sql = "select * from car_attr limit ?,?";
+                    var data = [start,pageSize];
                 } else {
                     var sql = "select * from car_attr where Id>?";
                     var data = [6];
@@ -352,15 +369,30 @@ function getCarAttrs(req,res){
                             }
                         });
                     } else {
-                    	 //Log.insertLog(mobile,"获取car属性","select * from car_attr where Id>?");
-                        res.json({
-                            "code": 200,
-                            "data": {
-                                "status": "success",
-                                "error": "success",
-                                "rows": rows
+                        var sql = "select count(0) as total from car_attr";
+                        db.query(sql,null,function (err,result) {
+                            if(err){
+                                res.json({
+                                    "code": 501,
+                                    "data": {
+                                        "status": "fail",
+                                        "error": err.message
+                                    }
+                                });
+                            }else{
+                                res.json({
+                                    "code": 200,
+                                    "data": {
+                                        "status": "success",
+                                        "error": "success",
+                                        "rows": rows,
+                                        "total":result[0].total
+                                    }
+                                });
                             }
-                        });
+                        })
+                    	 //Log.insertLog(mobile,"获取car属性","select * from car_attr where Id>?");
+
                     }
                 });
             } else {
@@ -403,7 +435,7 @@ function addCarAttr(req,res){
                 var attr_show_1 = query.attr_show_1 || 1;
                 var attr_show_2 = query.attr_show_2 || 1;
                 var attr_show_3 = query.attr_show_3 || 1;
-                var reg= /^[A-Za-z]+$/;
+                var reg = /^(?!.*?_$)[a-zA-Z][a-zA-Z0-9_]*$/;
                 if(attr_name==-1 || attr_desc==-1 || attr_comment==-1){
                     res.json({
                         "code": 303,
@@ -462,7 +494,7 @@ function addCarAttr(req,res){
                         "code": 302,
                         "data": {
                             "status": "fail",
-                            "error": "属性名称必须为英文字母"
+                            "error": "标识符仅允许以英文字母开头、数字或下划线组合"
                         }
                     });
                     return;    
@@ -520,16 +552,16 @@ function editCarAttr(req,res){
                     });
                     return;    
                 } else {
-                    if(attrId<7){
-                        res.json({
-                            "code": 403,
-                            "data": {
-                                "status": "fail",
-                                "error": "前6项属性不允许修改"
-                            }
-                        });
-                        return;    
-                    }
+                    // if(attrId<7){
+                    //     res.json({
+                    //         "code": 403,
+                    //         "data": {
+                    //             "status": "fail",
+                    //             "error": "前6项属性不允许修改"
+                    //         }
+                    //     });
+                    //     return;
+                    // }
                     //获取对应Id的字段名称
                     db.query("select attr_name from car_attr where Id=?",
                         [parseInt(attrId)],function(err,rows){
@@ -586,6 +618,89 @@ function editCarAttr(req,res){
                                 });         
                             }
                         });
+                }
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "用户未登录"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
+/*
+ *删除车辆属性
+ *@param attrNewName=>属性名字
+ */
+function delCarAttr(req,res){
+    var query = req.body;
+    console.log("######################")
+    console.log(query);
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        var attr_name = query.attr_name || -1;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                if(attr_name==-1){
+                    res.json({
+                        "code": 302,
+                        "data": {
+                            "status": "fail",
+                            "error": "参数错误"
+                        }
+                    });
+                    return;
+                } else {
+                    //判断字段名是否存在
+                    db.query("select id,attr_name from car_attr where attr_name=?",[attr_name],function (err,result) {
+                        if(err){
+                            res.json({"code": 303, "data": {"status": "fail", "error": "数据查询错误"}});
+                        }else{
+                            if(result && result.length){
+                                var attrId = result[0].id;
+                                var attrName = result[0].attr_name;
+                                var Ids = [];//要判定不允许删除的字段id
+                                //if(Ids.indexOf(attrId) == -1){
+                                    //删除字段
+                                    // db.query("alert table car drop column " + attrName,[], function (err,result) {
+                                    //     if(err){
+                                    //         console.log(err);
+                                    //         res.json({"code": 306, "data": {"status": "fail", "error": "数据查询错误"}});
+                                    //     }else{
+                                            //删除car_attr表记录
+                                            var sql = "delete from car_attr where Id=?";
+                                            db.query(sql,[attrId],function (err,result) {
+                                                if(err){
+                                                    res.json({"code": 307, "data": {"status": "fail", "error": "数据查询错误"}});
+                                                }else {
+                                                    Log.insertLog(mobile,"删除车辆属性", sql);
+                                                    res.json({"code": 200, "data": {"status": "fail", "error": "删除成功"}});
+                                                }
+                                            })
+                                        //}
+                                    //})
+                                //}else{
+                                    //res.json({"code": 304, "data": {"status": "fail", "error": "该字段不允许删除"}});
+                                //}
+                            }else {
+                                res.json({"code": 305, "data": {"status": "fail", "error": "该字段不存在"}});
+                            }
+                        }
+                    })
                 }
             } else {
                 res.json({
@@ -682,7 +797,7 @@ function getCarListByAttr(req, res) {
             "code": 401,
             "data": {
                 "status": "fail",
-                "error": "属性名称不存在"
+                "error": "标识符不存在"
             }
         });
         return;
@@ -768,6 +883,81 @@ function getCarListByAttr(req, res) {
         });
     }
 }
+
+
+
+/**
+ * //5S刷新车辆位置
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+function getCarLoc(req, res) {
+    var query = req.body;
+    var mobile=query.mobile;
+    try {
+       // var Aloc =[499947.68194,500327.02944,500698.78999,500660.85524,500668.44219,500327.02944,499924.68194,499955.26889];
+       // var Alod =[306227.89982,306235.48677,306250.66067,305913.04139,305655.08509,305643.70467,305651.29162,305924.42182];
+       // var Bloc =[500990.51661,500990.51661,500990.41334,500797.04938,500622.54953,500614.96258,500607.37563,500779.97874];
+       // var Blod =[308114.86517,307989.68050,307877.77298,307877.97951,307877.97951,307974.50660,308114.86517,308114.86517];
+       // var Cloc =[501776.62470,501782.62470,501788.62470,501926.46696,502135.10809,];
+       // var Clod =[];
+       // var Dloc =[];
+       // var Dlod =[];
+        var i = query.num;
+        var loc={
+            A1:[499947.68194,306227.89982],
+            A2:[500327.02944,306235.48677],
+            A3:[500698.78999,306250.66067],
+            A4:[500660.85524,305913.04139],
+            A5:[500668.44219,305913.04139],
+            A6:[500327.02944,305643.70467],
+            A7:[499924.68194,305651.29162],
+            A8:[499955.26889,305924.42182],
+            B1:[500990.51661,308114.86517],
+            B2:[500990.51661,307989.68050],
+            B3:[500990.41334,307877.77298],
+            B4:[500797.04938,307877.97951],
+            B5:[500622.54953,307877.97951],
+            B6:[500614.96258,307974.50660],
+            B7:[500607.37563,308114.86517],
+            B8:[500779.97874,308114.86517],
+            C1:[501776.62470,305228.48246],
+            C2:[501782.62470,305101.40105],
+            C3:[501788.62470,304975.21237],
+            C4:[501926.46696,304975.21237],
+            C5:[502135.10809,304975.21237],
+            C6:[502135.10809,305101.40105],
+            C7:[502135.10809,305200.03140],
+            C8:[501956.81476,305207.61835]
+        }
+        var A1=[loc.A1,loc.B1,loc.C1];
+        var A2=[loc.A2,loc.B2,loc.C2];
+        var A3=[loc.A3,loc.B3,loc.C3];
+        var A4=[loc.A4,loc.B4,loc.C4];
+        var A5=[loc.A5,loc.B5,loc.C5];
+        var A6=[loc.A6,loc.B6,loc.C6];
+        var A7=[loc.A7,loc.B7,loc.C7];
+        var A8=[loc.A8,loc.B8,loc.C8];
+        var s=[A1,A2,A3,A4,A5,A6,A7,A8];
+        var data=[];
+        for(var j=1;j<9;j++){
+            if(i == j){
+                data.push(s[j-1]);
+
+            }
+        }
+        res.json({"code": 200, "data": {"status": "fail", "data": data[0]}});
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
 /******************************忧伤的分割线******************************/
 
 exports.addCar = addCar;
@@ -784,5 +974,7 @@ exports.addCarAttr = addCarAttr;
 exports.editCarAttr = editCarAttr;
 exports.editCarAttrShow = editCarAttrShow;
 exports.getCarListByAttr = getCarListByAttr;
+exports.delCarAttr = delCarAttr;
 
+exports.getCarLoc = getCarLoc;
 // exports.test = test;

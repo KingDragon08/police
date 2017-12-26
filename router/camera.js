@@ -217,6 +217,7 @@ server.post("/camera/getCameraAttrs",function(req,res,next){
 	return next();
 });
 
+
 //获取摄像头属性及其描述-APP
 server.post("/camera/getCameraAttrs_APP",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
@@ -451,6 +452,24 @@ server.post("/camera/delCameraTypes",function(req,res,next){
 		permission.permissionDenied(res);
 	}
 	return next();
+});
+
+//删除摄像字段
+server.post("/camera/delCameraColumn",function(req,res,next){
+    res.setHeader("Access-Control-Allow-Origin","*");
+    try{
+        var mobile = req.body.mobile || -1;
+        permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+            if(hasPermission){
+                camera.delCameraColumn(req,res);
+            } else {
+                permission.permissionDenied(res);
+            }
+        });
+    } catch(e) {
+        permission.permissionDenied(res);
+    }
+    return next();
 });
 
 

@@ -304,7 +304,7 @@ function updateDepartment(req,res){
     }
 }
 /**************************************************忧伤的分割线**************************************************/
-//删除二级部门
+//删除二级部门（弃用）
 function del2(req,res){
     var query = req.body;
     try {
@@ -354,27 +354,59 @@ function del1(req,res){
             if (user.error == 0) {
                 //
                 var id = query.id;
-                var sql = "select count(p_id) as num from department2 where p_id = ?";
-                var params = [id];
-                db.query(sql,params,function(err,result){
-                    if (err) {
-                        console.log(err.message);
-                        return;
-                    } else if(result[0].num > 0){
-                        errMessage(res,301,"该部门下有子部门，请勿删除");
-                        return;
-                    }else{
-                        var sql = "delete from department1 where id = ?";
+                //判断删除几级部门 0为删除一级部门 1为删除二级部门
+                var flag = query.flag ||-1;
+                if(-1 == flag){
+                    errMessage(res,300,"参数错误");
+                }else{
+                    if(flag == 0){
+                        var sql = "select count(p_id) as num from department2 where p_id = ?";
+                        var params = [id];
                         db.query(sql,params,function(err,result){
                             if (err) {
                                 console.log(err.message);
-                            } else {
-                                Log.insertLog(mobile,"删除一级部门","delete from department1 where id = ?");
-                                sucMessage(res);
+                                return;
+                            } else if(result[0].num > 0){
+                                errMessage(res,301,"该部门下有子部门，请勿删除");
+                                return;
+                            }else{
+                                var sql = "delete from department1 where id = ?";
+                                db.query(sql,params,function(err,result){
+                                    if (err) {
+                                        console.log(err.message);
+                                    } else {
+                                        Log.insertLog(mobile,"删除一级部门","delete from department1 where id = ?");
+                                        sucMessage(res);
+                                    }
+                                });
                             }
                         });
+                    }else if(flag == 1){
+                        var sql = "select count(company) as num from user where company = ?";
+                        var params = [id];
+                        db.query(sql,params,function(err,result){
+                            if (err) {
+                                console.log(err.message);
+                                return;
+                            } else if(result[0].num > 0){
+                                errMessage(res,301,"该部门下有员工，请勿删除");
+                                return;
+                            }else{
+                                var sql = "delete from department2 where id = ?";
+                                db.query(sql,params,function(err,result){
+                                    if (err) {
+                                        console.log(err.message);
+                                    } else {
+                                        Log.insertLog(mobile,"删除二级部门","delete from department2 where id = ?");
+                                        sucMessage(res);
+                                    }
+                                });
+                            }
+                        });
+                    }else{
+                        errMessage(res,301,"参数错误");
                     }
-                });
+                }
             } else {
                 errMessage(res,301,"用户未登录");
                 return;

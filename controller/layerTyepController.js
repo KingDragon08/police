@@ -33,7 +33,7 @@ function addLayerType(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -49,7 +49,7 @@ function addLayerType(req, res) {
                 var curtime = new Date().getTime();
 
                 doAddLayerType(typeName, userId, curtime, function(ret){
-                    Log.insertLog(userId, req.url, "add Layer Type");
+                    Log.insertLog(userId, "添加图层类型", "add Layer Type");
                     res.json(ret);
                 });
             } else {
@@ -57,7 +57,7 @@ function addLayerType(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -105,7 +105,7 @@ function doAddLayerType(typeName, userId, curtime, callback){
                     sql = "insert into " + LayerTypeTable + " (type_name, user_id, addtime) values (?, ?, ?)";
                     dataArr = [typeName, userId, curtime];
 
-                    Log.insertLog(userId, "add Layer Type", sql);
+                    //Log.insertLog(userId, "add Layer Type", sql);
 
                     db.query(sql,dataArr,function(err,rows){
                         if(err){
@@ -151,7 +151,7 @@ function delLayerType(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -169,7 +169,7 @@ function delLayerType(req, res) {
                         var tableNameList = resJson.data.rows;
 
                         doDelLayerType(userId, tableNameList, layerTypeId, function(ret){
-                                Log.insertLog(userId, req.url, "del Layer Type");
+                                Log.insertLog(userId, "删除图层类型", "del Layer Type");
                                 res.json(ret);
                             });
 
@@ -183,7 +183,7 @@ function delLayerType(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -259,7 +259,7 @@ function doDelLayerType(userId, tableNameList, layerTypeId, callback) {
 
     var dataArr = [l];
     
-    Log.insertLog(userId, "del layer data table", sql);
+    //Log.insertLog(userId, "del layer data table", sql);
 
     db.query(sql, dataArr, function(err, rows){
         if (err) {
@@ -277,7 +277,7 @@ function doDelLayerType(userId, tableNameList, layerTypeId, callback) {
             sql += "(select layer_id from " + LayerBasicTable + " where type_id = ?) a";
             dataArr = [layerTypeId];
 
-            Log.insertLog(userId, "del layer ext attr", sql);
+            //Log.insertLog(userId, "del layer ext attr", sql);
 
             db.query(sql, dataArr, function(mErr, mRows){
                 if (mErr) {
@@ -322,7 +322,7 @@ function getLayerTypeList(req, res) {
                 var userId = userInfo.Id;
 
                 doGetLayerTypeList(query, userId, function(ret){
-                    Log.insertLog(userId, req.url, "get Layer Type List");
+                    //Log.insertLog(userId, req.url, "get Layer Type List");
                     res.json(ret);
                 });
                 
@@ -331,7 +331,7 @@ function getLayerTypeList(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -399,7 +399,7 @@ function doGetLayerTypeList(query, userId, callback) {
                         }
                     };
                 } else {
-                    Log.insertLog(userId,"get layer type list", sql);
+                    //Log.insertLog(userId,"get layer type list", sql);
                     ret = {
                         "code": 200,
                         "data": {
@@ -436,7 +436,7 @@ function editLayerType(req, res) {
                 "code": 401,
                 "data": {
                     "status": "fail",
-                    "error": "request param is invalid"
+                    "error": "请求参数无效"
                 }
             });
             return;
@@ -450,7 +450,7 @@ function editLayerType(req, res) {
                 var userId = userInfo.Id;
 
                 updateLayerType(layerTypeId, layerTypeName, userId, function(ret){
-                    Log.insertLog(userId, req.url, "update Layer Type");
+                    Log.insertLog(userId, "编辑图层信息", "update Layer Type");
                     res.json(ret);
                 });
 
@@ -459,7 +459,7 @@ function editLayerType(req, res) {
                     "code": 301,
                     "data": {
                         "status": "fail",
-                        "error": "user not login"
+                        "error": "用户未登录"
                     }
                 });
                 return;
@@ -502,7 +502,7 @@ function updateLayerType(layerTypeId, layerTypeName, userId, callback) {
                 sql = "update " + LayerTypeTable + " set type_name = ? where type_id = ?";
                 dataArr = [layerTypeId];
 
-                Log.insertLog(userId, "update layer type", sql);
+                //Log.insertLog(userId, "update layer type", sql);
 
                 db.query(sql, dataArr, function(mErr, mRows){
                     if (mErr) {

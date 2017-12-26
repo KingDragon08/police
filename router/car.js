@@ -211,6 +211,25 @@ server.post("/car/editCarAttr",function(req,res,next){
 	}
 	return next();
 });
+
+//删除车辆属性
+server.post("/car/delCarAttr",function(req,res){
+    res.setHeader("Access-Control-Allow-Origin","*");
+    try{
+        var mobile = req.body.mobile || -1;
+        permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+            if(hasPermission){
+                Car.delCarAttr(req,res);
+                //camera.delCamera(req,res);
+            } else {
+                permission.permissionDenied(res);
+            }
+        });
+    } catch(e) {
+        permission.permissionDenied(res);
+    }
+});
+
 //修改车辆属性展示
 server.post("/car/editCarAttrShow",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
@@ -253,6 +272,23 @@ server.post("/car/pclistbyattr",function(req,res,next){
 // 	Car.test(req,res);
 // 	return next();
 // });
-
+//5S刷新车辆位置
+server.post("/car/getCarLoc",function(req,res,next){
+    res.setHeader("Access-Control-Allow-Origin","*");
+    try{
+        var mobile = req.body.mobile || -1;
+        permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+            if(hasPermission){
+                Car.getCarLoc(req,res);
+                //camera.delCamera(req,res);
+            } else {
+                permission.permissionDenied(res);
+            }
+        });
+    } catch(e) {
+        permission.permissionDenied(res);
+    }
+    return next();
+});
 
 module.exports = server;

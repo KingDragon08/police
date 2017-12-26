@@ -62,13 +62,13 @@ server.post("/user/logout",function(req,res,next){
 	res.setHeader("Access-Control-Allow-Origin","*");
 	try{
 		var mobile = req.body.mobile || -1;
-		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
-			if(hasPermission){
+		//permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			//if(hasPermission){
 				User.logout(req,res);
-			} else {
-				permission.permissionDenied(res);
-			}
-		});
+			//} else {
+			//	permission.permissionDenied(res);
+			//}
+		//});
 	} catch(e) {
 		permission.permissionDenied(res);
 	}

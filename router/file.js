@@ -7,7 +7,7 @@ var async = require('async');
 
 var permission = require("../controller/roleActionController")
 
-var uploadBaseURL = "http://211.103.178.205:8081/upload/";
+var uploadBaseURL = "http://192.168.1.201:8081/upload/";
 //var uploadBaseURL = "http://127.0.0.1:8080/police/upload/";
 
 //单文件上传
@@ -110,18 +110,18 @@ server.post("/file/uploadPC", function(req, res, next) {
 											console.log(err);
 										} else {
 											var url = uploadBaseURL + timestamp + "." + postfix;
-											res.json({ "code": 200, "data": { "status": "success", "error": "upload success", "url": url } });
+											res.json({ "code": 200, "data": { "status": "success", "error": "上传成功", "url": url } });
 										}
 									});
 								}
 							});
 						} else {
-							res.json({ "code": 300, "data": { "status": "fail", "error": "moblie not match token" } });
+							res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token比匹配" } });
 						}
 					});
 				} catch(e) {
 					console.log(e);
-					res.json({ "code": 300, "data": { "status": "fail", "error": "unknown error"}});
+					res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误"}});
 				}
 				/******************************************************/
 			} else {
@@ -148,10 +148,13 @@ server.post("/file/uploadPcByBase64",function(req,res,next){
     try{
         var mobile = query.mobile;
         var token = query.token;
-        Mobile.checkMobile2Token(mobile, token, function(result) {
-            if (result) {
-                var imgs=query.imgs;
-                console.log(query);
+        console.log(query);
+        // Mobile.checkMobile2Token(mobile, token, function(result) {
+        //     if (result) {
+                var imgs=query.imgs||-1;
+				if(imgs==-1){
+                    res.json({ "code": 300, "data": { "status": "fail", "error": "图片不能为空！" } })
+				}
                 var paths=[];
                 var timestamp = new Date().getTime();
                 for(var i=0;i<imgs.length;i++){
@@ -171,10 +174,10 @@ server.post("/file/uploadPcByBase64",function(req,res,next){
                     });
                 }
                 res.json({ "code": 200, "data": { "status": "success", "error": "上传成功", "urls": paths } });
-            } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
-            }
-        });
+        //     } else {
+        //         res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
+        //     }
+        // });
     } catch(e) {
         console.log(e);
         res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误"}});
@@ -210,14 +213,14 @@ server.post("/file/mulUpload", function(req, res, next) {
 								urls.push(uploadBaseURL + timestamp + "_" + i + "." + postfix);
 								moveFile(path,target_path);
 							}
-							res.json({ "code": 200, "data": { "status": "success", "error": "upload success", "urls": urls } });
+							res.json({ "code": 200, "data": { "status": "success", "error": "上传成功", "urls": urls } });
 						} else {
-							res.json({ "code": 300, "data": { "status": "fail", "error": "moblie not match token" } });
+							res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
 						}
 					});
 				} catch(e) {
 					console.log(e);
-					res.json({ "code": 300, "data": { "status": "fail", "error": "unknown error"}});
+					res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误"}});
 				}
 				/******************************************************/
 				//camera.delCamera(req,res);

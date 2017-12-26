@@ -161,13 +161,11 @@ function createNewLayerTable(layerId, tableName, userId, callback) {
                     "`uptime` varchar(32) comment '更新时间'," +
                     "primary key (`id`)"+
                 ") default charset=utf8 comment '图层表';";
-
-    Log.insertLog(userId, "创建新表", sql);
-
     db.query(sql, [], function(mErr, mRows) {
        if (mErr) {
         ret = {"code": 501, "data": {"status": "fail", "error": mErr.message}};
        } else {
+           Log.insertLog(userId, "添加图层数据表", sql);
             ret = {
                 "code": 200,
                 "data": {
@@ -253,7 +251,7 @@ function delLayer(req, res) {
                             var userId = userInfo.Id;
                             var tableName = rows[0].table_name;
                             doDelLayer(userId, tableName, layerId, function(ret){
-                                Log.insertLog(userId, " 删除基础图层，并删除图层扩展属性，以及图层数据", "del all Layer");
+                                Log.insertLog(userId, " 删除图层", "del all Layer");
                                 res.json(ret);
                             });
                         } else {
@@ -304,7 +302,6 @@ function doDelLayer(userId, tableName, layerId, callback) {
     // 先删除图层数据
     var sql = "drop table " + tableName;
     var dataArr = [];
-    Log.insertLog(userId, "删除图层表", sql);
     db.query(sql, dataArr, function(err, rows){
         if (err) {
             ret = {
@@ -319,9 +316,6 @@ function doDelLayer(userId, tableName, layerId, callback) {
             // 再删除扩展属性
             sql = "delete from " + LayerExtTable + " where layer_id = ?";
             dataArr = [layerId];
-
-            Log.insertLog(userId, "删除图层属性", sql);
-
             db.query(sql, dataArr, function(mErr, mRows) {
                 if (err) {
                     ret = {
@@ -336,7 +330,6 @@ function doDelLayer(userId, tableName, layerId, callback) {
                     // 最后删除基础图层
                     sql = "delete from " + LayerBasicTable + " where layer_id = ?";
                     dataArr = [layerId];
-                    Log.insertLog(userId, "删除图层属性", sql);
                     db.query(sql, dataArr, function(mmErr, mmRows){
                         if (mmErr) {
                             ret = {"code": 501, "data": {"status": "fail","error": mmErr.message}};
@@ -477,7 +470,7 @@ function addLayerTableAttr(layerId, tableName, extName, extDesc, userId, curtime
                 if (mmErr) {
                     ret = {"code": 501, "data": {"status": "fail","error": mmErr.message}};
                 } else {
-                    Log.insertLog(userId, "添加图层操作", sql);
+                    //Log.insertLog(userId, "添加图层操作", sql);
                     ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                 }
                 callback(ret);
@@ -699,7 +692,7 @@ function editLayer(req, res) {
                 var imgPath = query.imgPath || "";
 
                 updateLayer(layerId, layerName, imgPath, userId, layerTypeId, function(ret){
-                    Log.insertLog(userId,"编辑图层信息", "update Basic Layer");
+                    Log.insertLog(userId,"编辑图层", "update Basic Layer");
                     res.json(ret);
                 });
             } else {
@@ -895,7 +888,7 @@ function updateLayerAttr(layerId, extId, tableName, oldExtName, extName, extDesc
                 if (mmErr) {
                     ret = {"code": 501, "data": {"status": "fail","error": mmErr.message}};
                 } else {
-                    Log.insertLog(userId, "更新图层数据表结构和图层属性表", sql);
+                    //Log.insertLog(userId, "更新图层数据表结构和图层属性表", sql);
                     ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                 }
                 callback(ret);
@@ -957,7 +950,7 @@ function delLayerAttr(req, res) {
                             var layerId = rows[0].layer_id;
 
                             doDelLayerAttr(layerId, extId, tableName, extName, userId, function(ret){
-                                Log.insertLog(userId, "删除图层属性", "del Layer attr");
+                                //Log.insertLog(userId, "删除图层属性", "del Layer attr");
                                 res.json(ret);
                             });
                                         
@@ -1031,7 +1024,7 @@ function doDelLayerAttr(layerId, extId, tableName, extName, userId, callback) {
                 if (mmErr) {
                     ret = {"code": 501, "data": {"status": "fail","error": mmErr.message}};
                 } else {
-                    Log.insertLog(userId, "删除图层数据表字段，以及删除图层属性字段记录", sql);
+                    Log.insertLog(userId, "删除图层数据字段", sql);
                     ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                 }
                 callback(ret);

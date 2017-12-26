@@ -278,10 +278,10 @@ function carSelectLine(req, res) {
                         var rightBottomX = parseFloat(maxX);
                         var rightBottomY = parseFloat(maxY);
                         //获取符合条件的摄像头
-                        var sql = "select * from car where cast(car_y as decimal(20,10))>? " +
-                            "and cast(car_y as decimal(20,10))<? and " +
-                            "cast(car_x as decimal(20,10))>? " +
-                            "and cast(car_x as decimal(20,10))<? and is_del=0";
+                        var sql = "select * from car where cast(cam_BJ_Y as decimal(20,10))>? " +
+                            "and cast(cam_BJ_Y as decimal(20,10))<? and " +
+                            "cast(cam_BJ_X as decimal(20,10))>? " +
+                            "and cast(cam_BJ_X as decimal(20,10))<? and is_del=0";
                         conn.query(sql, [leftTopX, rightBottomX, leftTopY, rightBottomY],
                             function(err, result) {
                                 var data = Array();

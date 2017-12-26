@@ -48,7 +48,7 @@ function register(req, res) {
                         conn.query("insert into user(name,password,plainPassword," +
                             "sex,company,NO,mobile,createTime,lastLoginTime,status,role)" +
                             "values(?,?,?,?,?,?,?,?,?,?,?)", [name, password, plainPassword, sex, company, NO, mobile,
-                                createTime, createTime, 0, parseInt(role)
+                                createTime, 0, 0, parseInt(role)
                             ],
                             function(err, result) {
                                 if (err) {
@@ -158,18 +158,18 @@ function logout(req, res) {
     try {
         var mobile = query.mobile;
         var token = query.token;
-        checkMobile2Token(mobile, token, function(result) {
-            if (result) {
+        // checkMobile2Token(mobile, token, function(result) {
+        //     if (result) {
                 //更新token
                 conn.query("update user set token=?,lastLoginTime=? where mobile=?", ["KingDragon",0, mobile],
                     function(err, re) {
                         Log.insertLog(mobile,"退出登录","logout");
                         res.json({ "code": 200, "data": { "status": "success", "error": "退出登录成功" } });
                     });
-            } else {
-                res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
-            }
-        });
+        //    }else {
+        //         res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
+        //     }
+        // });
     } catch (e) {
         res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误" } });
     }
@@ -189,7 +189,6 @@ function getUsers(req, res) {
             if (result) {
                 var sqls="select count(id) as total from user";
                 conn.query(sqls,null,function (err,datas) {
-                    console.log(datas[0].total);
                     if(err){
                         res.json({ "code": 300, "data": { "status": "fail", "error": "用户表查询失败" } });
                     }else{
@@ -206,7 +205,6 @@ function getUsers(req, res) {
                                 ret["data"] = data;
                                 ret["total"]=datas[0].total;
                                 //Log.insertLog(mobile,req.url,"getUsers");
-                                console.log(ret);
                                 res.json({ "code": 200, "data": ret });
                             });
                     }
@@ -297,7 +295,6 @@ function getUsersByKeyword(req, res) {
                     conn.escape('%' + keyword + '%') +
                     " order by Id desc", [keyword],
                     function(err, data) {
-                        console.log(err);
                         ret = {};
                         ret["status"] = "success";
                         ret["data"] = data;
@@ -355,7 +352,7 @@ function addMobileUser(req, res) {
 		                            ],
 		                            function(err, result) {
 		                                if (err) {
-		                                    console.log(err);
+		                                    //console.log(err);
 		                                    res.json({ "code": 300, "data": { "status": "fail", "err": err}});
 		                                    return;
 		                                } else {
@@ -397,7 +394,7 @@ function editMobileUser(req, res) {
 		            return;
 		        } else {
                     //判断手机号码是否重复
-                    conn.query("select count(Id) as total from mobileUser where mobile=? and id not in (?)",
+                    conn.query("select count(Id) as total from mobileUser where mobile=? and Id not in (?)",
                                 [mobile,id],
                                 function(err,data){
                                     if(data[0].total > 0){
@@ -409,7 +406,7 @@ function editMobileUser(req, res) {
                                             [name, sex,company, NO, mobile, createTime, createTime, 1, avatar,id],
                                             function(err, result) {
                                                 if (err) {
-                                                    console.log(err);
+                                                    //console.log(err);
                                                     res.json({ "code": 300, "data": { "status": "fail", "err": err}});
                                                     return;
                                                 } else {
@@ -447,7 +444,7 @@ function addPCUser(req, res) {
                 var mobilenew = query.mobilenew || "00000000000";
                 var company = query.company || "west";
                 var role_id=query.role_id||"-1";
-                var createTime = new Date().getTime();
+                var createTime = 0;
                 var myreg=/^[1][3,4,5,7,8][0-9]{9}$/;
 		       // var avatar = query.avatar || "http://via.placeholder.com/2000x200?text=avatar";
                 if (sex != 'F' && sex != 'M') {
@@ -472,7 +469,7 @@ function addPCUser(req, res) {
 		                            ],
 		                            function(err, result) {
 		                                if (err) {
-		                                    console.log(err);
+		                                    //console.log(err);
 		                                    res.json({ "code": 300, "data": { "status": "fail", "err": err}});
 		                                    return;
 		                                } else {
@@ -529,7 +526,7 @@ function editPCUser(req, res) {
                             var params=[name,sex,NO,mobilenew,company,role_id,Id];
                             conn.query(sql,params,function(err,data){
                                 if (err) {
-                                    console.log(err);
+                                    //console.log(err);
                                     res.json({ "code": 300, "data": { "status": "fail", "err": err}});
                                     return;
                                 } else {
@@ -562,7 +559,7 @@ function delMobileUser(req,res){
 					conn.query("delete from mobileUser where Id="+Id,
 								function(err,result){
 									if(err){
-										console.log(err);
+										//console.log(err);
 										res.json({ "code": 300, "data": { "status": "fail", "error": "未知错误" } });
 									} else {
                                         Log.insertLog(mobile,"删除App用户","delMobileUser");
@@ -652,7 +649,7 @@ function delPCUser(req,res){
             if(result){
                 conn.query("delete from user where Id=?",[parseInt(Id)],
                     function(err,result){
-                        Log.insertLog(mobile,"根据Id删除管理员用户","delPCUser");
+                        Log.insertLog(mobile,"删除PC用户","delPCUser");
                         res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                     });
             } else {
@@ -820,7 +817,6 @@ function checkUser(req,res){
                                                         if(type==0){
                                                             conn.query("delete from user where Id=?",[Id],
                                                                         function(err,result){
-                                                                            Log.insertLog(mobile,"审核用户","checkUser");
                                                                             res.json({ "code": 200, "data": {"error":"success"} });
                                                                         });
                                                         }
@@ -828,6 +824,7 @@ function checkUser(req,res){
                                                         if(type==1){
                                                             conn.query("update user set status=? where Id=?",[Id],
                                                                         function(err,result){
+                                                                            Log.insertLog(mobile,"审核用户","checkUser");
                                                                             //Log.insertLog(mobile,req.url,"checkUser");
                                                                            res.json({ "code": 200, "data": {"error":"success"} }); 
                                                                         });
@@ -887,35 +884,36 @@ function getOnlineCount(req, res){
         var mobile = query.mobile;
         var token = query.token;
         var page = query.page || 1;
-        var pageSize = query.pageSize ||10;
+        var pageSize = query.pageSize || 10;
         getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
                 var userId = user.Id;
                 var timestamp = new Date().getTime() - 10 * 60 * 1000;
                 conn.query("select count(0) as total from user where lastLoginTime>?",
-                            [timestamp],
-                            function(err, result){
-                                if(err){
-                                    errMessage(res,301,err.message);
-                                } else {
-                                    if (page < 1) {
-                                        page = 1;
+                    [timestamp], function(err, result){
+                        if(err){
+                            errMessage(res,301,err.message);
+                        } else {
+                            if (page < 1) {
+                                page = 1;
+                            }
+                            var start = (page - 1) * pageSize;
+                            pageSize = parseInt(pageSize);
+                            conn.query("select a.Id,a.name,a.NO,a.mobile,b.role_name,c.name as company from user a left join "+
+                            " role b on a.role_id=b.role_id left join department2 c on a.company=c.Id where a.lastLoginTime>? limit ?,?",
+                                [timestamp,start,pageSize],function (err,results) {
+                                    if(err){
+                                        errMessage(res,301,err.message);
+                                    }else{
+                                        //console.log(result[0].total);
+                                        res.json({ "code": 200, "data": {"status":"success","data":result[0].total,"dataArr":results} });
                                     }
-                                    var start = (page - 1) * pageSize;
-                                    pageSize = parseInt(pageSize);
-                                    conn.query("select * from user where lastLoginTime>? limit ?,?",
-                                        [timestamp,start,pageSize],function (err,results) {
-                                            if(err){
-                                                errMessage(res,301,err.message);
-                                            }else{
-                                                res.json({ "code": 200, "data": {"status":"success","data":result[0].total,"dataArr":results} });
-                                            }
 
-                                        })
-                                }
-                            });
+                                })
+                        }
+                    });
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -937,7 +935,7 @@ function forceLogout(req,res){
                 var targetId = parseInt(query.targetId) || -1;
                 var type = parseInt(query.type) || -1;
                 if(targetId==-1 || type==-1){
-                    errMessage(res, 300, "param error");
+                    errMessage(res, 300, "参数错误");
                 } else {
                     var timestamp = new Date().getTime();
                     //更新token
@@ -945,17 +943,18 @@ function forceLogout(req,res){
                     if(type==2){
                         table = "mobileuser";
                     }
-                    conn.query("update "+ table +" set token=? ,lastLoginTime=? where Id=?",[timestamp, 0,targetId],
+                    conn.query("update "+ table +" set lastLoginTime=?,token=? where Id=?",[0,timestamp, targetId],
                                 function(err, result){
                                     if(err){
                                         errMessage(res, 500, err.message);
                                     } else {
+                                        Log.insertLog(mobile,"强制下线","forceLogout");
                                         sucMessage(res);
                                     }
                                 });
                 }
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });

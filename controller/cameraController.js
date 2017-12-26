@@ -138,7 +138,7 @@ function createNewCamera(cam_no,cam_name,cam_sta,addtime,uptime,
                         cam_addr,cam_extra,callback){
     ret = {};
     //获取所有的额外属性名
-    db.query("select attr_name from camera_attr where Id>43",[],
+    db.query("select attr_name from camera_attr where Id>30",[],
         function(err,rows){
             if(err){
                 ret = {
@@ -172,7 +172,7 @@ function createNewCamera(cam_no,cam_name,cam_sta,addtime,uptime,
                             "code": 502,
                             "data": {
                                 "status": "fail",
-                                "error": "摄像头属性名称不完全"
+                                "error": "摄像头标识符不完全"
                             }
                         };
                     callback(ret);
@@ -389,7 +389,7 @@ function editCamera(req, res) {
                                                 "cam_desc=?,cam_addr=?"
                             var dataArr = [cam_no,cam_name,cam_sta,curtime,cam_loc_lan,cam_loc_lon,
                                             cam_desc,cam_addr];
-                            db.query("select attr_name from camera_attr where Id>43",[],
+                            db.query("select attr_name from camera_attr where Id>30",[],
                                 function(err,rows){
                                     cam_extra = JSON.parse(cam_extra);
                                     for(var i=0; i<rows.length; i++){
@@ -551,12 +551,13 @@ function getCameraList(req, res) {
 function getCameraListByAttr(req, res) {
     var query = req.body;
     attrName = query.attrName || '';
+
     if (dbTableAttr.cameraAttrList.indexOf(attrName) == -1) {
         res.json({
             "code": 401,
             "data": {
                 "status": "fail",
-                "error": "属性名称不存在"
+                "error": "标识符不存在"
             }
         });
         return;
@@ -574,7 +575,7 @@ function getCameraListByAttr(req, res) {
     }
     try {
         var sql = "select count(*) as total from camera where is_del = 0 and " + attrName + " like " +
-                    "'%" + attrValue + "%'";
+                    "'" + attrValue + "'";
         // var dataArr = [attrName, attrValue];
         var dataArr = [];
         db.query(sql, dataArr, function(err, rows) {
@@ -594,16 +595,19 @@ function getCameraListByAttr(req, res) {
                     page = 1;
                 }
                 var start = (page - 1) * pageSize;
+                console.log(pageSize);
+                console.log(start);
                 if (-1 == page) {
                     sql = "select * from camera where is_del = 0 and " + attrName + " like " +
-                            "'%" + attrValue + "%'";
+                            "'" + attrValue + "'";
                     pageSize = total;
                     dataArr = [];
                 } else {
                     sql = "select * from camera where is_del = 0 and " + attrName + " like " +
-                            "'%" + attrValue + "%'" + " order by cam_id limit ?, ?";
+                            "'" + attrValue + "'" + " order by cam_id limit ?, ?";
                     dataArr = [start, parseInt(pageSize)];
                 }
+                console.log(sql)
                 db.query(sql, dataArr, function(err, rows) {
                     if (err) {
                         res.json({
@@ -614,6 +618,7 @@ function getCameraListByAttr(req, res) {
                             }
                         });
                     } else {
+                        console.log(rows);
                         //var mobile = req.body.mobile || -1;
                         //Log.insertLog(mobile,req.url,sql);
                         res.json({
@@ -871,16 +876,28 @@ function getCameraAttrs(req,res){
     try {
         var mobile = query.mobile;
         var token = query.token;
+        var page = query.page || -1;
+        var pageSize = query.pageSize || -1;
         User.getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
                 // user_info = user.data;
                 var type = query.type || -1;
                 if(type==-1){
-                    var sql = "select * from camera_attr";
-                    var data = Array();
+                    if(page==-1&&pageSize==-1){
+                        var sql = "select * from camera_attr";
+                        var data = Array();
+                    }else{
+                        if (page < 1) {
+                            page = 1;
+                        }
+                        var start = (page - 1) * pageSize;
+                        pageSize = parseInt(pageSize);
+                        var sql ="select * from camera_attr limit ?,?";
+                        var data=[start,pageSize];
+                    }
                 } else {
                     var sql = "select * from camera_attr where Id>?";
-                    var data = [43];
+                    var data = [30];
                 }
                 db.query(sql,data,function(err,rows){
                     if (err) {
@@ -892,15 +909,28 @@ function getCameraAttrs(req,res){
                             }
                         });
                     } else {
-                        //Log.insertLog(mobile,req.url,sql);
-                        res.json({
-                            "code": 200,
-                            "data": {
-                                "status": "success",
-                                "error": "success",
-                                "rows": rows
+                        var sql ="select count(id) as total from camera_attr";
+                        db.query(sql,null,function (err,result) {
+                            if(err){
+                                res.json({
+                                    "code": 501,
+                                    "data": {
+                                        "status": "fail",
+                                        "error": err.message
+                                    }
+                                });
+                            }else{
+                                res.json({
+                                    "code": 200,
+                                    "data": {
+                                        "status": "success",
+                                        "error": "success",
+                                        "rows": rows,
+                                        "total":result[0].total
+                                    }
+                                });
                             }
-                        });
+                        })
                     }
                 });
             } else {
@@ -943,7 +973,7 @@ function getCameraAttrs_APP(req,res){
                     var data = Array();
                 } else {
                     var sql = "select * from camera_attr where Id>?";
-                    var data = [43];
+                    var data = [30];
                 }
                 db.query(sql,data,function(err,rows){
                     if (err) {
@@ -1007,8 +1037,8 @@ function addCameraAttr(req,res){
                 var attr_show_1 = query.attr_show_1 || 1;
                 var attr_show_2 = query.attr_show_2 || 1;
                 var attr_show_3 = query.attr_show_3 || 1;
-                var reg= /^[A-Za-z]+$/;
-                if(attr_name==-1 || attr_desc==-1 || attr_comment==-1){
+                var reg = /^(?!.*?_$)[a-zA-Z][a-zA-Z0-9_]*$/;
+                if(attr_name==-1 || attr_desc==-1 ){
                     res.json({
                         "code": 303,
                         "data": {
@@ -1063,7 +1093,7 @@ function addCameraAttr(req,res){
                         "code": 302,
                         "data": {
                             "status": "fail",
-                            "error": "属性名称必须为英文字母"
+                            "error": "标识符格式输入有误"
                         }
                     });
                     return;    
@@ -1101,6 +1131,7 @@ function editCameraAttr(req,res){
     try {
         var mobile = query.mobile;
         var token = query.token;
+        var Ids = [1,2,3,12,16,17,18];
         User.getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
                 // user_info = user.data;
@@ -1121,12 +1152,12 @@ function editCameraAttr(req,res){
                     });
                     return;    
                 } else {
-                    if(attrId<13){
+                    if(Ids.indexOf(attrId) != -1){
                         res.json({
                             "code": 403,
                             "data": {
                                 "status": "fail",
-                                "error": "前43项属性不能修改"
+                                "error": "该属性不能修改"
                             }
                         });
                         return;    
@@ -1244,7 +1275,7 @@ function editCameraAttrShow(req,res){
                                         }
                                     });                    
                                 } else {
-                                    Log.insertLog(mobile,"编辑摄像头属性的展示方式","editCameraAttrShow");
+                                    Log.insertLog(mobile,"编辑摄像头属性展示方式","editCameraAttrShow");
                                     res.json({
                                         "code": 200,
                                         "data": {
@@ -1293,7 +1324,7 @@ function multiAddCameras(req,res){
                             "code": 404,
                             "data": {
                                 "status": "fail",
-                                "error": "file not exist"
+                                "error": "文件不存在"
                             }
                         });
                         return;
@@ -1322,7 +1353,7 @@ function multiAddCameras(req,res){
                                             "code": 502,
                                             "data": {
                                                 "status": "fail",
-                                                "error": "模版格式不对"
+                                                "error": "模板格式错误，请重新下载最新模板"
                                             }
                                         }); 
                                     } else {
@@ -1400,14 +1431,10 @@ function multiAddCameras(req,res){
 function downloadModel(req,res) {
     var data= [];
     var exlBuf = fs.readFileSync("../police/public/template/template.xlsx");
-    db.query("select attr_desc from camera_attr where id not in (1)",[],function (err,result) {
+    db.query("select attr_desc from camera_attr where id not in (1,36)",[],function (err,result) {
         if(err){
             res.json({"code": 503, "data": {"status": "fail", "error": err.message}});
         }else{
-            // for(var i=0;i<result.length;i++){
-            //     data.push(result[i]);
-            // }
-            //console.log(result);
             var fileName = "模板";
             ejsExcel.renderExcel(exlBuf,result).then(function (exlBuf2) {
                 res.setHeader('Content-Type','application/vnd.openxmlformats');
@@ -1454,17 +1481,17 @@ function multiAddCamerasThen(req,res,data,attr_name){
                         //弹出cam_id
                         attr_name.shift();
                         //弹出is_del
-                        attr_name.splice(9,1);
+                        attr_name.splice(34,1);
                         //弹出表头
                         data.shift();
                         //开始导入
                         var date;
-                        var dates;
-                        for(var i=0;i<data.length;i++){
-                            date = new Date(data[i][3] ).getTime();
-                            dates = new Date(data[i][4] ).getTime();
-                            data[i][3] = date;
-                            data[i][4] = dates;
+                        for(var i=0;i<data[0].length;i++){
+                            date = data[0][i];
+                            if( date == "更新时间" || date == "安装时间" )
+                            {
+                                data[1][i] = new date(data[1][i]).getTime();
+                            }
                         }
                         var flag = true;
                         var attr_name_list = [];
@@ -1798,7 +1825,7 @@ function multiEditCamerasByAttr(req,res){
         var attrName = query.attrName || -1;
         var excel = query.excel || -1;
         if(attrName==-1 || excel==-1){
-            errMessage(res,300,"param error");
+            errMessage(res,300,"参数错误");
             return;
         }
         User.getUserInfo(mobile, token, function(user) {
@@ -1823,7 +1850,7 @@ function multiEditCamerasByAttr(req,res){
                                         excel = "./upload/" + excel.split("/")[excel.split("/").length-1];
                                         fs.stat(excel,function(err,stats){
                                             if(err){
-                                                errMessage(res,404,"file not exist");
+                                                errMessage(res,404,"文件不存在");
                                                 return;
                                             } else {
                                                 var obj = xlsx.parse(excel);
@@ -1847,12 +1874,12 @@ function multiEditCamerasByAttr(req,res){
                                             }
                                         });
                                     } else {
-                                        errMessage(res,404,"attrName not fount in table camera");
+                                        errMessage(res,404,"摄像头列表中不存在该属性");
                                     }
                                 }
                             });
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -1870,9 +1897,9 @@ function getCameraTypes(req,res){
         User.getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
                 var userId = user.Id
-                db.query("select * from camera_type",[],function(err,data){
+                db.query("select distinct cam_category from camera",[],function(err,data){
                     if(err){
-                        errMessage(res,500,"database error");
+                        errMessage(res,500,"数据查询错误");
                     } else {
                         res.json({
                             "code": 200,
@@ -1885,7 +1912,7 @@ function getCameraTypes(req,res){
                     }
                 })
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -1907,20 +1934,21 @@ function editCameraTypes(req,res){
                 var name = query.name || -1;
                 var url = query.url || -1;
                 if(Id==-1 || name==-1 || url==-1){
-                    errMessage(res,300,"param error");
+                    errMessage(res,300,"参数错误");
                     return;
                 }
                 db.query("update camera_type set name=?,url=? where id=?",
                             [name, url, Id],
                             function(err, result){
                                 if(err){
-                                    errMessage(res, 500, "database error");
+                                    errMessage(res, 500, "数据库查询错误");
                                 } else {
+                                    Log.insertLog(mobile,"编辑摄像头类型","editCameraTypes");
                                     sucMessage(res);
                                 }
                             });
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -1942,7 +1970,7 @@ function addCameraTypes(req,res){
                 var name = query.name || -1;
                 var url = query.url || -1;
                 if(name==-1 || url==-1){
-                    errMessage(res,300,"param error");
+                    errMessage(res,300,"参数错误");
                     return;
                 }
                 //判断类别是否已经存在
@@ -1950,17 +1978,18 @@ function addCameraTypes(req,res){
                             [name],
                             function(err, result){
                                 if(err){
-                                    errMessage(res, 500, "database error");
+                                    errMessage(res, 500, "数据查询错误");
                                 } else {
                                     if(result[0].total>0){
-                                        errMessage(res, 300, "name already exist");
+                                        errMessage(res, 300, "类别已存在");
                                     } else {
                                         db.query("insert into camera_type(name,url)values(?,?)",
                                                     [name, url],
                                                     function(err, result){
                                                         if(err){
-                                                            errMessage(res, 501, "database error");
+                                                            errMessage(res, 501, "数据查询错误");
                                                         } else {
+                                                            Log.insertLog(mobile,"添加摄像头类别","addCameraTypes");
                                                             sucMessage(res);
                                                         }
                                                     });
@@ -1968,7 +1997,7 @@ function addCameraTypes(req,res){
                                 }
                             });
             } else {
-                errMessage(res,301,"user not login");
+                errMessage(res,301,"用户未登录");
                 return;
             }
         });
@@ -1988,29 +2017,30 @@ function delCameraTypes(req,res){
                 var userId = user.Id;
                 var Id = query.Id || -1;
                 if(Id==-1){
-                    errMessage(res, 500, 'param error');
+                    errMessage(res, 500, '参数错误');
                 } else {
                     //判断类别是否存在
                     db.query("select name from camera_type where id=?",
                                 [Id],
                                 function(err, result){
                                     if(err){
-                                        errMessage(res, 500, "database error");
+                                        errMessage(res, 500, "数据查询错误");
                                     } else {
                                         if(result[0].name){
                                             var name = result[0].name;
                                             //删除摄像头类别表记录
                                             db.query("delete from camera_type where id=?",[Id],function(err,result){
                                                 if(err){
-                                                    errMessage(res, 500, "database error");
+                                                    errMessage(res, 500, "数据查询错误");
                                                 } else {
                                                     //删除这一个类别的摄像头数据
                                                     db.query("delete from camera where cam_category=?",
                                                                 [name],
                                                                 function(err, result){
                                                                     if(err){
-                                                                        errMessage(res, 500, "database error");
+                                                                        errMessage(res, 500, "数据查询错误");
                                                                     } else {
+                                                                        Log.insertLog(mobile,"删除摄像头类别","delCameraTypes");
                                                                         sucMessage(res);
                                                                     }
                                                                 });
@@ -2052,6 +2082,70 @@ function sucMessage(res){
             "error": "success"
         }
     });
+}
+
+//删除摄像字段
+function delCameraColumn(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                var targetColumnName = query.targetColumnName || -1;
+                if(targetColumnName==-1){
+                    errMessage(res,300,"参数错误")
+                } else {
+                    //判断字段名是否存在
+                    db.query("select Id,attr_name from camera_attr where attr_name=?",
+                                [targetColumnName],
+                                function (error, result) {
+                                    if(error){
+                                        errMessage(res, 500, error.message);
+                                    } else {
+                                        if(result && result.length){
+                                            var attrId = result[0].Id;
+                                            var attrName = result[0].attr_name;
+                                            //var Ids = [1,2,3,12,16,17,18];
+                                            if(attrId>30){
+                                                //删除字段
+                                                db.query("alter table camera drop column " + attrName,[],
+                                                    function(err,result){
+                                                        if(err){
+                                                            errMessage(res, 500, err.message);
+                                                        } else {
+                                                            //删除表记录
+                                                            db.query("delete from camera_attr where Id=?",
+                                                                [attrId],
+                                                                function(err,result){
+                                                                    if(err){
+                                                                        errMessage(res, 500, err.message);
+                                                                    } else {
+                                                                        Log.insertLog(mobile,"删除摄像头属性","delCameraColumn");
+                                                                        sucMessage(res);
+                                                                    }
+                                                            });
+                                                        }
+                                                    });
+                                            } else {
+                                                errMessage(res, 403, "该字段不允许删除");
+                                            }
+
+                                        } else {
+                                            errMessage(res, 404, "该字段不存在");
+                                        }
+                                    }
+                                });
+                }
+            } else {
+                errMessage(res,301,"用户未登录");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
 }
 
 //函数模板
@@ -2096,4 +2190,5 @@ exports.addCameraTypes = addCameraTypes;
 exports.editCameraTypes = editCameraTypes;
 exports.delCameraTypes = delCameraTypes;
 exports.downloadModel = downloadModel;
+exports.delCameraColumn = delCameraColumn;
 

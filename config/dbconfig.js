@@ -1,7 +1,7 @@
 var DB_CONFIG = {
-	host:'211.103.178.205',
-	user:'KingDragon',
-	password:'939407Lq252324',
+	host:'192.168.1.200',
+	user:'admin',
+	password:'admin',
 	database:'police',
 	port:3306
 }

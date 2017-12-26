@@ -92,7 +92,7 @@ function addFeedBack(req,res){
                                   res.json({"code": 501, "data":{"status":"fail","error":err.message}});
                               }else {
 									fb_id = rows.insertId;
-									Log.insertLog(mobile,"添加反馈",sql);
+									Log.insertLog(mobile,"添加摄像头反馈信息",sql);
 									res.json({"code": 200, "data":{"status":"success","error":"success", "fb_id": fb_id}});
 
                                   var pics = query.pics || '';
