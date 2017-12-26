@@ -472,5 +472,25 @@ server.post("/camera/delCameraColumn",function(req,res,next){
     return next();
 });
 
+//坐标转换
+server.post("/camera/transformPoint",function(req,res,next){
+    res.setHeader("Access-Control-Allow-Origin","*");
+    try{
+        var mobile = req.body.mobile || -1;
+        permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+            if(hasPermission){
+                camera.transformPointReq(req,res);
+            } else {
+                permission.permissionDenied(res);
+            }
+        });
+    } catch(e) {
+        permission.permissionDenied(res);
+    }
+    return next();
+});
+
+
+
 
 module.exports = server;

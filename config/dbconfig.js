@@ -1,5 +1,6 @@
 var DB_CONFIG = {
 	host:'192.168.1.200',
+	// host:'211.103.178.205',
 	user:'admin',
 	password:'admin',
 	database:'police',

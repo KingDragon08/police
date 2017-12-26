@@ -61,6 +61,12 @@ function addCamera(req, res) {
                         });
                         return;    
                 } else {
+                    //原始坐标需要转换
+                    if(cam_loc_lon<180 && cam_loc_lan<180){
+                        var temp = transformPoint(cam_loc_lon, cam_loc_lan);
+                        cam_loc_lon = temp.x;
+                        cam_loc_lan = temp.y;
+                    }
                     cam_extra = JSON.parse(cam_extra);
                     createNewCamera(cam_no,cam_name,cam_sta,curtime,curtime,
                                     user_id,cam_loc_lan,cam_loc_lon,cam_desc,
@@ -1506,6 +1512,13 @@ function multiAddCamerasThen(req,res,data,attr_name){
                                 spaceStr += "?,";
                             }
                             spaceStr = spaceStr.substring(0,spaceStr.length-1);
+                            //item[6]->cam_loc_lan,item[7]->cam_loc_lon
+                            //原始坐标需要转换
+                            if(item.length>7 && item[6]<180 && item[7]<180){
+                                var temp = transformPoint(item[7], item[6]);
+                                item[6] = temp.x;
+                                item[7] = temp.y;
+                            }
                             //插入摄像头数据
                             db.query("insert into camera("+attr_name_list.join(',')+")values("+spaceStr+")",item,
                                 function(err,data){
@@ -2148,6 +2161,40 @@ function delCameraColumn(req,res){
     }
 }
 
+//坐标转换
+function transformPointReq(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                var cam_loc_lan = query.cam_loc_lan || 0;
+                var cam_loc_lon = query.cam_loc_lon || 0;
+                var temp = transformPoint(cam_loc_lon, cam_loc_lan);
+                var ret = {
+                    "code": 200,
+                    "data": {
+                        "cam_loc_lon": cam_loc_lon,
+                        "cam_loc_lan": cam_loc_lan,
+                        "x": temp.x,
+                        "y": temp.y,
+                        "status": "success",
+                        "error": "success",
+                    }
+                }
+                res.json(ret);
+            } else {
+                errMessage(res,301,"用户未登录");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
 //函数模板
 function funcName(req,res){
     var query = req.body;
@@ -2164,6 +2211,25 @@ function funcName(req,res){
         });
     } catch (e) {
         errMessage(res,500,e.message);
+    }
+}
+
+/**
+ * 坐标转换
+ * lon->x, lan->y
+ */
+function transformPoint(x6,y6){
+    var x1=501494.0802;
+    var y1=304417.3615;
+    var x2=500686.8998;
+    var y2=306263.3613;
+    var x4=116.376302;
+    var y4=39.907194;
+    var x5=116.364967;
+    var y5=39.923865;
+    return {
+        x: (x2*x6-x2*x4-x1*x6+x1*x5)/(x5-x4),
+        y: (y2*y6-y2*y4-y1*y6+y1*y5)/(y5-y4)
     }
 }
 
@@ -2191,4 +2257,5 @@ exports.editCameraTypes = editCameraTypes;
 exports.delCameraTypes = delCameraTypes;
 exports.downloadModel = downloadModel;
 exports.delCameraColumn = delCameraColumn;
+exports.transformPointReq = transformPointReq;
 
