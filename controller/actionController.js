@@ -498,7 +498,59 @@ function getActionList(req, res) {
         });
     }
 }
+
+// 获取权限类型列表
+function getActionTypes(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile || -1;
+        var token = query.token || -1;
+        if(mobile == -1 || token == -1){
+            res.json({ "code": 300, "data": { "status": "fail", "error": "参数错误" } });
+            return;
+        }
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                db.query("select * from action_type",[],function(err,result){
+                    if(err){
+                        res.json({
+                            "code": 500,
+                            "data": {
+                                "status": "fail",
+                                "error": err.errMessage
+                            }
+                        });
+                    } else {
+                        res.json({
+                            "code": 200,
+                            "data": {
+                                "status": "success",
+                                "error": "success",
+                                "rows": result
+                            }
+                        });
+                    }
+                });
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "用户未登录"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
+
 exports.addAction = addAction;
 exports.delAction = delAction;
 exports.editAction = editAction;
 exports.getActionList = getActionList;
+exports.getActionTypes = getActionTypes

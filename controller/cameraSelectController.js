@@ -221,7 +221,8 @@ function cameraSelectLine(req, res) {
                 } else {
                     points = JSON.parse(points);
                     space = parseFloat(space);
-                    var polygon = Array();
+                    var polygonUp = Array();
+                    var polygonDown = Array();
                     if (points[0].X && points[0].Y) {
                     	//多添加一个点，方便添加最后一个点的边界
                     	var temp = {};
@@ -241,29 +242,29 @@ function cameraSelectLine(req, res) {
                             if (points[i].X == points[i + 1].X && points[i].Y == points[i + 1].Y) { //两个点重合
                                 continue;
                             } else {
-                                if (points[i].X == points[i + 1].X) { //平行于X轴
+                                if (points[i].X == points[i + 1].X) { //平行于Y轴
                                     var temp = {};
                                     temp.X = points[i].X;
                                     temp.Y = points[i].Y - space;
                                     //添加上方的点
-                                    polygon.push(temp);
+                                    polygonUp.push(temp);
                                     var temp1 = {};
                                     temp1.X = points[i].X;
                                     temp1.Y = points[i].Y + space;
                                     //添加下方的点
-                                    polygon.push(temp1);
+                                    polygonDown.push(temp1);
                                 } else {
-                                    if (points[i].Y == points[i + 1].Y) { //平行于Y轴
+                                    if (points[i].Y == points[i + 1].Y) { //平行于X轴
                                         var temp = {};
                                         temp.Y = points[i].Y;
                                         temp.X = points[i].X - space;
                                         //添加左侧的点
-                                        polygon.push(temp);
+                                        polygonUp.push(temp);
                                         var temp1 = {};
                                         temp1.Y = points[i].Y;
                                         temp1.X = points[i].X + space;
                                         //添加右侧的点
-                                        polygon.push(temp1);
+                                        polygonDown.push(temp1);
                                     } else { //一般情况
                                         var k = (points[i].Y - points[i + 1].Y)*1.0 / (points[i].X - points[i + 1].X)*1.0; //斜率
                                         var k1 = -1 / k; //法向量的斜率
@@ -273,18 +274,18 @@ function cameraSelectLine(req, res) {
                                         var y1 = points[i].Y - k1 * com;
                                         temp1.X = x1;
                                         temp1.Y = y1;
-                                        polygon.push(temp1);
+                                        polygonUp.push(temp1);
                                         var x2 = points[i].X + com;
                                         var y2 = points[i].Y + k1 * com;
                                         var temp2 = {};
                                         temp2.X = x2;
                                         temp2.Y = y2;
-                                        polygon.push(temp2);
+                                        polygonDown.push(temp2);
                                     }
                                 }
                             }
                         }
-                        points = polygon;
+                        points = polygonUp.concat(polygonDown);
                         var minX = 1000000;
                         var maxX = -1
                         var minY = 1000000;
