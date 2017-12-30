@@ -13,6 +13,8 @@ var Log = require('./logController')
 //   `addtime` varchar(32) comment '创建时间戳',
 //   PRIMARY KEY (`id`)
 // ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+
 /**
  * 添加角色操作
  * @param {[type]} req [description]

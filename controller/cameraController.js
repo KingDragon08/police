@@ -26,6 +26,17 @@ var map_db_name = "xc_baymin";
 //     `uptime` varchar(32) comment '更新时间',
 //     primary key (`cam_id`)
 // ) default charset=utf8;
+
+// CREATE TABLE `base_point` (
+//   `id` int(32) NOT NULL AUTO_INCREMENT comment 'id',
+//   `outX` varchar(50) comment '外部地图经度',
+//   `outY` varchar(50) comment '外部地图维度',
+//   `inX` varchar(50) comment '内部地图X',
+//   `inY` varchar(50) comment '内部地图Y',
+//   PRIMARY KEY (`id`)
+// ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+
 /**
  * 添加摄像头
  * @param {[type]} req [description]
@@ -2172,19 +2183,20 @@ function transformPointReq(req,res){
                 var userId = user.Id;
                 var cam_loc_lan = query.cam_loc_lan || 0;
                 var cam_loc_lon = query.cam_loc_lon || 0;
-                var temp = transformPoint(cam_loc_lon, cam_loc_lan);
-                var ret = {
-                    "code": 200,
-                    "data": {
-                        "cam_loc_lon": cam_loc_lon,
-                        "cam_loc_lan": cam_loc_lan,
-                        "x": temp.x,
-                        "y": temp.y,
-                        "status": "success",
-                        "error": "success",
+                transformPoint(cam_loc_lon, cam_loc_lan, function(temp){
+                    var ret = {
+                        "code": 200,
+                        "data": {
+                            "cam_loc_lon": cam_loc_lon,
+                            "cam_loc_lan": cam_loc_lan,
+                            "x": temp.x,
+                            "y": temp.y,
+                            "status": "success",
+                            "error": "success",
+                        }
                     }
-                }
-                res.json(ret);
+                    res.json(ret);
+                });
             } else {
                 errMessage(res,301,"用户未登录");
                 return;
@@ -2194,6 +2206,52 @@ function transformPointReq(req,res){
         errMessage(res,500,e.message);
     }
 }
+
+/**
+ * 坐标转换
+ * lon->x, lan->y
+ * 备注：数据库中配置的基准点>=2
+ */
+function transformPoint(x6, y6, callback){
+    // var x1=501494.0802;
+    // var y1=304417.3615;
+    // var x2=500686.8998;
+    // var y2=306263.3613;
+    // var x4=116.376302;
+    // var y4=39.907194;
+    // var x5=116.364967;
+    // var y5=39.923865;
+    // return {
+    //     x: (x2*x6-x2*x4-x1*x6+x1*x5)/(x5-x4),
+    //     y: (y2*y6-y2*y4-y1*y6+y1*y5)/(y5-y4)
+    // }
+    //取所有的录入的基准点
+    var sql = "select * from base_point";
+    db.query(sql, [], function(err, points){
+        if(points.length<2){
+            callback({
+                x:-1,
+                y:-1
+            });
+        } else {
+            points.sort(function(x,y){return (x.outX-1)*(x.outX-1)+(x.outY-1)*(x.outY-1) > (y.outX-1)*(y.outX-1)+(y.outY-1)*(y.outY-1)});
+            // console.log(points[0],points[1]);
+            var x1 = points[0].inX;
+            var y1 = points[0].inY;
+            var x2 = points[1].inX;
+            var y2 = points[1].inY;
+            var x4 = points[0].outX;
+            var y4 = points[0].outY;
+            var x5 = points[1].outX;
+            var y5 = points[1].outY;
+            callback({
+                x: (x2*x6-x2*x4-x1*x6+x1*x5)/(x5-x4),
+                y: (y2*y6-y2*y4-y1*y6+y1*y5)/(y5-y4)
+            });
+        }
+    });
+}
+
 
 //函数模板
 function funcName(req,res){
@@ -2214,24 +2272,6 @@ function funcName(req,res){
     }
 }
 
-/**
- * 坐标转换
- * lon->x, lan->y
- */
-function transformPoint(x6,y6){
-    var x1=501494.0802;
-    var y1=304417.3615;
-    var x2=500686.8998;
-    var y2=306263.3613;
-    var x4=116.376302;
-    var y4=39.907194;
-    var x5=116.364967;
-    var y5=39.923865;
-    return {
-        x: (x2*x6-x2*x4-x1*x6+x1*x5)/(x5-x4),
-        y: (y2*y6-y2*y4-y1*y6+y1*y5)/(y5-y4)
-    }
-}
 
 
 exports.addCamera = addCamera;
