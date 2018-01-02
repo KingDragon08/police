@@ -156,7 +156,7 @@ function delRoleAction(req, res) {
                 checkUserPermission(req.url, userId, 'pc', function(permission) {
                     if (permission) {
                         var roleActionId = query.roleActionId;
-                        var actionId = query.actionId;
+                        // var actionId = query.actionId;
                         if (check.isNull(roleActionId)) {
                             res.json({
                                 "code": 401,
@@ -167,7 +167,7 @@ function delRoleAction(req, res) {
                             });
                             return;
                         }
-                        var sql = "select count(*) as total from role_action where role_id = ?";
+                        var sql = "select count(*) as total from role_action where id = ?";
                         var dataArr = [roleActionId];
                         db.query(sql, dataArr, function(err, rows) {
                             if (err) {
@@ -180,8 +180,8 @@ function delRoleAction(req, res) {
                                 });
                             } else {
                                 if (rows[0].total > 0) {
-                                    sql = "delete from role_action where action_id = ? and role_id =?";
-                                    dataArr = [actionId,roleActionId];
+                                    sql = "delete from role_action where id = ?";
+                                    dataArr = [roleActionId];
                                     db.query(sql, dataArr, function(err, rows) {
                                         if (err) {
                                             res.json({
@@ -447,11 +447,11 @@ function getRoleActionList(req, res) {
                                 }
                                 var start = (page - 1) * pageSize;
                                 if (-1 == page) {
-                                    sql = "select a.*,b.action_name from role_action a left join action b on a.action_id=b.action_id where a.role_id=? order by id";
+                                    sql = "select a.*,b.type_name as action_name from role_action a left join action_type b on a.action_id=b.id where a.role_id=? order by a.id";
                                     pageSize = total;
                                     dataArr = [role_id];
                                 } else {
-                                    sql = "select a.*,b.action_name from role_action a left join action b on a.action_id=b.action_id where a.role_id=? order by id limit ?, ?";
+                                    sql = "select a.*,b.type_name as action_name from role_action a left join action_type b on a.action_id=b.id where a.role_id=? order by a.id limit ?, ?";
                                     dataArr = [role_id, start, pageSize];
                                 }
                                 db.query(sql, dataArr, function(err, rows) {
@@ -528,8 +528,8 @@ function checkUserPermission(actionUrl, userId, userType, callback) {
     try {
         var userTable = userType == 'pc' ? 'user' : 'mobileUser';
         var sql = "select ra.* ";
-        sql += "from role_action ra, action a, " + userTable + " u";
-        sql += " where ra.role_id = u.role_id and ra.action_id = a.action_id ";
+        sql += "from role_action ra, action a, action_type at, " + userTable + " u";
+        sql += " where ra.role_id = u.role_id and ra.action_id = at.id and a.action_type=at.id ";
         sql += " and u.Id = ? and a.action_url = ?";
         var dataArr = [userId, actionUrl];
         db.query(sql, dataArr, function(err, rows) {
@@ -564,8 +564,8 @@ function checkUserPermissionByMobile(actionUrl, mobile, userType, callback) {
     try {
         var userTable = userType == 'pc' ? 'user' : 'mobileUser';
         var sql = "select ra.* ";
-        sql += "from role_action ra, action a, " + userTable + " u";
-        sql += " where ra.role_id = u.role_id and ra.action_id = a.action_id ";
+        sql += "from role_action ra, action a, action_type at, " + userTable + " u";
+        sql += " where ra.role_id = u.role_id and ra.action_id = at.id and a.action_type=at.id ";
         sql += " and u.mobile = ? and a.action_url = ?";
         var dataArr = [mobile, actionUrl];
         db.query(sql, dataArr, function(err, rows) {
