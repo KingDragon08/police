@@ -211,7 +211,7 @@ function delLayerType(req, res) {
 function getLayerTableListByTypeId(typeId, callback) {
     var ret = {};
 
-    var sql = "select table_name where type_id = ?";
+    var sql = "select table_name from " + LayerBasicTable + " where type_id = ?";
     var dataArr = [typeId];
     db.query(sql, dataArr, function(err,rows){
         if(err){
@@ -382,11 +382,15 @@ function doGetLayerTypeList(query, userId, callback) {
             var start = (page - 1) * pageSize;
           
             if (-1 == page) {
-                sql = "select * from " + LayerTypeTable;
+                sql = "select LT.*,LB.img_path from " + LayerTypeTable + " LT left join " + 
+                        LayerBasicTable + " LB on LB.type_id=LT.type_id group by LT.type_id";
                 pageSize = total;
                 dataArr = [];
             } else {
-                sql = "select * from " + LayerTypeTable + " order by type_id limit ?, ?";
+                sql = "select LT.*,LB.img_path from " + LayerTypeTable + " LT left join " +
+                        LayerBasicTable + " LB on LB.type_id=LT.type_id group by LT.type_id " + 
+                        "order by LB.type_id limit ?, ?";
+                console.log(sql);
                 dataArr = [start, parseInt(pageSize)];
             }
             db.query(sql, dataArr, function(err, rows) {
@@ -517,8 +521,101 @@ function updateLayerType(layerTypeId, layerTypeName, userId, callback) {
     });
 }
 
+//根据图层类型获取图层列表
+function getLayersByTypeId(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                userInfo = user.data;
+                var userId = userInfo.Id;
+                var layerTypeId = query.layerTypeId || "";
+                if (check.isNull(layerTypeId)) {
+                    res.json({
+                        "code": 401,
+                        "data": {
+                            "status": "fail",
+                            "error": "请求参数无效"
+                        }
+                    });
+                    return;
+                }
+                layerTypeId = parseInt(layerTypeId);
+                var sql = "select count(*) as total from " + LayerBasicTable + " where type_id=?";
+                var dataArr = [layerTypeId];
+                db.query(sql, dataArr, function(err, rows) {
+                    if (err) {
+                        res.json({
+                            "code": 501,
+                            "data": {
+                                "status": "fail",
+                                "error": err.message
+                            }
+                        });
+                    } else {
+                      
+                        var total = rows[0].total;
+                        var page = query.page || 1;
+                        var pageSize = query.pageSize || 20;
+                      
+                        if (page < 1 && page != -1) {
+                            page = 1;
+                        }
+                        var start = (page - 1) * pageSize;
+                      
+                        if (-1 == page) {
+                            sql = "select * from " + LayerBasicTable + " where type_id=?";
+                            pageSize = total;
+                            dataArr = [layerTypeId];
+                        } else {
+                            sql = "select * from " + LayerBasicTable + " where type_id=? order by layer_id limit ?, ?";
+                            dataArr = [layerTypeId, start, parseInt(pageSize)];
+                        }
+                        db.query(sql, dataArr, function(err, rows) {
+                            if (err) {
+                                res.json({
+                                    "code": 501,
+                                    "data": {
+                                        "status": "fail",
+                                        "error": err.message
+                                    }
+                                });
+                            } else {
+                                res.json({
+                                    "code": 200,
+                                    "data": {
+                                        "status": "success",
+                                        "error": "success",
+                                        "rows": rows,
+                                        "total": total,
+                                        "page": page,
+                                        "pageSize": pageSize
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } catch(e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
 
 exports.addLayerType = addLayerType;
 exports.delLayerType = delLayerType;
 exports.editLayerType = editLayerType;
 exports.getLayerTypeList = getLayerTypeList;
+exports.getLayersByTypeId = getLayersByTypeId;
+
+

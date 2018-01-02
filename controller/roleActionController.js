@@ -512,6 +512,145 @@ function getRoleActionList(req, res) {
         });
     }
 }
+
+/**
+ * 配置角色权限
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+function configRolePermissions(req, res) {
+    var query = req.body;
+    try {
+        var mobile = query.mobile || -1;
+        var token = query.token || -1;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                user_info = user.data;
+                var userId = user_info.Id;
+                checkUserPermission(req.url, userId, 'pc', function(permission) {
+                    if (permission) {
+                        var role_id = query.role_id || -1;
+                        if(role_id==-1){
+                            res.json({
+                                "code": 403,
+                                "data": {
+                                    "status": "fail",
+                                    "error": "参数错误"
+                                }
+                            });
+                            return;
+                        }
+                        role_id = parseInt(role_id);
+                        //权限配置数组
+                        var config = query.config || -1;
+                        if(config==-1){
+                            res.json({
+                                "code": 403,
+                                "data": {
+                                    "status": "fail",
+                                    "error": "参数错误"
+                                }
+                            });
+                            return;
+                        }
+                        config = JSON.parse(config);
+                        for(let i=0; i<config.length; i++){
+                            let action_type_id = config[i].action_type_id;
+                            let action_type_check = config[i].action_type_check;
+                            //选中
+                            if(action_type_check==1){
+                                addRoleActionNew(role_id, action_type_id);
+                            }
+                            if(action_type_check==0){
+                                delRoleActionNew(role_id, action_type_id);
+                            }
+                        }
+                        res.json({
+                            "code": 200,
+                            "data": {
+                                "status": "success",
+                                "error": "success"
+                            }
+                        });
+                    } else {
+                        res.json({
+                            "code": 301,
+                            "data": {
+                                "status": "fail",
+                                "error": "没有相应权限"
+                            }
+                        });
+                        return;
+                    }
+                });
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "用户未登录"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
+/**
+ * 新版逻辑配置权限
+ * @param role_id 角色id
+ * @param action_type_id 权限id
+ */
+function addRoleActionNew(role_id, action_type_id){
+    var sql = "select count(*) as total from role_action where role_id=? and action_id=?";
+    var dataArr = [role_id, parseInt(action_type_id)];
+    db.query(sql, dataArr,function(err, rows){
+        if(err){
+            return
+        } else {
+            //权限不存在则添加
+            if(rows[0].total<1){
+                sql = "insert into role_action(role_id, action_id, addtime)values(?, ?, ?)";
+                dataArr = [role_id, parseInt(action_type_id), new Date().getTime()];
+                db.query(sql, dataArr, function(err, result){});
+            }
+        }
+    });
+}
+
+/**
+ * 新版逻辑配置权限
+ * @param role_id 角色id
+ * @param action_type_id 权限id
+ */
+function delRoleActionNew(role_id, action_type_id){
+    var sql = "select count(*) as total from role_action where role_id=? and action_id=?";
+    var dataArr = [role_id, action_type_id];
+    db.query(sql, dataArr,function(err, rows){
+        if(err){
+            return
+        } else {
+            //权限存在则删除
+            if(rows[0].total>0){
+                sql = "delete from role_action where role_id=? and action_id=?";
+                dataArr = [role_id, parseInt(action_type_id)];
+                db.query(sql, dataArr, function(err, result){});
+            }
+        }
+    });
+}
+
+
 /**
  * 校验用户操作权限
  * 根据URL判断当前用户有无权限
@@ -608,4 +747,5 @@ exports.getRoleActionList = getRoleActionList;
 exports.checkUserPermission = checkUserPermission;
 exports.checkUserPermissionByMobile = checkUserPermissionByMobile;
 exports.permissionDenied = permissionDenied;
+exports.configRolePermissions = configRolePermissions;
 

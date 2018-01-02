@@ -295,6 +295,24 @@ server.post("/layer/layertypelist",function(req,res,next){
 	return next();
 });
 
+// 获取图层类型列表
+server.post("/layer/layerlistbytypeid",function(req,res,next){
+	res.setHeader("Access-Control-Allow-Origin","*");
+	try{
+		var mobile = req.body.mobile || -1;
+		permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+			if(hasPermission){
+				layerTypeController.getLayersByTypeId(req,res);
+			} else {
+				permission.permissionDenied(res);
+			}
+		});
+	} catch(e) {
+		permission.permissionDenied(res);
+	}
+	return next();
+});
+
 
 
 module.exports = server;

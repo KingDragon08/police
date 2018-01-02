@@ -256,10 +256,6 @@ server.post("/role/getactiontypes", function(req, res, next) {
     res.setHeader("Access-Control-Allow-Origin", "*");
     try{
         var mobile = req.body.mobile || -1;
-        if(mobile == -1){
-            res.json({ "code": 700, "data": { "status": "fail", "error": "参数错误" } });
-            return;
-        }
         permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
             if(hasPermission){
                 actionController.getActionTypes(req, res);
@@ -273,5 +269,26 @@ server.post("/role/getactiontypes", function(req, res, next) {
 
     return next();
 });
+
+//配置角色权限
+server.post("/role/configrolepermissions", function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    try{
+        var mobile = req.body.mobile || -1;
+        permission.checkUserPermissionByMobile(req.url, mobile, 'pc', function(hasPermission){
+            if(hasPermission){
+            	roleActionController.configRolePermissions(req, res);
+            } else {
+                permission.permissionDenied(res);
+            }
+        });
+    } catch(e) {
+        permission.permissionDenied(res);
+    }
+
+    return next();
+});
+
+
 
 module.exports = server;
