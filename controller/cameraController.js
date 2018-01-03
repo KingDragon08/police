@@ -83,32 +83,9 @@ function addCamera(req, res) {
                                             cam_addr,cam_extra,function(ret){
                                                 Log.insertLog(mobile,"添加摄像头","add Camera");
                                                 res.json(ret);
+                                                //删除重复记录
+                                                deleteRepeatCameras();
                                             });
-                            //删除重复记录
-                            //step1 获取摄像头所有的属性
-                            db.query("select attr_name from camera_attr",[],
-                                        function(err,result){
-                                            if(err){
-                                                return;
-                                            } else {
-                                                camera_attrs = []
-                                                for(var i=0; i<result.length; i++){
-                                                    //排除cam_id和is_del
-                                                    if(i!=0 && i!=10){
-                                                        camera_attrs.push(result[i].attr_name);
-                                                    }
-                                                }
-                                                camera_attrs = camera_attrs.join(",");
-                                                //step2删除重复数据
-                                                sql = "delete a from camera a left join(select cam_id from camera group "+
-                                                        "by "+camera_attrs +" )b on a.cam_id=b.cam_id where b.cam_id is null";
-                                                db.query(sql,[],function(err,result){
-                                                    if(err){
-                                                        console.log(err);
-                                                    }
-                                                });
-                                            }
-                                        });
                         });
                     } else {
                         cam_extra = JSON.parse(cam_extra);
@@ -117,32 +94,9 @@ function addCamera(req, res) {
                                         cam_addr,cam_extra,function(ret){
                                             Log.insertLog(mobile,"添加摄像头","add Camera");
                                             res.json(ret);
+                                            //删除重复记录
+                                            deleteRepeatCameras();
                                         });
-                        //删除重复记录
-                        //step1 获取摄像头所有的属性
-                        db.query("select attr_name from camera_attr",[],
-                                    function(err,result){
-                                        if(err){
-                                            return;
-                                        } else {
-                                            camera_attrs = []
-                                            for(var i=0; i<result.length; i++){
-                                                //排除cam_id和is_del
-                                                if(i!=0 && i!=10){
-                                                    camera_attrs.push(result[i].attr_name);
-                                                }
-                                            }
-                                            camera_attrs = camera_attrs.join(",");
-                                            //step2删除重复数据
-                                            sql = "delete a from camera a left join(select cam_id from camera group "+
-                                                    "by "+camera_attrs +" )b on a.cam_id=b.cam_id where b.cam_id is null";
-                                            db.query(sql,[],function(err,result){
-                                                if(err){
-                                                    console.log(err);
-                                                }
-                                            });
-                                        }
-                                    });
                     }
                 }
                 
@@ -167,6 +121,37 @@ function addCamera(req, res) {
         });
     }
 }
+
+/**
+ * 删除重复记录
+ */
+ function deleteRepeatCameras(){
+    //step1 获取摄像头所有的属性
+    db.query("select attr_name from camera_attr",[],
+                function(err,result){
+                    if(err){
+                        return;
+                    } else {
+                        camera_attrs = []
+                        for(var i=0; i<result.length; i++){
+                            //排除cam_id和is_del
+                            if(i!=0 && i!=10){
+                                camera_attrs.push(result[i].attr_name);
+                            }
+                        }
+                        camera_attrs = camera_attrs.join(",");
+                        //step2删除重复数据
+                        sql = "delete a from camera a left join( select cam_id from camera group "+
+                                "by "+camera_attrs +" )b on a.cam_id=b.cam_id where b.cam_id is null";
+                        db.query(sql,[],function(err,result){
+                            if(err){
+                                console.log(err);
+                            }
+                        });
+                    }
+                }); 
+ }
+
 
 /**
  * 添加摄像头
@@ -1599,6 +1584,8 @@ function multiAddCamerasThen(req,res,data,attr_name){
                                         "error": "success"
                                     }
                                 });
+                                deleteRepeatCameras();
+                                autoAddCameraTypes();
                             } else {
                                 res.json({
                                     "code": 404,
@@ -1613,6 +1600,46 @@ function multiAddCamerasThen(req,res,data,attr_name){
                 });
        }
     });
+}
+
+/**
+ * 自动识别添加摄像头类型
+ */
+function autoAddCameraTypes(){
+    //获取camera表中的摄像头类型
+    //获取camera_type中的所有类型
+    db.query("select name from camera_type",[],
+                function(err, result){
+                    if(err){
+                        return;
+                    } else {
+                        cam_categorys = []
+                        for(var i=0; i<result.length; i++){
+                            cam_categorys.push(result[i]['name']);
+                        }
+                        //获取camera_type中的所有类型
+                        db.query("select distinct(cam_category) as cam_category from camera",[],
+                                    function(err, result){
+                                        if(err){
+                                            return
+                                        } else {
+                                            for(var i=0; i<result.length; i++){
+                                                //不存在则创建
+                                                if(cam_categorys.indexOf(result[i].cam_category)==-1){
+                                                    autoCreateCameraType(result[i].cam_category);
+                                                }
+                                            }
+                                        }
+                                    });
+                    }
+                });
+}
+
+/**
+ * 批量导入时自动创建摄像头类型 
+ */
+function autoCreateCameraType(typeName){
+    db.query("insert into camera_type(name)values(?)",[typeName],function(err, result));
 }
 
 //备份摄像头数据
@@ -2027,6 +2054,7 @@ function addCameraTypes(req,res){
                 var userId = user.Id;
                 var name = query.name || -1;
                 var url = query.url || -1;
+                var photoMap_url = query.photoMap_url || -1;
                 if(name==-1 || url==-1){
                     errMessage(res,300,"参数错误");
                     return;
@@ -2041,8 +2069,8 @@ function addCameraTypes(req,res){
                                     if(result[0].total>0){
                                         errMessage(res, 300, "类别已存在");
                                     } else {
-                                        db.query("insert into camera_type(name,url)values(?,?)",
-                                                    [name, url],
+                                        db.query("insert into camera_type(name,url,photoMap_url)values(?,?,?)",
+                                                    [name, url, photoMap_url==-1?url:photoMap_url],
                                                     function(err, result){
                                                         if(err){
                                                             errMessage(res, 501, "数据查询错误");
@@ -2268,7 +2296,7 @@ function transformPoint(x6, y6, callback){
                 y:-1
             });
         } else {
-            points.sort(function(x,y){return (x.outX-1)*(x.outX-1)+(x.outY-1)*(x.outY-1) > (y.outX-1)*(y.outX-1)+(y.outY-1)*(y.outY-1)});
+            points.sort(function(x,y){return (x.outX-x6)*(x.outX-x6)+(x.outY-y6)*(x.outY-y6) > (y.outX-x6)*(y.outX-x6)+(y.outY-y6)*(y.outY-y6)});
             // console.log(points[0],points[1]);
             var x1 = points[0].inX;
             var y1 = points[0].inY;

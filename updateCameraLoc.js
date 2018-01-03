@@ -26,7 +26,7 @@ function transformPoint(cam_id, x6, y6, callback){
                 y:-1
             });
         } else {
-            points.sort(function(x,y){return (x.outX-1)*(x.outX-1)+(x.outY-1)*(x.outY-1) > (y.outX-1)*(y.outX-1)+(y.outY-1)*(y.outY-1)});
+            points.sort(function(x,y){return (x.outX-x6)*(x.outX-x6)+(x.outY-y6)*(x.outY-y6) > (y.outX-x6)*(y.outX-x6)+(y.outY-y6)*(y.outY-y6)});
             // console.log(points[0],points[1]);
             var x1 = points[0].inX;
             var y1 = points[0].inY;
