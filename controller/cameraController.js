@@ -1955,7 +1955,7 @@ function getCameraTypes(req,res){
         User.getUserInfo(mobile, token, function(user) {
             if (user.error == 0) {
                 var userId = user.Id
-                db.query("select distinct cam_category from camera",[],function(err,data){
+                db.query("select * from camera_type",[],function(err,data){
                     if(err){
                         errMessage(res,500,"数据查询错误");
                     } else {
