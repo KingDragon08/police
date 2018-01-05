@@ -85,7 +85,7 @@ function addLayerType(req, res) {
 function doAddLayerType(typeName, userId, curtime, callback){
     ret = {};
 
-    var sql = "select count(*) as total from " + LayerTypeTable + " where typeName = ?";
+    var sql = "select count(*) as total from " + LayerTypeTable + " where type_name = ?";
     var dataArr = [typeName];
     db.query(sql, dataArr, function(err,rows){
             if(err){
@@ -250,48 +250,84 @@ function doDelLayerType(userId, tableNameList, layerTypeId, callback) {
 
     // 先删除图层数据表
     var sql = "";
-    for (var i = 0; i < tableNameList.length; i++) {
-        var tableName = tableNameList[i] || "";
+    if (tableNameList.length > 0) {
+        var tableName = tableNameList[0]["table_name"] || "";
         if (!check.isNull(tableName)) {
-            sql += "drop table " + tableName + " ;";
+            sql = "drop table `" + tableName + "`";
         }
+        for (var i = 1; i < tableNameList.length; i++) {
+            var tableName = tableNameList[i]["table_name"] || "";
+            if (!check.isNull(tableName)) {
+                sql += ", `" + tableName + "`";
+            }
+        }
+        var dataArr = [];
+        //Log.insertLog(userId, "del layer data table", sql);
+        db.query(sql, dataArr, function(err, rows){
+            if (err) {
+                ret = {
+                    "code": 501,
+                    "data": {
+                        "status": "fail",
+                        "error": err.message
+                    }
+                };
+                callback(ret);
+            } else {
+                console.log(rows);
+                delLayerandExt(userId, layerTypeId, function(resJson){
+                    callback(resJson);
+                });
+            }
+        });
+    } else {
+        delLayerandExt(userId, layerTypeId, function(resJson){
+            callback(resJson);
+        });
     }
+}
 
-    var dataArr = [l];
-    
-    //Log.insertLog(userId, "del layer data table", sql);
+/**
+ * 先删除图层额外属性记录
+ * 再删除图层记录
+ * 最后删除图层类型记录
+ * @param  {[type]}   userId      [description]
+ * @param  {[type]}   layerTypeId [description]
+ * @param  {Function} callback    [description]
+ * @return {[type]}               [description]
+ */
+function delLayerandExt(userId, layerTypeId, callback) {
+    var ret = {};
+    // 删除图层额外属性
+    sql = "delete from " + LayerExtTable + " where layer_id in ";
+    sql += "(select layer_id from " + LayerBasicTable + " where type_id = ?)";
+    dataArr = [layerTypeId];
 
-    db.query(sql, dataArr, function(err, rows){
-        if (err) {
-            ret = {
-                "code": 501,
-                "data": {
-                    "status": "fail",
-                    "error": err.message
-                }
-            };
+    Log.insertLog(userId, "del layer ext attr", sql);
+
+    db.query(sql, dataArr, function(mErr, mRows){
+        if (mErr) {
+            ret = {"code": 501, "data": {"status": "fail", "error": mErr.message}};
             callback(ret);
         } else {
-            // 删除图层额外属性
-            sql = "delete from " + LayerExtTable + " where layer_id in ";
-            sql += "(select layer_id from " + LayerBasicTable + " where type_id = ?) a";
+            // 删除图层
+            sql = "delete from " + LayerBasicTable + " where type_id = ? ";
             dataArr = [layerTypeId];
+            
+            Log.insertLog(userId, "del layer", sql);
 
-            //Log.insertLog(userId, "del layer ext attr", sql);
-
-            db.query(sql, dataArr, function(mErr, mRows){
-                if (mErr) {
+            db.query(sql, dataArr, function(mmErr, mmRows){
+                if (mmErr) {
                     ret = {"code": 501, "data": {"status": "fail", "error": mErr.message}};
                     callback(ret);
                 } else {
-                    // 删除图层
-                    sql = "delete from " + LayerBasicTable + " where type_id = ? ";
-                    dataArr = [layerTypeId];
-                    
-                    Log.insertLog(userId, "del layer", sql);
+                    sql = "delete from " + LayerTypeTable + " where type_id = ?";
+                    dataArr = [layerTypeId]; 
 
-                    db.query(sql, dataArr, function(mmErr, mmRows){
-                        if (mmErr) {
+                    Log.insertLog(userId, "del layer type", sql);
+
+                    db.query(sql, dataArr, function(mmmErr, mmmRows){
+                        if (mmmErr) {
                             ret = {"code": 501, "data": {"status": "fail", "error": mErr.message}};
                         } else {
                             ret = {"code": 200, "data": {"status": "success", "error": "success"}};
@@ -390,7 +426,6 @@ function doGetLayerTypeList(query, userId, callback) {
                 sql = "select LT.*,LB.img_path from " + LayerTypeTable + " LT left join " +
                         LayerBasicTable + " LB on LB.type_id=LT.type_id group by LT.type_id " + 
                         "order by LB.type_id limit ?, ?";
-                console.log(sql);
                 dataArr = [start, parseInt(pageSize)];
             }
             db.query(sql, dataArr, function(err, rows) {
