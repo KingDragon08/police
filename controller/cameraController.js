@@ -1639,7 +1639,7 @@ function autoAddCameraTypes(){
  * 批量导入时自动创建摄像头类型 
  */
 function autoCreateCameraType(typeName){
-    db.query("insert into camera_type(name)values(?)",[typeName],function(err, result));
+    db.query("insert into camera_type(name)values(?)",[typeName],function(err, result){});
 }
 
 //备份摄像头数据

@@ -11,6 +11,10 @@ db.query("select cam_id, cam_loc_lan, cam_loc_lon from camera",[],function(err,r
 	}
 });
 
+// transformPoint(1,116.38,39.92,function(temp){
+//     console.log(temp);
+// });
+
 /**
  * 坐标转换
  * lon->x, lan->y
@@ -26,8 +30,11 @@ function transformPoint(cam_id, x6, y6, callback){
                 y:-1
             });
         } else {
-            points.sort(function(x,y){return (x.outX-x6)*(x.outX-x6)+(x.outY-y6)*(x.outY-y6) > (y.outX-x6)*(y.outX-x6)+(y.outY-y6)*(y.outY-y6)});
-            // console.log(points[0],points[1]);
+            for(i=0; i<points.length; i++){
+                points[i]['distance'] = (points[i].outX-x6)*(points[i].outX-x6)+(points[i].outY-y6)*(points[i].outY-y6);
+            }
+            points.sort(function(x,y){return x['distance']-y['distance']});
+            // console.log(points);
             var x1 = points[0].inX;
             var y1 = points[0].inY;
             var x2 = points[1].inX;
