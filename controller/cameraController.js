@@ -2275,19 +2275,9 @@ function transformPointReq(req,res){
  * 备注：数据库中配置的基准点>=2
  */
 function transformPoint(x6, y6, callback){
-    // var x1=501494.0802;
-    // var y1=304417.3615;
-    // var x2=500686.8998;
-    // var y2=306263.3613;
-    // var x4=116.376302;
-    // var y4=39.907194;
-    // var x5=116.364967;
-    // var y5=39.923865;
-    // return {
-    //     x: (x2*x6-x2*x4-x1*x6+x1*x5)/(x5-x4),
-    //     y: (y2*y6-y2*y4-y1*y6+y1*y5)/(y5-y4)
-    // }
     //取所有的录入的基准点
+    var offsetX = -550;
+    var offsetY = -130;
     var sql = "select * from base_point";
     db.query(sql, [], function(err, points){
         if(points.length<2){
@@ -2296,23 +2286,41 @@ function transformPoint(x6, y6, callback){
                 y:-1
             });
         } else {
-            // points.sort(function(x,y){return (x.outX-x6)*(x.outX-x6)+(x.outY-y6)*(x.outY-y6) > (y.outX-x6)*(y.outX-x6)+(y.outY-y6)*(y.outY-y6)});
-            // console.log(points[0],points[1]);
             for(i=0; i<points.length; i++){
                 points[i]['distance'] = (points[i].outX-x6)*(points[i].outX-x6)+(points[i].outY-y6)*(points[i].outY-y6);
             }
             points.sort(function(x,y){return x['distance']-y['distance']});
+            var index = 1;
+            for(var i=1; i<points.length; i++){
+                if(parseFloat(points[i].outX-x6)*parseFloat(x6-points[0].outX)>0 && 
+                    parseFloat(points[i].outY-y6)*parseFloat(y6-points[0].outY)>0 &&
+                    (points[i].outX-points[0].outX!=0) && 
+                    (points[i].outY-points[0].outY!=0)
+                    ){
+                    index = i;
+                    break;
+                }
+            }
+            if(index==1){
+                for(var i=index; i<points.length; i++){
+                    if((points[i].outX-points[0].outX!=0) && 
+                    (points[i].outY-points[0].outY!=0)){
+                        index = i;
+                        break;
+                    }
+                }
+            }
             var x1 = points[0].inX;
             var y1 = points[0].inY;
-            var x2 = points[1].inX;
-            var y2 = points[1].inY;
+            var x2 = points[index].inX;
+            var y2 = points[index].inY;
             var x4 = points[0].outX;
             var y4 = points[0].outY;
-            var x5 = points[1].outX;
-            var y5 = points[1].outY;
+            var x5 = points[index].outX;
+            var y5 = points[index].outY;
             callback({
-                x: (x2*x6-x2*x4-x1*x6+x1*x5)/(x5-x4),
-                y: (y2*y6-y2*y4-y1*y6+y1*y5)/(y5-y4)
+                x: (x2*x6-x2*x4-x1*x6+x1*x5)/(x5-x4) + offsetX,
+                y: (y2*y6-y2*y4-y1*y6+y1*y5)/(y5-y4) + offsetY
             });
         }
     });
