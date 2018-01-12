@@ -151,9 +151,9 @@ function updatePoint(req,res){
 								function(err,data){
 									if(err){
 										console.log(err);
-										errorHandler(res,"编辑兴趣点失败");
+										errorHandler(res,"修改兴趣点失败");
 									} else {
-										Log.insertLog(mobile,"编辑兴趣点","update interestPoint set name=?,longitude=?,latitude=?,`desc`=?,status=? where Id=?");
+										Log.insertLog(mobile,"修改兴趣点","update interestPoint set name=?,longitude=?,latitude=?,`desc`=?,status=? where Id=?");
 										res.json({"code": 200, "data":{"status":"success","error":"success"}});	
 									}
 								});

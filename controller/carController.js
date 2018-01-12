@@ -43,13 +43,16 @@ function addCar(req, res) {
 			var car_no = query.car_no || -1;
 			var car_addr = query.car_addr || -1;
 			var car_type = query.car_type || -1;
+			var cam_BJ_X = query.cam_BJ_X ||-1;
+			var cam_BJ_Y = query.cam_BJ_Y || -1;
+			var addtime = new Date().getTime();
             if (car_x == -1 || car_y == -1 || car_no == -1 || car_addr == -1 || car_type == -1) {
                 errorHandler(res, "参数错误");
             } else {
                 // var sql = "insert into (car_x,car_y,car_no,car_addr,car_type,is_del) values(?,?,?,?,?,?)";
-                var sql = "insert into " + CAR_TABLE + "(SmX,SmyY,car_no,car_addr,car_type,is_del) values(?,?,?,?,?,?)";
+                var sql = "insert into car (car_x,car_y,car_no,car_addr,car_type,cam_BJ_X,cam_BJ_Y,is_del) values(?,?,?,?,?,?,?,?)";
                 db.query(sql,
-                     [car_x,car_y,car_no,car_addr,car_type,0],
+                     [car_x,car_y,car_no,car_addr,car_type,cam_BJ_X,cam_BJ_Y,0],
                     function(err, result) {
                         if (err) {
                         	// Log.insertLog(mobile,"car--addCar","insert into car values(?,?)");
@@ -79,7 +82,7 @@ function delCar(req, res) {
                 errorHandler(res, "参数错误");
             } else {
                 // var sql = "update car set is_del = 1 where id = ?";
-                var sql = "update " + CAR_TABLE + " set is_del = 1 where SmID = ?";
+                var sql = "update car set is_del = 1 where SmID = ?";
                 db.query(sql, [id],
                     function(err, result) {
                         if (err) {
@@ -141,8 +144,8 @@ function getCar(req, res) {
                     page = 1;
                 }
                 var start = (page - 1) * pageSize;
-                // var sql = "select * from car  order by id desc limit ?,?";
-                var sql = "select * from car";
+                var sql = "select * from car  order by SmID desc limit ?,?";
+                //var sql = "select * from car";
                 db.query(sql, [start, pageSize],
                     function(err, data) {
                         if (err) {
@@ -187,7 +190,7 @@ function getSingleCarInfo(req, res) {
                 errorHandler(res, "参数错误");
             } else {
                 // var sql = "select * from car where id=?";
-                var sql = "select * from " + CAR_TABLE + " where SmID=?";
+                var sql = "select * from car where SmID=?";
                 db.query(sql, [id],
                     function(err, data) {
                         if (err) {
@@ -225,7 +228,7 @@ function searchCar(req, res) {
         check(query, res, function() {
             var car_no = query.car_no;
             // var sql = "select * from car where car_no like '%"+car_no+"%' order by id desc";
-            var sql = "select * from " + CAR_TABLE + " where car_no like '%"+car_no+"%' order by SmID desc";
+            var sql = "select * from car where car_no like '%"+car_no+"%' order by SmID desc";
             db.query(sql, 
                 [car_no],
                 function(err, data) {
@@ -250,6 +253,109 @@ function searchCar(req, res) {
         errorHandler(res, "未知错误");
     }
 }
+
+/**
+ * 指定字段获取车辆列表
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+exports.GetCarType = function(req, res) {
+    var query = req.body;
+    attrName = query.attrName || '';
+
+    if (dbTableAttr.carAttrList.indexOf(attrName) == -1) {
+        res.json({
+            "code": 401,
+            "data": {
+                "status": "fail",
+                "error": "标识符不存在"
+            }
+        });
+        return;
+    }
+    attrValue = query.attrValue || '';
+    if (check.isNull(attrValue)) {
+        res.json({
+            "code": 401,
+            "data": {
+                "status": "fail",
+                "error": "属性值为空"
+            }
+        });
+        return;
+    }
+    try {
+        var sql = "select count(*) as total from car where is_del = 0 and " + attrName + " like " +
+            "'" + attrValue + "'";
+        // var dataArr = [attrName, attrValue];
+        var dataArr = [];
+        db.query(sql, dataArr, function(err, rows) {
+            if (err) {
+                res.json({
+                    "code": 501,
+                    "data": {
+                        "status": "fail",
+                        "error": err.message
+                    }
+                });
+            } else {
+                var total = rows[0].total;
+                var page = query.page || -1;
+                var pageSize = query.pageSize || 20;
+                if (page < 1 && page != -1) {
+                    page = 1;
+                }
+                var start = (page - 1) * pageSize;
+                if (-1 == page) {
+                    sql = "select * from car where is_del = 0 and " + attrName + " like " +
+                        "'" + attrValue + "'";
+                    pageSize = total;
+                    dataArr = [];
+                } else {
+                    sql = "select * from car where is_del = 0 and " + attrName + " like " +
+                        "'" + attrValue + "'" + " order by cam_id limit ?, ?";
+                    dataArr = [start, parseInt(pageSize)];
+                }
+                db.query(sql, dataArr, function(err, rows) {
+                    if (err) {
+                        res.json({
+                            "code": 501,
+                            "data": {
+                                "status": "fail",
+                                "error": err.message
+                            }
+                        });
+                    } else {
+
+                        //var mobile = req.body.mobile || -1;
+                        //Log.insertLog(mobile,req.url,sql);
+                        res.json({
+                            "code": 200,
+                            "data": {
+                                "status": "success",
+                                "error": "success",
+                                "rows": rows,
+                                "total": total,
+                                "page": page,
+                                "pageSize": pageSize
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
+
 
 //获取车辆当前位置
 function getCarPosition(req,res){
@@ -356,9 +462,8 @@ function getCarAttrs(req,res){
                     var data = [start,pageSize];
                 } else {
                     var sql = "select * from car_attr where Id>?";
-                    var data = [6];
                 }
-                db.query(sql,data,function(err,rows){
+                db.query(sql,[6],function(err,rows){
                     if (err) {
                     	//  Log.insertLog(mobile,"car--getCarAttrs","select * from car_attr");
                         res.json({
@@ -449,11 +554,10 @@ function addCarAttr(req,res){
                 if(reg.test(attr_name)){
                     //给car表添加字段
                     // var sql = "alter table car add column "+attr_name+" varchar(1000)";
-                    var sql = "alter table " + CAR_TABLE + " add column "+attr_name+" varchar(200)";
+                    var sql = "alter table car add column "+attr_name+" varchar(200)";
                     var dataArr = [];
                     db.query(sql,dataArr,function(err,rows){
                         if(err){
-                        	//  Log.insertLog(mobile,"car--addCarAttr","alter table car add column attr_name varchar(1000)");
                             res.json({
                                 "code": 501,
                                 "data": {
@@ -595,7 +699,7 @@ function editCarAttr(req,res){
                                                     }
                                                 }); 
                                             } else {
-                                              	 Log.insertLog(mobile,"编辑车辆属性", sql);
+                                              	 Log.insertLog(mobile,"修改车辆属性", sql);
                                                 res.json({
                                                     "code": 200,
                                                     "data": {
@@ -750,7 +854,7 @@ function editCarAttrShow(req, res) {
                                 }
                             });
                         } else {
-                        	Log.insertLog(mobile,"编辑车辆属性展示", sql);
+                        	Log.insertLog(mobile,"修改车辆属性展示", sql);
                             res.json({
                                 "code": 200,
                                 "data": {
@@ -958,6 +1062,242 @@ function getCarLoc(req, res) {
         });
     }
 }
+
+//添加车辆类别
+exports.editCar = function(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                var name = query.name || -1;
+                var url = query.url || -1;
+                var photoMap_url = query.photoMap_url || -1;
+                if(name==-1 || url==-1){
+                    errMessage(res,300,"参数错误");
+                    return;
+                }
+                //判断类别是否已经存在
+                db.query("select count(0) as total from car_type where name=?",
+                    [name],
+                    function(err, result){
+                        if(err){
+                            errMessage(res, 500, "数据查询错误");
+                        } else {
+                            if(result[0].total>0){
+                                errMessage(res, 300, "类别已存在");
+                            } else {
+                                db.query("insert into car_type(name,url,photoMap_url)values(?,?,?)",
+                                    [name, url, photoMap_url==-1?url:photoMap_url],
+                                    function(err, result){
+                                        if(err){
+                                            errMessage(res, 501, "数据查询错误");
+                                        } else {
+                                            Log.insertLog(mobile,"添加车辆类别","addCarTypes");
+                                            sucMessage(res);
+                                        }
+                                    });
+                            }
+                        }
+                    });
+            } else {
+                errMessage(res,301,"用户未登录");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
+/******************************忧伤的分割线******************************/
+
+//获取车辆类别
+function getCameraTypes(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id
+                db.query("select * from car_type",[],function(err,data){
+                    if(err){
+                        errMessage(res,500,"数据查询错误");
+                    } else {
+                        res.json({
+                            "code": 200,
+                            "data": {
+                                "status": "success",
+                                "error": "success",
+                                "rows": data
+                            }
+                        });
+                    }
+                })
+            } else {
+                errMessage(res,301,"用户未登录");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
+//编辑车辆类型
+exports.editCarTypes = function(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                var Id = query.Id || -1;
+                var name = query.name || -1;
+                var url = query.url || -1;
+                var photoMap_url = query.photoMap_url || -1;
+                if(Id==-1 || name==-1 || url==-1 ||photoMap_url==-1){
+                    errMessage(res,300,"参数错误");
+                    return;
+                }
+                db.query("update car_type set name=?,url=?,photoMap_url=?,where id=?",
+                    [name, url,photoMap_url, Id],
+                    function(err, result){
+                        if(err){
+                            errMessage(res, 500, "数据库查询错误");
+                        } else {
+                            Log.insertLog(mobile,"编辑车辆类型","editCarTypes");
+                            sucMessage(res);
+                        }
+                    });
+            } else {
+                errMessage(res,301,"用户未登录");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
+//添加车辆类别
+exports.addCarTypes = function(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                var name = query.name || -1;
+                var url = query.url || -1;
+                var photoMap_url = query.photoMap_url || -1;
+                if(name==-1 || url==-1){
+                    errMessage(res,300,"参数错误");
+                    return;
+                }
+                //判断类别是否已经存在
+                db.query("select count(0) as total from car_type where name=?",
+                    [name],
+                    function(err, result){
+                        if(err){
+                            errMessage(res, 500, "数据查询错误");
+                        } else {
+                            if(result[0].total>0){
+                                errMessage(res, 300, "类别已存在");
+                            } else {
+                                db.query("insert into car_type(name,url,photoMap_url)values(?,?,?)",
+                                    [name, url, photoMap_url==-1?url:photoMap_url],
+                                    function(err, result){
+                                        if(err){
+                                            errMessage(res, 501, "数据查询错误");
+                                        } else {
+                                            Log.insertLog(mobile,"添加车辆类别","addCarTypes");
+                                            sucMessage(res);
+                                        }
+                                    });
+                            }
+                        }
+                    });
+            } else {
+                errMessage(res,301,"用户未登录");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
+//删除车辆类别
+exports.delCarTypes = function(req,res){
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                var userId = user.Id;
+                var Id = query.Id || -1;
+                if(Id==-1){
+                    errMessage(res, 500, '参数错误');
+                } else {
+                    //判断类别是否存在
+                    db.query("select name from car_type where id=?",
+                        [Id],
+                        function(err, result){
+                            if(err){
+                                errMessage(res, 500, "数据查询错误");
+                            } else {
+                                if(result[0].name){
+                                    var name = result[0].name;
+                                    //删除摄像头类别表记录
+                                    db.query("delete from car_type where id=?",[Id],function(err,result){
+                                        if(err){
+                                            errMessage(res, 500, "数据查询错误");
+                                        } else {
+                                            //删除这一个类别的摄像头数据
+                                            db.query("delete from car where cam_category=?",
+                                                [name],
+                                                function(err, result){
+                                                    if(err){
+                                                        errMessage(res, 500, "数据查询错误");
+                                                    } else {
+                                                        Log.insertLog(mobile,"删除车辆类别","delCarTypes");
+                                                        sucMessage(res);
+                                                    }
+                                                });
+                                        }
+                                    });
+                                } else {
+                                    errMessage(res, 404, "类别不存在");
+                                }
+                            }
+                        });
+                }
+            } else {
+                errMessage(res,301,"用户未登录");
+                return;
+            }
+        });
+    } catch (e) {
+        errMessage(res,500,e.message);
+    }
+}
+
+
+
+
+
+
+
+
+
+
 /******************************忧伤的分割线******************************/
 
 exports.addCar = addCar;

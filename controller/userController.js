@@ -57,7 +57,7 @@ function register(req, res) {
                                     return;
                                 } else {
                                     console.log('[REGIST SUCCESS]');
-                                    Log.insertLog(mobile,"注册账号","register");
+                                    //Log.insertLog(mobile,"注册账号","register");
                                     res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
                                 }
                             });
@@ -134,7 +134,7 @@ function loginWithToken(req, res) {
                     function(err, result) {
                         result[0]["token"] = token;
                         result[0]["status"] = "success";
-                        Log.insertLog(mobile,"token登录","loginWithToken");
+                        //Log.insertLog(mobile,"token登录","loginWithToken");
                         res.json({ "code": 200, "data": result[0] });
                         //更新数据库
                         conn.query("update user set token=?,lastLoginTime=?," +
@@ -398,7 +398,7 @@ function editMobileUser(req, res) {
                                 [mobile,id],
                                 function(err,data){
                                     if(data[0].total > 0){
-                                        res.json({ "code": 300, "data": { "status": "fail", "err": "账号已注册"}});
+                                        res.json({ "code": 300, "data": { "status": "fail", "err": "手机号已存在！"}});
                                     } else {
                                         conn.query("update mobileUser set name=?," +
                                             "sex=?,company=?,NO=?,mobile=?,createTime=?,lastLoginTime=?,status=?,avatar=?" +
@@ -824,7 +824,7 @@ function checkUser(req,res){
                                                         if(type==1){
                                                             conn.query("update user set status=? where Id=?",[Id],
                                                                         function(err,result){
-                                                                            Log.insertLog(mobile,"审核用户","checkUser");
+                                                                            //Log.insertLog(mobile,"审核用户","checkUser");
                                                                             //Log.insertLog(mobile,req.url,"checkUser");
                                                                            res.json({ "code": 200, "data": {"error":"success"} }); 
                                                                         });

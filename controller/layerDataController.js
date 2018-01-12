@@ -80,7 +80,7 @@ function addLayerData(req, res) {
                         extData = JSON.parse(extData);
 
                         doAddLayerData(layerId, tableName, locLan, locLon, userId, curtime, extData, function(ret){
-                            Log.insertLog(userId, "添加图层数据", "add Layer Data");
+                            Log.insertLog(mobile, "添加图层数据", "add Layer Data");
                             res.json(ret);
                         });
 
@@ -260,7 +260,7 @@ function delLayerData(req, res) {
                         var tableName = resJson.data.tableName;
 
                         doDelLayerData(userId, tableName, layerDataId, function(ret){
-                                Log.insertLog(userId, req.url, "删除图层数据");
+                                Log.insertLog(mobile, req.url, "删除图层数据");
                                 res.json(ret);
                             });
 
@@ -358,7 +358,6 @@ function getLayerDataListByLayerId(req, res) {
                         var tableName = resJson.data.tableName;
 
                         getLayerDataList(tableName, query, userId, function(ret){
-                            //Log.insertLog(userId, req.url, "get Layer Data List");
                             res.json(ret);
                         });
 
@@ -503,7 +502,7 @@ function editLayerData(req, res) {
                         extData = JSON.parse(extData);
 
                         updateLayerData(layerId, layerDataId, tableName, locLan, locLon, userId, curtime, extData, function(ret){
-                            Log.insertLog(userId, "编辑图层数据", "update Layer Data");
+                            Log.insertLog(mobile, "修改图层数据", "update Layer Data");
                             res.json(ret);
                         });
 

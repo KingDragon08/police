@@ -546,7 +546,7 @@ function configRolePermissions(req, res) {
                         var config = query.config || -1;
                         if(config==-1){
                             res.json({
-                                "code": 403,
+                                "code": 401,
                                 "data": {
                                     "status": "fail",
                                     "error": "参数错误"

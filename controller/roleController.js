@@ -19,110 +19,110 @@ var async = require('async');
  * @param {[type]} req [description]
  * @param {[type]} res [description]
  */
-// function addRole(req, res) {
-//     var query = req.body;
-//     try {
-//         var mobile = query.mobile;
-//         var token = query.token;
-//         User.getUserInfo(mobile, token, function(user) {
-//             if (user.error == 0) {
-//                 user_info = user.data;
-//                 var userId = user_info.Id;
-//                 roleActionController.checkUserPermission(req.url, userId, 'pc', function(permission) {
-//                     if (permission) {
-//                         var roleName = query.roleName || '';
-//                         if (check.isNull(roleName)) {
-//                             res.json({
-//                                 "code": 401,
-//                                 "data": {
-//                                     "status": "fail",
-//                                     "error": "角色名称为空"
-//                                 }
-//                             });
-//                             return;
-//                         }
-//                         var sql = "select * from role where role_name = ?";
-//                         var dataArr = [roleName]
-//                         db.query(sql, dataArr, function(err, rows) {
-//                             if (err) {
-//                                 res.json({
-//                                     "code": 501,
-//                                     "data": {
-//                                         "status": "fail",
-//                                         "error": err.message
-//                                     }
-//                                 });
-//                             } else {
-//                                 if (rows.length > 0) {
-//                                     res.json({
-//                                         "code": 402,
-//                                         "data": {
-//                                             "status": "fail",
-//                                             "error": "角色已存在"
-//                                         }
-//                                     });
-//                                     return;
-//                                 } else {
-//                                     var curtime = new Date().getTime();
-//                                     sql = "insert into role (role_name, addtime) ";
-//                                     sql += "values(?, ?)";
-//                                     var dataArr = [roleName, curtime];
-//                                 }
-//                                 db.query(sql, dataArr, function(err, rows) {
-//                                     if (err) {
-//                                         res.json({
-//                                             "code": 501,
-//                                             "data": {
-//                                                 "status": "fail",
-//                                                 "error": err.message
-//                                             }
-//                                         });
-//                                     } else {
-//                                         Log.insertLog(mobile,"添加角色",sql);
-//                                         res.json({
-//                                             "code": 200,
-//                                             "data": {
-//                                                 "status": "success",
-//                                                 "error": "success",
-//                                                 "role_id": rows.insertId
-//                                             }
-//                                         });
-//                                     }
-//                                 });
-//                             }
-//                         });
-//                     } else {
-//                         res.json({
-//                             "code": 301,
-//                             "data": {
-//                                 "status": "fail",
-//                                 "error": "没有相关权限"
-//                             }
-//                         });
-//                         return;
-//                     }
-//                 });
-//             } else {
-//                 res.json({
-//                     "code": 301,
-//                     "data": {
-//                         "status": "fail",
-//                         "error": "用户未登录"
-//                     }
-//                 });
-//                 return;
-//             }
-//         });
-//     } catch (e) {
-//         res.json({
-//             "code": 500,
-//             "data": {
-//                 "status": "fail",
-//                 "error": e.message
-//             }
-//         });
-//     }
-// }
+function addRole(req, res) {
+    var query = req.body;
+    try {
+        var mobile = query.mobile;
+        var token = query.token;
+        User.getUserInfo(mobile, token, function(user) {
+            if (user.error == 0) {
+                user_info = user.data;
+                var userId = user_info.Id;
+                roleActionController.checkUserPermission(req.url, userId, 'pc', function(permission) {
+                    if (permission) {
+                        var roleName = query.roleName || '';
+                        if (check.isNull(roleName)) {
+                            res.json({
+                                "code": 401,
+                                "data": {
+                                    "status": "fail",
+                                    "error": "角色名称为空"
+                                }
+                            });
+                            return;
+                        }
+                        var sql = "select * from role where role_name = ?";
+                        var dataArr = [roleName]
+                        db.query(sql, dataArr, function(err, rows) {
+                            if (err) {
+                                res.json({
+                                    "code": 501,
+                                    "data": {
+                                        "status": "fail",
+                                        "error": err.message
+                                    }
+                                });
+                            } else {
+                                if (rows.length > 0) {
+                                    res.json({
+                                        "code": 402,
+                                        "data": {
+                                            "status": "fail",
+                                            "error": "角色已存在"
+                                        }
+                                    });
+                                    return;
+                                } else {
+                                    var curtime = new Date().getTime();
+                                    sql = "insert into role (role_name, addtime) ";
+                                    sql += "values(?, ?)";
+                                    var dataArr = [roleName, curtime];
+                                }
+                                db.query(sql, dataArr, function(err, rows) {
+                                    if (err) {
+                                        res.json({
+                                            "code": 501,
+                                            "data": {
+                                                "status": "fail",
+                                                "error": err.message
+                                            }
+                                        });
+                                    } else {
+                                        Log.insertLog(mobile,"添加角色",sql);
+                                        res.json({
+                                            "code": 200,
+                                            "data": {
+                                                "status": "success",
+                                                "error": "success",
+                                                "role_id": rows.insertId
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        res.json({
+                            "code": 301,
+                            "data": {
+                                "status": "fail",
+                                "error": "没有相关权限"
+                            }
+                        });
+                        return;
+                    }
+                });
+            } else {
+                res.json({
+                    "code": 301,
+                    "data": {
+                        "status": "fail",
+                        "error": "用户未登录"
+                    }
+                });
+                return;
+            }
+        });
+    } catch (e) {
+        res.json({
+            "code": 500,
+            "data": {
+                "status": "fail",
+                "error": e.message
+            }
+        });
+    }
+}
 /**
  * 删除角色
  * @param  {[type]} req [description]
@@ -384,147 +384,147 @@ function editRole(req, res) {
   * @param req
   * @param res
   */
- function addRole(req, res) {
-     var query = req.body;
-     try {
-         var mobile = query.mobile;
-         var token = query.token;
-         User.getUserInfo(mobile, token, function(user) {
-             if (user.error == 0) {
-                 user_info = user.data;
-                 var userId = user_info.Id;
-                 roleActionController.checkUserPermission(req.url, userId, 'pc', function(permission) {
-                     if (permission) {
-                         var roleId = query.roleId || -1;
-                         var roleName = query.roleName || -1;
-                         var actionId = query.actionId || -1;
-                         var createTime = new Date().getTime();
-                         if(-1 == roleName){
-                             res.json({"code": 301, "data": {"status": "fail", "error": "参数错误"}});
-                             return;
-                         }else{
-                             if(-1 == roleId){
-                                 db.query("select * from role where role_name=?",[roleName],function (err,result) {
-                                     if(err){
-                                         res.json({"code": 301, "data": {"status": "fail", "error": "查询数据错误"}});
-                                         return;
-                                     }else{
-                                         if(result.length > 0){
-                                             res.json({"code": 301, "data": {"status": "fail", "error": "该角色已存在"}});
-                                             return;
-                                         }else{
-                                             db.query("insert into role (role_name,addtime) values (?,?)",[roleName,createTime], function (err,date) {
-                                                 if(err){
-                                                     res.json({"code": 301, "data": {"status": "fail", "error": "该角色插入失败"}});
-                                                     return;
-                                                 }else{
-                                                     db.query("select role_id from role where role_name=?",[roleName],function (err,dates) {
-                                                         if(err){
-                                                             res.json({"code": 302, "data": {"status": "fail", "error": "查询数据错误"}});
-                                                             return;
-                                                         }else{
-                                                             var data=[];
-                                                             if(dates.length > 0){
-                                                                 for(var i=0;i<actionId.length;i++){
-                                                                     var s=[dates[0].role_id,parseInt(actionId[i]),JSON.stringify(createTime)];
-                                                                     data.push(s);
-                                                                 }
-                                                                 var flag=true;
-                                                                 async.map(data,function (item,call) {
-                                                                     var spaceStr = "";
-                                                                     for(var i=0; i<item.length; i++){
-                                                                         // item[i] = escape(item[i]);
-                                                                         spaceStr += "?,";
-                                                                     }
-                                                                     spaceStr = spaceStr.substring(0,spaceStr.length-1);
-                                                                     db.query("insert into role_action (role_id,action_id,addtime) value ("+spaceStr+")",item,function (err,results) {
-                                                                         if(err){
-                                                                             flag = false;
-                                                                             console.log(err.message);
-                                                                             call(null, item);
-                                                                         } else {
-                                                                             call(null, item);
-                                                                         }
-                                                                     });
-                                                                 },function (err,datass) {
-                                                                     if(!flag){
-                                                                         res.json({"code": 301, "data": {"status": "fail", "error": "数据库插入失败"}});
-                                                                         return;
-                                                                     }else {
-                                                                         Log.insertLog(mobile,"添加角色","addrole");
-                                                                         res.json({"code": 200, "data": {"status": "success", "error": "success"}});
-                                                                     }
-                                                                 })
-                                                             }
-                                                         }
-                                                     });
-                                                 }
-                                             });
-                                         }
-                                     }
-                                 })
-                             }else{
-                                 db.query("update role set role_name=? where role_id=?",[roleName,roleId],function (err,datas) {
-                                     if(err){
-                                         res.json({"code": 303, "data": {"status": "fail", "error": "查询数据错误"}});
-                                         return;
-                                     }else {
-                                         //删除原有role_action中的权限
-                                         db.query("delete from role_action where role_id=?",[roleId],function (err,resultes) {
-                                             if(err){
-                                                 res.json({"code": 304, "data": {"status": "fail", "error": "查询数据错误"}});
-                                                 return;
-                                             }else{
-                                                 var data=[];
-                                                 for(var i=0;i<actionId.length;i++){
-                                                     var s=[roleId,parseInt(actionId[i]),JSON.stringify(createTime)];
-                                                     data.push(s);
-                                                 }
-                                                 var flag=true;
-                                                 async.map(data,function (item,call) {
-                                                     var spaceStr = "";
-                                                     for(var i=0; i<item.length; i++){
-                                                         // item[i] = escape(item[i]);
-                                                         spaceStr += "?,";
-                                                     }
-                                                     spaceStr = spaceStr.substring(0,spaceStr.length-1);
-                                                     db.query("insert into role_action (role_id,action_id,addtime) value ("+spaceStr+")",item,function (err,results) {
-                                                         if(err){
-                                                             flag = false;
-                                                             console.log(err.message);
-                                                             call(null, item);
-                                                         } else {
-                                                             call(null, item);
-                                                         }
-                                                     });
-                                                 },function (err,datass) {
-                                                     if(!flag){
-                                                         res.json({"code": 301, "data": {"status": "fail", "error": "数据库插入失败"}});
-                                                         return;
-                                                     }else {
-                                                         Log.insertLog(mobile,"编辑角色","editrole");
-                                                         res.json({"code": 200, "data": {"status": "success", "error": "success"}});
-                                                     }
-                                                 })
-                                             }
-                                         })
-                                     }
-                                 })
-                             }
-                         }
-                     } else {
-                         res.json({"code": 301, "data": {"status": "fail", "error": "没有相应权限"}});
-                         return;
-                     }
-                 });
-             } else {res.json({"code": 301, "data": {"status": "fail", "error": "用户未登录"}});
-                 return;
-             }
-         });
-     } catch (e) {
-         res.json({"code": 500, "data": {"status": "fail", "error": e.message}});
-     }
- }
+ // function addRole(req, res) {
+ //     var query = req.body;
+ //     try {
+ //         var mobile = query.mobile;
+ //         var token = query.token;
+ //         User.getUserInfo(mobile, token, function(user) {
+ //             if (user.error == 0) {
+ //                 user_info = user.data;
+ //                 var userId = user_info.Id;
+ //                 roleActionController.checkUserPermission(req.url, userId, 'pc', function(permission) {
+ //                     if (permission) {
+ //                         var roleId = query.roleId || -1;
+ //                         var roleName = query.roleName || -1;
+ //                         var actionId = query.actionId || -1;
+ //                         var createTime = new Date().getTime();
+ //                         if(-1 == roleName){
+ //                             res.json({"code": 301, "data": {"status": "fail", "error": "参数错误"}});
+ //                             return;
+ //                         }else{
+ //                             if(-1 == roleId){
+ //                                 db.query("select * from role where role_name=?",[roleName],function (err,result) {
+ //                                     if(err){
+ //                                         res.json({"code": 301, "data": {"status": "fail", "error": "查询数据错误"}});
+ //                                         return;
+ //                                     }else{
+ //                                         if(result.length > 0){
+ //                                             res.json({"code": 301, "data": {"status": "fail", "error": "该角色已存在"}});
+ //                                             return;
+ //                                         }else{
+ //                                             db.query("insert into role (role_name,addtime) values (?,?)",[roleName,createTime], function (err,date) {
+ //                                                 if(err){
+ //                                                     res.json({"code": 301, "data": {"status": "fail", "error": "该角色插入失败"}});
+ //                                                     return;
+ //                                                 }else{
+ //                                                     db.query("select role_id from role where role_name=?",[roleName],function (err,dates) {
+ //                                                         if(err){
+ //                                                             res.json({"code": 302, "data": {"status": "fail", "error": "查询数据错误"}});
+ //                                                             return;
+ //                                                         }else{
+ //                                                             var data=[];
+ //                                                             if(dates.length > 0){
+ //                                                                 for(var i=0;i<actionId.length;i++){
+ //                                                                     var s=[dates[0].role_id,parseInt(actionId[i]),JSON.stringify(createTime)];
+ //                                                                     data.push(s);
+ //                                                                 }
+ //                                                                 var flag=true;
+ //                                                                 async.map(data,function (item,call) {
+ //                                                                     var spaceStr = "";
+ //                                                                     for(var i=0; i<item.length; i++){
+ //                                                                         // item[i] = escape(item[i]);
+ //                                                                         spaceStr += "?,";
+ //                                                                     }
+ //                                                                     spaceStr = spaceStr.substring(0,spaceStr.length-1);
+ //                                                                     db.query("insert into role_action (role_id,action_id,addtime) value ("+spaceStr+")",item,function (err,results) {
+ //                                                                         if(err){
+ //                                                                             flag = false;
+ //                                                                             console.log(err.message);
+ //                                                                             call(null, item);
+ //                                                                         } else {
+ //                                                                             call(null, item);
+ //                                                                         }
+ //                                                                     });
+ //                                                                 },function (err,datass) {
+ //                                                                     if(!flag){
+ //                                                                         res.json({"code": 301, "data": {"status": "fail", "error": "数据库插入失败"}});
+ //                                                                         return;
+ //                                                                     }else {
+ //                                                                         Log.insertLog(mobile,"添加角色","addrole");
+ //                                                                         res.json({"code": 200, "data": {"status": "success", "error": "success","roleid":dates[0].role_id}});
+ //                                                                     }
+ //                                                                 })
+ //                                                             }
+ //                                                         }
+ //                                                     });
+ //                                                 }
+ //                                             });
+ //                                         }
+ //                                     }
+ //                                 })
+ //                             }else{
+ //                                 db.query("update role set role_name=? where role_id=?",[roleName,roleId],function (err,datas) {
+ //                                     if(err){
+ //                                         res.json({"code": 303, "data": {"status": "fail", "error": "查询数据错误"}});
+ //                                         return;
+ //                                     }else {
+ //                                         //删除原有role_action中的权限
+ //                                         db.query("delete from role_action where role_id=?",[roleId],function (err,resultes) {
+ //                                             if(err){
+ //                                                 res.json({"code": 304, "data": {"status": "fail", "error": "查询数据错误"}});
+ //                                                 return;
+ //                                             }else{
+ //                                                 var data=[];
+ //                                                 for(var i=0;i<actionId.length;i++){
+ //                                                     var s=[roleId,parseInt(actionId[i]),JSON.stringify(createTime)];
+ //                                                     data.push(s);
+ //                                                 }
+ //                                                 var flag=true;
+ //                                                 async.map(data,function (item,call) {
+ //                                                     var spaceStr = "";
+ //                                                     for(var i=0; i<item.length; i++){
+ //                                                         // item[i] = escape(item[i]);
+ //                                                         spaceStr += "?,";
+ //                                                     }
+ //                                                     spaceStr = spaceStr.substring(0,spaceStr.length-1);
+ //                                                     db.query("insert into role_action (role_id,action_id,addtime) value ("+spaceStr+")",item,function (err,results) {
+ //                                                         if(err){
+ //                                                             flag = false;
+ //                                                             console.log(err.message);
+ //                                                             call(null, item);
+ //                                                         } else {
+ //                                                             call(null, item);
+ //                                                         }
+ //                                                     });
+ //                                                 },function (err,datass) {
+ //                                                     if(!flag){
+ //                                                         res.json({"code": 301, "data": {"status": "fail", "error": "数据库插入失败"}});
+ //                                                         return;
+ //                                                     }else {
+ //                                                         Log.insertLog(mobile,"编辑角色","editrole");
+ //                                                         res.json({"code": 200, "data": {"status": "success", "error": "success"}});
+ //                                                     }
+ //                                                 })
+ //                                             }
+ //                                         })
+ //                                     }
+ //                                 })
+ //                             }
+ //                         }
+ //                     } else {
+ //                         res.json({"code": 301, "data": {"status": "fail", "error": "没有相应权限"}});
+ //                         return;
+ //                     }
+ //                 });
+ //             } else {res.json({"code": 301, "data": {"status": "fail", "error": "用户未登录"}});
+ //                 return;
+ //             }
+ //         });
+ //     } catch (e) {
+ //         res.json({"code": 500, "data": {"status": "fail", "error": e.message}});
+ //     }
+ // }
 
 /**
  * 获取角色列表

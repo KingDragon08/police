@@ -51,14 +51,17 @@ function publishTask(req, res) {
                 var cameraName = query.cameraName || -1;
                 var cameraLocation = query.cameraLocation || -1;
                 var taskDescription = query.taskDescription || -1;
+                var cameraLon = query.cameraLon ||-1;
+                var cameraLa = query.cameraLa ||-1;
+                var cam_BJ_X = query.cam_BJ_X ||-1;
+                var cam_BJ_Y = query.cam_BJ_Y ||-1;
                 var userId = query.userId || -1;
                 var cameraId = query.cameraId || -1;
+				var cam_category = query.cam_category||-1;
                 var taskNO = new Date().getTime();
                 var taskStatus = 0;
-                if (cameraName == -1 || cameraLocation == -1 ||
-                    taskDescription == -1 || userId == -1 ||
-                    taskNO == -1 || taskStatus == -1 ||
-                    cameraId == -1
+                if (cameraName == -1 || taskDescription == -1 || userId == -1 || cameraLon ==-1 || cameraLa==-1|| cam_BJ_X==-1||cam_BJ_Y==-1||
+                    taskNO == -1 || taskStatus == -1 ||cam_category==-1||cameraId == -1
                     ) {
 					res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
                 } else {
@@ -67,8 +70,8 @@ function publishTask(req, res) {
                 	conn.query(sql,[cameraId],function(err,data){
                 		// console.log(data[0].total);
                 		if(data[0].total==0){
-                			conn.query("insert into task(cameraName,cameraLocation," +
-		                        "taskDescription,userId,taskNO,taskStatus,cameraId)values(?,?,?,?,?,?,?)", [cameraName, cameraLocation, taskDescription, userId, taskNO, taskStatus,cameraId],
+                			conn.query("insert into task (cameraName,cameraLocation,cameraLon,cameraLa,cam_BJ_X,cam_BJ_Y,cam_category," +
+		                        "taskDescription,userId,taskNO,taskStatus,cameraId)values(?,?,?,?,?,?,?,?,?,?,?,?)", [cameraName, cameraLocation, cameraLon,cameraLa,cam_BJ_X,cam_BJ_Y,cam_category,taskDescription, userId, taskNO, taskStatus,cameraId],
 		                        function(err, data) {
                                     console.log(err);
                                     Log.insertLog(mobile,"发布任务","insert into task(cameraName,cameraLocation," +
@@ -76,7 +79,7 @@ function publishTask(req, res) {
 		                            res.json({ "code": 200, "data": { "status": "success", "error": "success" } });
 		                    });
                 		} else {
-                			res.json({ "code": 300, "data": { "status": "fail", "error": "任务表中没有改摄像头ID" } });
+                			res.json({ "code": 300, "data": { "status": "fail", "error": "此任务已存在！" } });
                 		}
                 	});
                 }
@@ -107,8 +110,7 @@ function publishTaskWithoutCamera(req,res){
                 var cameraType = query.cameraType;
                 var taskNO = new Date().getTime();
                 var taskStatus = 0;
-                if (cameraName == -1 || cameraLocation == -1 ||
-                    cameraLon == -1 || cameraLa==-1 ||
+                if (cameraName == -1 || cameraLon == -1 || cameraLa==-1 ||
                     taskDescription == -1 || userId == -1
                     ) {
                     res.json({ "code": 301, "data": { "status": "fail", "error": "参数错误" } });
@@ -283,9 +285,14 @@ function getTaskPC(req,res){
                     conn.query(sql,[taskStatus],function(err,data){
                         var total = data[0].total;
                         var start = (page - 1)*pageSize;
-                        var sql = "select *,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from task where taskStatus=?"+
-                                    " order by Id desc limit ?,?";
-                        conn.query(sql,[taskStatus,start,pageSize],function(err,data){
+                        var dataArr=[taskStatus,start,pageSize];
+						if(taskStatus==0||taskStatus==1){
+							var sql = "select *,from_unixtime(addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from task  where taskStatus=? order by Id desc limit ?,?";
+						}else{
+							var sql = "select ra.*,rb.*,from_unixtime(rb.addtime div 1000,'%Y-%m-%d %H:%I:%S') as addtime from task ra, taskfeedback rb  where ra.taskStatus=? and ra.Id =rb.taskId order by rb.Id desc limit ?,?";
+						}
+                        
+                        conn.query(sql,dataArr,function(err,data){
                             if(err){
                                 res.json({ "code": 300, "data": { "status": "fail", "error": "数据库查询失败" } });
                             }else{
@@ -371,13 +378,17 @@ function getTaskMobile(req,res){
             	var sql = "select * from task where userId=? and taskStatus=?"+
             				" order by Id desc limit ?,?";
             	conn.query(sql,[userId,taskStatus,start,pageSize],function(err,data){
-            		// console.log(err);
-            		// console.log(data);
-            		ret = {};
-                    ret["status"] = "success";
-                    ret["data"] = data;
-                    //Log.insertLog(mobile,req.url,sql);
-                    res.json({ "code": 200, "data": ret });
+            		if(err){
+                        res.json({ "code": 500, "data": { "status": "fail", "error": "数据库查询错误！" } });
+                    }else{
+                        ret = {};
+                        ret["status"] = "success";
+                        ret["data"] = data;
+                        //Log.insertLog(mobile,req.url,sql);
+                        res.json({ "code": 200, "data": ret });
+
+                    }
+
             	});
             } else {
                 res.json({ "code": 300, "data": { "status": "fail", "error": "账号和token不匹配" } });
@@ -916,7 +927,7 @@ function taskFeedBackEdit(req,res){
                                                                                           });
                                                                                     }
                                                                                 });
-                                                                            Log.insertLog(mobile,"编辑任务采集反馈",sql);
+                                                                            Log.insertLog(mobile,"修改任务采集反馈",sql);
                                                                             res.json({ "code": 200, "data": { "status": "success", "error": "success" } }); 
                                                                         }
                                                                     });

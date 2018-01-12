@@ -72,9 +72,8 @@ function addLayer(req, res) {
                 
                 var curtime = new Date().getTime();
                 var imgPath = query.imgPath || "";
-
                 createNewLayer(layerName, imgPath, userId, curtime, layerTypeId, function(ret){
-                    Log.insertLog(userId, "添加图层", "add Basic Layer");
+                    Log.insertLog(mobile, "添加图层", "add Basic Layer");
                     res.json(ret);
                 });
                     
@@ -165,7 +164,7 @@ function createNewLayerTable(layerId, tableName, userId, callback) {
        if (mErr) {
         ret = {"code": 501, "data": {"status": "fail", "error": mErr.message}};
        } else {
-           Log.insertLog(userId, "添加图层数据表", sql);
+           //Log.insertLog(userId, "添加图层数据表", sql);
             ret = {
                 "code": 200,
                 "data": {
@@ -251,7 +250,7 @@ function delLayer(req, res) {
                             var userId = userInfo.Id;
                             var tableName = rows[0].table_name;
                             doDelLayer(userId, tableName, layerId, function(ret){
-                                Log.insertLog(userId, " 删除图层", "del all Layer");
+                                Log.insertLog(mobile, " 删除图层", "del all Layer");
                                 res.json(ret);
                             });
                         } else {
@@ -398,7 +397,7 @@ function addLayerAttr(req, res) {
                             var tableName = rows[0].table_name;
                                         
                             addLayerTableAttr(layerId, tableName, extName, extDesc, userId, curtime, function(ret){
-                                Log.insertLog(userId, "添加图层属性", "add Layer Attr");
+                                Log.insertLog(mobile, "添加图层属性", "add Layer Attr");
                                 res.json(ret);
                             });
                         } else {
@@ -692,7 +691,7 @@ function editLayer(req, res) {
                 var imgPath = query.imgPath || "";
 
                 updateLayer(layerId, layerName, imgPath, userId, layerTypeId, function(ret){
-                    Log.insertLog(userId,"编辑图层", "update Basic Layer");
+                    Log.insertLog(mobile,"修改图层", "update Basic Layer");
                     res.json(ret);
                 });
             } else {
@@ -808,7 +807,7 @@ function editLayerAttr(req, res) {
                             var extDesc = query.extDesc || "";
 
                             updateLayerAttr(layerId, extId, tableName, oldExtName, extName, extDesc, userId, curtime, function(ret){
-                                Log.insertLog(userId, "编辑图层数据字段", "update Layer attr");
+                                Log.insertLog(mobile, "修改图层数据字段", "update Layer attr");
                                 res.json(ret);
                             });
                                         
@@ -1024,7 +1023,7 @@ function doDelLayerAttr(layerId, extId, tableName, extName, userId, callback) {
                 if (mmErr) {
                     ret = {"code": 501, "data": {"status": "fail","error": mmErr.message}};
                 } else {
-                    Log.insertLog(userId, "删除图层数据字段", sql);
+                   // Log.insertLog(mobile, "删除图层数据字段", sql);
                     ret = {"code": 200, "data": {"status": "success", "error": "success"}};
                 }
                 callback(ret);

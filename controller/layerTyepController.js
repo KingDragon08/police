@@ -1,7 +1,8 @@
 var db = require("../lib/db");
 var check = require("../lib/check");
 var User = require("./userController");
-var Log = require('./logController')
+var Log = require('./logController');
+var async = require('async');
 
 var LayerBasicTable = "layer_basic";
 var LayerExtTable = "layer_ext";
@@ -38,7 +39,16 @@ function addLayerType(req, res) {
             });
             return;
         }
-
+        if(typeName =="摄像头"){
+            res.json({
+                "code": 402,
+                "data": {
+                    "status": "fail",
+                    "error": "摄像头类型已存在！"
+                }
+            });
+            return;
+        }
         var mobile = query.mobile;
         var token = query.token;
         User.getUserInfo(mobile, token, function(user) {
@@ -49,7 +59,7 @@ function addLayerType(req, res) {
                 var curtime = new Date().getTime();
 
                 doAddLayerType(typeName, userId, curtime, function(ret){
-                    Log.insertLog(userId, "添加图层类型", "add Layer Type");
+                    Log.insertLog(mobile, "添加图层类型", "add Layer Type");
                     res.json(ret);
                 });
             } else {
@@ -104,9 +114,7 @@ function doAddLayerType(typeName, userId, curtime, callback){
                 } else {
                     sql = "insert into " + LayerTypeTable + " (type_name, user_id, addtime) values (?, ?, ?)";
                     dataArr = [typeName, userId, curtime];
-
                     //Log.insertLog(userId, "add Layer Type", sql);
-
                     db.query(sql,dataArr,function(err,rows){
                         if(err){
                             ret = {
@@ -167,9 +175,8 @@ function delLayerType(req, res) {
                 getLayerTableListByTypeId(layerTypeId, function(resJson){
                     if (resJson.code == 200) {
                         var tableNameList = resJson.data.rows;
-
                         doDelLayerType(userId, tableNameList, layerTypeId, function(ret){
-                                Log.insertLog(userId, "删除图层类型", "del Layer Type");
+                                Log.insertLog(mobile, "删除图层类型", "del Layer Type");
                                 res.json(ret);
                             });
 
@@ -210,13 +217,12 @@ function delLayerType(req, res) {
  */
 function getLayerTableListByTypeId(typeId, callback) {
     var ret = {};
-
     var sql = "select table_name from " + LayerBasicTable + " where type_id = ?";
     var dataArr = [typeId];
     db.query(sql, dataArr, function(err,rows){
         if(err){
             ret = {
-                "code": 501,
+                "code": 510,
                 "data": {
                     "status": "fail",
                     "error": err.message
@@ -303,7 +309,7 @@ function delLayerandExt(userId, layerTypeId, callback) {
     sql += "(select layer_id from " + LayerBasicTable + " where type_id = ?)";
     dataArr = [layerTypeId];
 
-    Log.insertLog(userId, "del layer ext attr", sql);
+    //Log.insertLog(userId, "del layer ext attr", sql);
 
     db.query(sql, dataArr, function(mErr, mRows){
         if (mErr) {
@@ -314,7 +320,7 @@ function delLayerandExt(userId, layerTypeId, callback) {
             sql = "delete from " + LayerBasicTable + " where type_id = ? ";
             dataArr = [layerTypeId];
             
-            Log.insertLog(userId, "del layer", sql);
+            //Log.insertLog(userId, "del layer", sql);
 
             db.query(sql, dataArr, function(mmErr, mmRows){
                 if (mmErr) {
@@ -324,7 +330,7 @@ function delLayerandExt(userId, layerTypeId, callback) {
                     sql = "delete from " + LayerTypeTable + " where type_id = ?";
                     dataArr = [layerTypeId]; 
 
-                    Log.insertLog(userId, "del layer type", sql);
+                    //Log.insertLog(userId, "del layer type", sql);
 
                     db.query(sql, dataArr, function(mmmErr, mmmRows){
                         if (mmmErr) {
@@ -489,7 +495,7 @@ function editLayerType(req, res) {
                 var userId = userInfo.Id;
 
                 updateLayerType(layerTypeId, layerTypeName, userId, function(ret){
-                    Log.insertLog(userId, "编辑图层信息", "update Layer Type");
+                    Log.insertLog(mobile, "修改图层信息", "update Layer Type");
                     res.json(ret);
                 });
 
@@ -559,6 +565,7 @@ function updateLayerType(layerTypeId, layerTypeName, userId, callback) {
 //根据图层类型获取图层列表
 function getLayersByTypeId(req,res){
     var query = req.body;
+
     try {
         var mobile = query.mobile;
         var token = query.token;
@@ -646,7 +653,257 @@ function getLayersByTypeId(req,res){
     }
 }
 
+/**
+ * 添加静态图层
+ * @param  {[type]}   name   [description]
+ * @param  {[type]}   url [description]
+ */
+exports.addstaticLayer = function(req, res) {
+   var query = req.body;
+    try{
+        var mobile = query.mobile ||-1;
+        var token = query.token ||-1;
+        var url = query.url||-1;
+        var name = query.name ||-1;
+        if(mobile==-1 ||token==-1 || url==-1 ||name ==-1) {
+            res.json({"code": 300, "data": {"status": "fail", "error": "参数错误"}});
+            return;
+        }
+        User.getUserInfo(mobile, token, function(user) {
+            if(user.error== 0){
+                db.query("select count(0) as total from static_layer where name = ?",[name],function (err,data) {
+                    if(data.total== 0){
+                        var sql = "insert into static_layer (name, url) values (?, ?) ";
+                        db.query(sql,[name,url],function (err,row) {
+                            if(err){
+                                res.json({
+                                    "code": 501,
+                                    "data": {
+                                        "status": "fail",
+                                        "error": err.message
+                                    }
+                                });
+                            }else{
+                                Log.insertLog(mobile, "添加静态图层", "add static_layer");
+                                res.json({
+                                    "code": 200,
+                                    "data": {
+                                        "status": "success",
+                                        "error": "success",
+                                    }
+                                });
+                            }
+                        });
+                    }else{
+                        res.json({"code": 100, "data": {"status": "fail", "error": "静态图层已存在！"}});
+                    }
+                });
+            }else{
+                errMessage(res,301,"用户未登录");
+                return;
+            }
+        });
+    }
+    catch (e){
+        console.log(e);
+        res.json({"code":501,"data":{"syayus":"fail","error":"未知错误！"}});
+    }
+}
 
+/**
+ * 添加静态图层
+ * @param  {[type]}   name   [description]
+ * @param  {[type]}   url [description]
+ */
+exports.updatestaticLayer = function(req, res) {
+    var query = req.body;
+    try{
+        var mobile = query.mobile ||-1;
+        var token = query.token ||-1;
+        var url = query.url||-1;
+        var name = query.name ||-1;
+        var id = query.id || -1;
+        if(mobile==-1 ||token==-1 || id==-1 ) {
+            res.json({"code": 300, "data": {"status": "fail", "error": "参数错误"}});
+            return;
+        }
+        User.getUserInfo(mobile, token, function(user) {
+            if(user.error==0){
+                db.query("select count(0) as total from static_layer where id = ?",[id],function (err,data) {
+                    if(data.total==1){
+                        var sql = "update static_layer set name = ? ,url=? where id = ?";
+                        db.query(sql,[name,url,id],function (err,row) {
+                            if(err){
+                                res.json({
+                                    "code": 501,
+                                    "data": {
+                                        "status": "fail",
+                                        "error": err.message
+                                    }
+                                });
+                            }else{
+                                Log.insertLog(mobile, "修改静态图层", "update static_layer");
+                                res.json({
+                                    "code": 200,
+                                    "data": {
+                                        "status": "success",
+                                        "error": "success",
+                                    }
+                                });
+                            }
+                        })
+                    }else{
+                        res.json({"code": 100, "data": {"status": "fail", "error": "静态图层不存在！"}});
+                    }
+                })
+            }else{
+                errMessage(res,301,"用户未登录");
+                return;
+            }
+        })
+    }
+    catch (e){
+        console.log(e);
+        res.json({"code":501,"data":{"syayus":"fail","error":"未知错误！"}});
+    }
+}
+
+
+/**
+ * 删除静态图层
+ * @param  {[type]}   id   [description]
+ */
+exports.deletestaticLayer = function(req, res) {
+    var query = req.body;
+    try{
+        var mobile = query.mobile ||-1;
+        var token = query.token ||-1;
+        var id = query.id || -1;
+        if(mobile==-1 ||token==-1 || id==-1 ) {
+            res.json({"code": 300, "data": {"status": "fail", "error": "参数错误"}});
+            return;
+        }
+        User.getUserInfo(mobile, token, function(user) {
+            if(user.error==0){
+                db.query("select count(0) as total from static_layer where id = ?",[id],function (err,data) {
+                    if(data.total==1){
+                        var sql = "delete from static_layer where id = ?";
+                        db.query(sql,[id],function (err,row) {
+                            if(err){
+                                res.json({
+                                    "code": 501,
+                                    "data": {
+                                        "status": "fail",
+                                        "error": err.message
+                                    }
+                                });
+                            }else{
+                                Log.insertLog(mobile, "删除静态图层", "update static_layer");
+                                res.json({
+                                    "code": 200,
+                                    "data": {
+                                        "status": "success",
+                                        "error": "success",
+                                    }
+                                });
+                            }
+                        })
+                    }else{
+                        res.json({"code": 100, "data": {"status": "fail", "error": "静态图层不存在！"}});
+                    }
+                })
+            }else{
+                errMessage(res,301,"用户未登录");
+                return;
+            }
+        })
+    }
+    catch (e){
+        console.log(e);
+        res.json({"code":501,"data":{"syayus":"fail","error":"未知错误！"}});
+    }
+};
+/**
+ * 按id获取静态图层
+ * 有id按id获取
+ * 没有id获取全部
+ * @param  {[type]}   id   [description]
+ */
+exports.getstaticLayer = function(req, res) {
+    var query = req.body;
+    try{
+        var mobile = query.mobile ||-1;
+        var token = query.token ||-1;
+        var id = query.id || -1;
+        if(mobile==-1 ||token==-1 ) {
+            res.json({"code": 300, "data": {"status": "fail", "error": "参数错误"}});
+            return;
+        }
+        User.getUserInfo(mobile, token, function(user) {
+            if(user.error==0){
+                if(id!=-1){
+                    db.query("select count(0) as total from static_layer where id = ?",[id],function (err,data) {
+                        if(data.total==1){
+                            var sql = "select * from static_layer where id = ?";
+                            db.query(sql,[id],function (err,row) {
+                                if(err){
+                                    res.json({
+                                        "code": 501,
+                                        "data": {
+                                            "status": "fail",
+                                            "error": err.message
+                                        }
+                                    });
+                                }else{
+                                    res.json({
+                                        "code": 200,
+                                        "data": {
+                                            "status": "success",
+                                            "error": "success",
+                                            "row":row
+                                        }
+                                    });
+                                }
+                            })
+                        }else{
+                            res.json({"code": 100, "data": {"status": "fail", "error": "静态图层不存在！"}});
+                        }
+                    })
+                }else if(id==-1){
+                    var sqls = "select * from static_layer";
+                    db.query(sqls,null,function (err,datas) {
+                        if(err){
+                            res.json({
+                                "code": 501,
+                                "data": {
+                                    "status": "fail",
+                                    "error": err.message
+                                }
+                            });
+                        }else{
+                            res.json({
+                                "code": 200,
+                                "data": {
+                                    "status": "success",
+                                    "error": "success",
+                                    "row":datas
+                                }
+                            });
+                        }
+                    })
+                }
+
+            }else{
+                errMessage(res,301,"用户未登录");
+                return;
+            }
+        })
+    }
+    catch (e){
+        console.log(e);
+        res.json({"code":501,"data":{"syayus":"fail","error":"未知错误！"}});
+    }
+};
 exports.addLayerType = addLayerType;
 exports.delLayerType = delLayerType;
 exports.editLayerType = editLayerType;

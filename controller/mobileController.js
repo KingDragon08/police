@@ -84,7 +84,7 @@ function loginWithToken(req, res) {
                     	console.log(err);
                         result[0]["token"] = token;
                         result[0]["status"] = "success";
-                        Log.insertLog(mobile,"token登录","loginWithToken");
+                        //Log.insertLog(mobile,"token登录","loginWithToken");
                         res.json({ "code": 200, "data": result[0] });
                         //更新数据库
                         conn.query("update mobileUser set token=?,lastLoginTime=?," +

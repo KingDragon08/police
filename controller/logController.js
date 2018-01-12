@@ -10,16 +10,28 @@ function getLogOperate(req,res) {
     try{
         var mobile = query.mobile;
         var token = query.token;
+        var pid = query.pid || -1;
         User.getUserInfo(mobile, token, function (user) {
             if(user.error == 0){
-                var sql = "select operate from log_operate";
-                db.query(sql,[],function (err,data) {
-                    if(err){
-                        res.json({"code": 501, "data": {"status": "fail", "error": "数据查询错误"}});
-                    }else{
-                        res.json({"code": 200, "data": {"status": "fail", "data":data}});
-                    }
-                })
+                if(pid == -1){
+                    var sql = "select * from log_operate where pid=?";
+                    db.query(sql,[0],function (err,data) {
+                        if(err){
+                            res.json({"code": 501, "data": {"status": "fail", "error": "数据查询错误"}});
+                        }else{
+                            res.json({"code": 200, "data": {"status": "fail", "data":data}});
+                        }
+                    });
+                }else{
+                    var sql = "select * from log_operate where pid =?";
+                    db.query(sql,[pid],function (err,data) {
+                        if(err){
+                            res.json({"code": 501, "data": {"status": "fail", "error": "数据查询错误"}});
+                        }else{
+                            res.json({"code": 200, "data": {"status": "fail", "data":data}});
+                        }
+                    });
+                }
             }else {
                 res.json({"code": 501, "data": {"status": "fail", "error":"用户未登录"}});
             }
@@ -37,7 +49,6 @@ function getLogList(req, res) {
         var token = query.token;
         User.getUserInfo(mobile, token, function (user) {
             if (user.error == 0) {
-                //
                 var sql = "select count(id) as total from log";
                 var dataArr = [];
                 db.query(sql, dataArr, function (err, rows) {
@@ -249,8 +260,9 @@ function listLogByMobile(req, res) {
                         sqls += " and ";
                         sql += " and ";
                     }
-                    sqls += key[i]+" = "+JSON.stringify(value[i]);
-                    sql += key[i]+" = "+JSON.stringify(value[i]);
+                    var a = value[i];
+                    sqls += key[i]+" like '%"+a+"%'";
+                    sql += key[i]+" like '%"+a+"%'";
                 }
                 if(startTime != -1){
                     if(key.length<1){
