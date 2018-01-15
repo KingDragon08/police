@@ -74,21 +74,21 @@ function addCamera(req, res) {
                         return;    
                 } else {
                     //原始坐标需要转换
-                    if(cam_loc_lon<180 && cam_loc_lan<180){
-                        transformPoint(cam_loc_lon, cam_loc_lan, function(temp){
-                            cam_loc_lon = temp.x;
-                            cam_loc_lan = temp.y;
-                            cam_extra = JSON.parse(cam_extra);
-                            createNewCamera(cam_no,cam_name,cam_sta,curtime,curtime,
-                                            user_id,cam_loc_lan,cam_loc_lon,cam_desc,
-                                            cam_addr,cam_extra,function(ret){
-                                                Log.insertLog(mobile,"添加摄像头","add Camera");
-                                                res.json(ret);
-                                                //删除重复记录
-                                                deleteRepeatCameras();
-                                            });
-                        });
-                    } else {
+                    // if(cam_loc_lon<180 && cam_loc_lan<180){
+                    //     transformPoint(cam_loc_lon, cam_loc_lan, function(temp){
+                    //         cam_loc_lon = temp.x;
+                    //         cam_loc_lan = temp.y;
+                    //         cam_extra = JSON.parse(cam_extra);
+                    //         createNewCamera(cam_no,cam_name,cam_sta,curtime,curtime,
+                    //                         user_id,cam_loc_lan,cam_loc_lon,cam_desc,
+                    //                         cam_addr,cam_extra,function(ret){
+                    //                             Log.insertLog(mobile,"添加摄像头","add Camera");
+                    //                             res.json(ret);
+                    //                             //删除重复记录
+                    //                             deleteRepeatCameras();
+                    //                         });
+                    //     });
+                    // } else {
                         cam_extra = JSON.parse(cam_extra);
                         createNewCamera(cam_no,cam_name,cam_sta,curtime,curtime,
                                         user_id,cam_loc_lan,cam_loc_lon,cam_desc,
@@ -98,7 +98,7 @@ function addCamera(req, res) {
                                             //删除重复记录
                                             deleteRepeatCameras();
                                         });
-                    }
+                    // }
                 }
                 
             } else {
@@ -1595,24 +1595,24 @@ function multiAddCamerasThen(req,res,data,attr_name){
                             //item[6]->cam_loc_lan,item[7]->cam_loc_lon
                             //原始坐标需要转换
 
-                            if(item.length>7 && item[6]<180 && item[7]<180){
-                                transformPoint(item[7], item[6], function(temp){
-                                    item[6] = temp.x;
-                                    item[7] = temp.y;    
-                                    //插入摄像头数据
-                                    db.query("insert into camera("+attr_name_list.join(',')+")values("+spaceStr+")",item,
-                                        function(err,data){
-                                            if(err){
-                                                flag = false;
-                                                console.log(err.message);
-                                                call(null, item);
-                                            } else {
-                                                call(null, item);
-                                            }
-                                        });
-                                });
+                            // if(item.length>7 && item[6]<180 && item[7]<180){
+                            //     transformPoint(item[7], item[6], function(temp){
+                            //         item[6] = temp.x;
+                            //         item[7] = temp.y;    
+                            //         //插入摄像头数据
+                            //         db.query("insert into camera("+attr_name_list.join(',')+")values("+spaceStr+")",item,
+                            //             function(err,data){
+                            //                 if(err){
+                            //                     flag = false;
+                            //                     console.log(err.message);
+                            //                     call(null, item);
+                            //                 } else {
+                            //                     call(null, item);
+                            //                 }
+                            //             });
+                            //     });
                                 
-                            } else {
+                            // } else {
                                 //插入摄像头数据
                                 db.query("insert into camera("+attr_name_list.join(',')+")values("+spaceStr+")",item,
                                     function(err,data){
@@ -1624,7 +1624,7 @@ function multiAddCamerasThen(req,res,data,attr_name){
                                             call(null, item);
                                         }
                                     });
-                            }
+                            // }
                         },function(err,results){
                             deleteRepeatCameras();
                             autoAddCameraTypes();
