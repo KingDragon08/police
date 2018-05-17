@@ -42,7 +42,7 @@ function transformPoint(x6, y6){
     var y5 = points[index].outY;
     var x = (x2*x6-x2*x4-x1*x6+x1*x5)/(x5-x4) + offsetX;
     var y = (y2*y6-y2*y4-y1*y6+y1*y5)/(y5-y4) + offsetY;
-    return { x,y};
+    return { x:x, y:y};
     // return {
     //     x: (x2*x6-x2*x4-x1*x6+x1*x5)/(x5-x4) + offsetX,
     //     y: (y2*y6-y2*y4-y1*y6+y1*y5)/(y5-y4) + offsetY
@@ -95,7 +95,7 @@ function transformPointReverse(x6, y6){
     var y5 = points[index].inY;
     var x = (x2*x6-x2*x4-x1*x6+x1*x5)/(x5-x4) + offsetX;
     var y = (y2*y6-y2*y4-y1*y6+y1*y5)/(y5-y4) + offsetY;
-    return {x, y};
+    return {x:x, y:y};
 }
 
 
